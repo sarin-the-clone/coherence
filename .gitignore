@@ -8,7 +8,7 @@ generated_texts_og/Epub/
 generated_texts_og/Pdf/
 generated_texts_og/prompts/*/
 # natural_texts/ # Un-ignored to allow code/scripts
-natural_texts/Output/
+# natural_texts/Output/ # Included per user request
 
 # Exclude large logs
 *.log
