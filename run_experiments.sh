@@ -280,11 +280,11 @@ if [[ "$1" -ge 15 && "$1" -le 32 ]]; then
         fi
         
         python3 generated_texts_og/run_longbook.py \
-            --model mistral \
+            --model qwen25_small \
             --prompt_file "$PROMPT_FILE" \
             --target_tokens 1000000 \
-            --max_tokens 16384 \
-            --temp_low 1.0 --temp_high 1.4 \
+            --max_tokens 4096 \
+            --temp_low 1.0 --temp_high 1.3 \
             --top_p 0.95 \
             --run_id "$RUN_ID" \
             --restart_every 200

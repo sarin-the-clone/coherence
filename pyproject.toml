@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "coherence"
+version = "0.1.0"
+description = "Text generation and coherence metrics analysis"
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+transformers = "^4.35.0"
+scipy = "^1.11.0"
+numba = "^0.60.0"
+numpy = "^1.24.0"
+pyyaml = "^6.0"
+tqdm = "^4.66.0"
+ebooklib = "^0.18"
+reportlab = "^4.0.0"
+accelerate = "^1.0.0"
+nvitop = "^1.6.2"
+bpytop = "^1.0.68"
+tiktoken = "^0.12.0"
+natsort = "^8.4.0"
+torch = {version = "2.7.1", source = "pytorch"}
+sentencepiece = "^0.2.1"
+protobuf = "^6.33.5"
+
+[tool.poetry.group.dev.dependencies]
+pywavelets = "^1.4.0"
+
+
+[[tool.poetry.source]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/cu128"
+priority = "explicit"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
