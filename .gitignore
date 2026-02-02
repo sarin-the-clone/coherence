@@ -1,0 +1,37 @@
+# Exclude large generation artifacts
+generated_texts_og/
+generated_texts_rag/
+natural_texts/
+
+# Exclude large logs
+*.log
+*.out
+
+# Exclude python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Exclude virtual environments (just in case they are created here)
+venv/
+env/
+.env
+
+# Exclude large data files
+*.npy
+*.pt
+*.pth
+*.bin
+*.h5
+*.avro
+*.parquet
+
+# Exclude OS files
+.DS_Store
+
+# Exclude specific temp or output files
+*.tmp
+analysis/output/
+*.onnx
+batch_15_32_log.txt
