@@ -1,6 +1,12 @@
 # Exclude large generation artifacts
-generated_texts_og/
+# Exclude large generation artifacts
 generated_texts_rag/
+# generated_texts_og/ # Un-ignored to allow code/templates
+generated_texts_og/Output/
+generated_texts_og/Texts/
+generated_texts_og/Epub/
+generated_texts_og/Pdf/
+generated_texts_og/prompts/*/
 natural_texts/
 
 # Exclude large logs

@@ -1,0 +1,123 @@
+import os
+import argparse
+from datetime import datetime
+from tqdm import tqdm
+import torch
+from transformers import AutoTokenizer, AutoModelForCausalLM
+
+
+def generate_chunk(model, tokenizer, prompt, max_tokens, temperature, top_p, device):
+    """Generate a single chunk using model.generate without reloading."""
+    inputs = tokenizer(prompt, return_tensors="pt")
+    inputs = {k: v.to(device) for k, v in inputs.items()}
+
+    output = model.generate(
+        **inputs,
+        max_new_tokens=max_tokens,
+        temperature=temperature,
+        top_p=top_p,
+        do_sample=True,
+        pad_token_id=tokenizer.eos_token_id,
+    )
+
+    decoded = tokenizer.decode(output[0], skip_special_tokens=True)
+    return decoded
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model", type=str, default="Qwen/Qwen2-7B-Instruct")
+    parser.add_argument("--prompt", type=str, required=True)
+    parser.add_argument("--chunks", type=int, default=8)
+    parser.add_argument("--per_chunk", type=int, default=25000)
+    parser.add_argument("--temp", type=float, default=1.1)
+    parser.add_argument("--top_p", type=float, default=0.9)
+    parser.add_argument("--seed", type=int, default=None)
+    parser.add_argument("--save_chunks", action="store_true")
+    parser.add_argument("--clean_chunks", action="store_true")
+
+    args = parser.parse_args()
+
+    # Seed
+    seed = args.seed if args.seed is not None else int(datetime.now().timestamp())
+    torch.manual_seed(seed)
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"[Using device: {device}]")
+
+    # ------------------------------
+    # Load tokenizer + model ONCE
+    # ------------------------------
+    print(f"[Loading tokenizer: {args.model}]")
+    tokenizer = AutoTokenizer.from_pretrained(args.model)
+
+    print(f"[Loading model: {args.model}]")
+    model = AutoModelForCausalLM.from_pretrained(
+        args.model,
+        torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
+    )
+    model.to(device)
+    print(f"[Model is on → {next(model.parameters()).device}]")
+
+    # ------------------------------
+    # Output book path
+    # ------------------------------
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    book_path = f"generated_texts/Texts/LONGBOOK__{args.model.replace('/', '-') }__{timestamp}.txt"
+    os.makedirs("generated_texts/Texts", exist_ok=True)
+
+    # Optional temp chunk directory
+    tmp_dir = "generated_texts/TMP"
+    if args.save_chunks:
+        os.makedirs(tmp_dir, exist_ok=True)
+
+    accumulated = args.prompt.strip() + "\n\n"
+
+    print(f"[START] Generating {args.chunks} chunks × {args.per_chunk} tokens")
+    print(f"[Output will be written → {book_path}]")
+
+    # ------------------------------
+    # Main loop
+    # ------------------------------
+    with open(book_path, "w", encoding="utf-8") as book_file:
+        book_file.write(accumulated)
+
+        for i in tqdm(range(args.chunks), desc="Generating chunks", ncols=80):
+            torch.manual_seed(seed + i)
+
+            # Generate chunk
+            full = generate_chunk(
+                model, tokenizer, accumulated,
+                args.per_chunk, args.temp, args.top_p, device
+            )
+
+            # Extract new content (model repeats the prompt)
+            new_part = full[len(accumulated):].strip()
+
+            if args.save_chunks:
+                chunk_path = os.path.join(tmp_dir, f"chunk_{i+1:03d}.txt")
+                with open(chunk_path, "w", encoding="utf-8") as f:
+                    f.write(new_part)
+
+            # Append to final book
+            book_file.write("\n" + new_part + "\n")
+            book_file.flush()
+
+            accumulated += "\n" + new_part + "\n"
+
+    print(f"[DONE] Book generated successfully → {book_path}")
+
+    # ------------------------------
+    # Cleanup temporary chunks
+    # ------------------------------
+    if args.clean_chunks and args.save_chunks:
+        for f in os.listdir(tmp_dir):
+            os.remove(os.path.join(tmp_dir, f))
+        os.rmdir(tmp_dir)
+        print("[Cleanup] Temporary chunks deleted.")
+
+    print("[COMPLETE]")
+
+
+if __name__ == "__main__":
+    main()

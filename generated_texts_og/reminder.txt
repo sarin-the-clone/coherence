@@ -1,0 +1,46 @@
+python generated_texts_og/run_longbook.py \
+  --prompt "$(cat generated_texts_og/prompts/initial_prompt_template.md)" \
+  --chunks 21 \
+  --model mistral \
+  --config generated_texts_og/config/model_config.yaml \
+  --temp_low 0.55 \
+  --temp_high 0.70 \
+  ; \
+python generated_texts_og/run_longbook.py \
+  --prompt "$(cat generated_texts_og/prompts/initial_prompt_template.md)" \
+  --chunks 111 \
+  --model mistral \
+  --config generated_texts_og/config/model_config.yaml \
+  --temp_low 0.55 \
+  --temp_high 0.70 
+
+
+
+# 1. Generate filled contract
+python3 generated_texts_og/quick_generate_prompt.py \
+  --genre "science fiction" \
+  --theme "robot learning to paint during robot ban" \
+  --tone "bittersweet adventure" \
+  --output generated_texts_og/prompts/my_story_contract.md
+
+# 2. Then use it
+python3 generated_texts_og/run_longbook.py \
+  --prompt "$(cat generated_texts_og/prompts/my_story_contract.md)" \
+  --chunks 121 \
+  --model mistral \
+  --temp_low 0.60 \
+  --temp_high 0.75
+
+
+
+
+python3 generated_texts_og/quick_generate_prompt.py --genre "Historical Fiction" --theme "The fall of a great empire seen through the eyes of a court musician" --tone "Melancholic and lush" --output generated_texts_og/prompts/historical_empire.md
+python3 generated_texts_og/run_longbook.py --prompt "$(cat generated_texts_og/prompts/historical_empire.md)" --chunks 100 --model mistral
+
+
+
+python3 generated_texts_og/quick_generate_prompt.py \
+  --genre "Historical Fiction" \
+  --theme "The Kingdom of Kush (Nubia) in East Africa surpassing a declining Egypt. Focus on iron-working, trade, and cultural richness." \
+  --tone "Epic, Detailed, Atmospheric" \
+  --output "generated_texts_og/prompts/kingdom_of_kush.md"
