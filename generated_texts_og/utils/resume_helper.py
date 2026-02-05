@@ -1,3 +1,10 @@
+"""
+resume_helper.py
+
+Utilities to assist in resuming interrupted long-book generation runs.
+Includes functions to identify the latest valid checkpoint, load memory snapshots,
+and reconstruct text history from individual chunk files.
+"""
 import os
 import re
 import json

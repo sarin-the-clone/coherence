@@ -1,10 +1,11 @@
 # Natural language prompt templates for longbook generation
 
 # -------------------------------------------------------------------
+# -------------------------------------------------------------------
 # Chunk Generation
 # -------------------------------------------------------------------
 
-CHUNK_GENERATION_PROMPT = """You are a novelist continuing a story. Write at least {target_length} words.
+CHUNK_GENERATION_PROMPT = """{identity_prompt} Write at least {target_length} words.
 
 STORY CONTRACT (maintain throughout):
 {story_contract}
@@ -16,7 +17,7 @@ PREVIOUS TEXT (last section):
 {previous_text}
 
 CRITICAL RULES:
-- Write ONLY story prose - no code, no JSON, no meta-commentary
+- Write ONLY prose content - no code, no JSON, no meta-commentary
 - Do NOT include the original prompt or instructions
 - Do NOT start with "assistant:" or any prefix
 - Continue naturally from where the previous text ended
@@ -24,13 +25,13 @@ CRITICAL RULES:
 - Show, don't tell. **Avoid filtering words** (e.g., "she felt", "he saw", "it seemed"). Describe the sensation directly.
 
 STYLE REQUIREMENTS (for natural text quality):
-- **RICH VOCABULARY**: Use RICH, RARE, and PRECISE vocabulary. Avoid generic words (e.g., instead of "looked", use "gazed", "peered", "glared"). Do not repeat words within the same paragraph.
+- **RICH VOCABULARY**: Use RICH, RARE, and PRECISE vocabulary. Avoid generic words. Do not repeat words within the same paragraph.
 - **SYNTAX**: Use complex, varied sentence structures. Mix short punchy sentences with long, flowing ones containing subordinate clauses.
-- **INFORMATION DENSITY**: Every sentence must add new information, texture, or character depth. Avoid filler sentences.
-- **LONG-RANGE DEPENDENCE**: You MUST explicitly reference events, objects, or decisions from previous chapters (not just the recent ones). Weave in recurring motifs.
-- **SENSORY DETAILS**: Incorporate specific sights, sounds, smells, textures, and tastes.
+- **INFORMATION DENSITY**: Every sentence must add new information, texture, or depth. Avoid filler sentences.
+- **LONG-RANGE DEPENDENCE**: You MUST explicitly reference events, objects, or concepts from previous chapters (not just the recent ones). Weave in recurring motifs.
+- **SENSORY DETAILS**: Incorporate specific sights, sounds, smells, textures, and tastes/observations.
 - **AVOID CLICHÉS**: Use fresh metaphors and similes.
-- **NON REPETITIVE**: Do not copy-paste phrases or descriptions from the previous text. Constantly vary your phrasing, but do not be afraid to reference the same subjects (thematic cohesion).
+- **NON REPETITIVE**: Do not copy-paste phrases or descriptions from the previous text. Constantly vary your phrasing.
 - **THEMATIC CONTINUITY**: While varying your language, maintain the core atmosphere and recurring motifs. Repetition of key thematic words is acceptable for coherence.
 {variation_hint}
 Write the continuation now (prose only):
@@ -43,19 +44,19 @@ Write the continuation now (prose only):
 # without bloating the prompt. Rotate through them every few chunks.
 
 VARIATION_HINTS = [
-    "\n- NEW: Shift to a different setting or introduce a fresh scene type.",
-    "\n- NEW: Change pacing - if recent text was fast, slow down; if slow, accelerate.",
-    "\n- NEW: **CALLBACK**: Explicitly reference a consequence from an earlier event (try to reference something from at least 3 chapters ago).",
-    "\n- NEW: Vary sentence rhythm - use short, jagged sentences to create tension.",
-    "\n- NEW: Shift emotional tone drastically from the previous section.",
-    "\n- NEW: Introduce a sudden, unexpected obstacle or complication.",
+    "\n- NEW: Shift to a different setting or introduce a fresh topic/scene.",
+    "\n- NEW: Change pacing - if recent text was fast/dense, slow down; if slow, accelerate.",
+    "\n- NEW: **CALLBACK**: Explicitly reference a consequence or concept from an earlier chapter (try to reference something from at least 3 chapters ago).",
+    "\n- NEW: Vary sentence rhythm - use short, jagged sentences to create tension/emphasis.",
+    "\n- NEW: Shift emotional or analytical tone drastically from the previous section.",
+    "\n- NEW: Introduce a sudden, unexpected obstacle, counter-argument, or complication.",
     "\n- NEW: **VOCABULARY**: Use archaic, scientific, or rare words appropriate to the context.",
     "\n- NEW: Employ complex, nested sentence structures with multiple subordinate clauses.",
-    "\n- NEW: Focus on **MICRO-DETAILS**: Describe a small object or texture in extreme, microscopic detail.",
-    "\n- NEW: Use a strange or surreal metaphor to describe a common feeling.",
+    "\n- NEW: Focus on **MICRO-DETAILS**: Describe a small object, mechanism, or texture in extreme, microscopic detail.",
+    "\n- NEW: Use a strange or surreal metaphor to describe a common feeling or concept.",
     "\n- NEW: **MOTIF**: Reintroduce a recurring symbol or theme from the start of the book.",
-    "\n- NEW: **Perspective Shift**: Focus intently on the internal physical sensations of the character.",
-    "\n- NEW: **Unreliable Narration**: Write a passage where the character's perception might be flawed or distorted.",
+    "\n- NEW: **Perspective Shift**: Focus intently on the internal physical sensations or deeper underlying mechanics.",
+    "\n- NEW: **Unexpected Angle**: Write a passage where the perception or analysis might be flawed or challenged.",
     "",  # No hint - let model flow naturally
 ]
 
@@ -144,7 +145,7 @@ Return ONLY the JSON, no other text.
 # Initial Story Contract Generation (LLM-generated)
 # -------------------------------------------------------------------
 
-INITIAL_PROMPT_GENERATION = """You are a creative writing consultant helping to design a compelling long-form novel.
+INITIAL_PROMPT_GENERATION = """{identity_prompt} helping to design a compelling long-form {format_type}.
 
 Given the following inputs, create a detailed story contract that will guide consistent, coherent long-form generation:
 

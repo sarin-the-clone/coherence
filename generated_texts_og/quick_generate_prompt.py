@@ -34,7 +34,23 @@ def main():
     model = ModelFactory.create_model(model_config)
     
     # Generate
+    # Determine Identity & Format
+    # Determine Identity & Format
+    g_lower = args.genre.lower()
+    if any(x in g_lower for x in ['science', 'philosophy', 'technical', 'non-fiction', 'textbook', 'biography']):
+        if 'biography' in g_lower:
+            identity_prompt = "You are an expert biographer and historian"
+            format_type = "detailed biography"
+        else:
+            identity_prompt = "You are an expert domain consultant"
+            format_type = "book or treatise"
+    else:
+        identity_prompt = "You are a creative writing consultant"
+        format_type = "novel"
+
     prompt = INITIAL_PROMPT_GENERATION.format(
+        identity_prompt=identity_prompt,
+        format_type=format_type,
         genre=args.genre,
         theme=args.theme,
         tone=args.tone

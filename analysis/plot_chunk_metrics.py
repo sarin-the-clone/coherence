@@ -37,8 +37,10 @@ try:
 except Exception:
     COH_LIMITS = {}
 
+
 # Size-binned natural text stats for overlays
 SIZE_STATS_PATH = Path(__file__).resolve().parents[1] / "natural_texts" / "Output" / "analysis" / "size_binned_metrics.json"
+
 def load_size_stats():
     if SIZE_STATS_PATH.exists():
         try:
@@ -50,12 +52,10 @@ def load_size_stats():
 
 SIZE_STATS = load_size_stats()
 
-
-
-
 def load_attempts(folder: Path) -> Dict[int, Dict[int, Dict]]:
     """Return {chunk: {attempt: record}}."""
     pattern = re.compile(r"chunk_(\d+)_attempt_(\d+)\.txt$")
+
     attempts_by_chunk: Dict[int, Dict[int, Dict]] = {}
 
     for file in folder.glob("chunk_*_attempt_*.txt"):
@@ -372,35 +372,27 @@ def plot_metrics(
                             )
                             band_labels_used.add(label_key)
                     else:
-                        # Informational: Draw < 100k with different color
-                        # 1. Main bin (100k+)
-                        main_x0 = max(x0, 100.0)
-                        if main_x0 < x1:
+                        # Informational: Still treat as normal (start > 100k) or just suppress special logic
+                        # Actually we want normal plotting for informational too now, but clamped at 100k?
+                        # "remove the gray colored area <100k (proxy)"
+                        # This just means we plot the main bin like structural.
+                        draw_x0 = max(x0, 100.0)
+                        if draw_x0 < x1:
                             ax.fill_between(
-                                [main_x0, x1], [p25, p25], [p75, p75],
+                                [draw_x0, x1], [p25, p25], [p75, p75],
                                 color=color, alpha=0.08, zorder=1.5,
                                 label=label
                             )
                             band_labels_used.add(label_key)
-                        
-                        # 2. Early bin (<100k) - Distinct Color
-                        # Draw from 0 to 100k
-                        pre_color = "#A9A9A9" # DarkGray for better visibility
-                        proxy_label = "<100k (proxy)"
-                        
-                        ax.fill_between(
-                            [0, 100.0], [p25, p25], [p75, p75],
-                            color=pre_color, alpha=0.25, zorder=1.4, 
-                            label=proxy_label if proxy_label not in band_labels_used else None
-                        )
-                        band_labels_used.add(proxy_label)
+
                 else:
-                    # Normal bin
+                    # Normal bin including 100k+
                     ax.fill_between(
                         [draw_x0, x1], [p25, p25], [p75, p75],
                         color=color, alpha=0.08, zorder=1.5,
                         label=label
                     )
+
 
                 band_labels_used.add(label_key)
                 
@@ -410,7 +402,7 @@ def plot_metrics(
                 
                 draw_x0 = x0
                 if is_100k_bin:
-                    # User request: don't plot mean for <100k proxy region
+                    # Do not plot mean for <100k proxy region
                     draw_x0 = max(x0, 100.0)
                 
                 if draw_x0 < x1:
@@ -484,11 +476,11 @@ def main():
         "--out",
         "-o",
         default=None,
-        help="Output image path (default: <folder>/metrics_evolution.jpg)",
+        help="Output image path (default: <folder>/_metrics_evolution.jpg)",
     )
     # No longer taking generic --metrics arg, but we can keep it if we want to override both lists?
     # For simplicity, let's hardcode the split as requested or allow passing separated lists?
-    # The user asked to separate them in code. Let's just use the defaults requested.
+    # Separate them in code. Let's just use the defaults requested.
     
     args = parser.parse_args()
 
@@ -497,7 +489,7 @@ def main():
         raise SystemExit(f"Folder not found: {folder}")
 
     attempts_by_chunk = load_attempts(folder)
-    out_path = Path(args.out) if args.out else folder / "metrics_evolution.jpg"
+    out_path = Path(args.out) if args.out else folder / "_metrics_evolution.jpg"
 
     structural_metrics = ["beta", "alpha", "H_DMA", "H_WT_db4"]
     informational_metrics = ["entropy_bits", "perplexity", "lz_complexity", "mi_decay_gamma"]

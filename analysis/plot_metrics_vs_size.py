@@ -2,15 +2,10 @@
 """
 plot_metrics_vs_size.py
 
-Analyzes the relationship between metrics (Gamma, Lz) and Book Size
+Analyzes and visualizes the relationship between coherence metrics and book size
 in natural texts.
-
-Features:
-- Curve fitting to moving averages (Linear, Log-Quadratic) displayed on each plot
-- Distinct colors for Fit (Red) vs Moving Average (Black)
-
-Usage:
-    python3 plot_metrics_vs_size.py
+Generates two-column plots: Statistical metrics (left) vs Informational metrics (right),
+including moving averages and curve fitting (Linear/Log-Quadratic).
 """
 
 import os

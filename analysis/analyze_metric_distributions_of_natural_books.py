@@ -317,7 +317,7 @@ def main():
     n_tokens_all = [d.get("n_tokens") for d in data if d.get("n_tokens") is not None]
     if n_tokens_all:
         max_tokens = int(max(n_tokens_all))
-        # Fixed bins aligned with user request (5 bins, top split 800k)
+        # Fixed bins (5 bins, top split 800k)
         bin_specs = [
             ("0-(100-150k)", 100_000, 150_000),
             ("1-(150-300k)", 150_000, 300_000),

@@ -1,4 +1,10 @@
+"""
+recompute_natural_batches.py
 
+Reprocesses existing batch result files by locating the source text, 
+re-tokenizing, and re-computing all coherence metrics.
+Useful for updating metrics across the entire natural text corpus when metric definitions change.
+"""
 import os
 import glob
 import json

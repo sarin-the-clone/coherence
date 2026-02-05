@@ -1,3 +1,10 @@
+"""
+repair_metadata.py
+
+One-off script to repair a specific metadata corruption issue in Run 13/Run 6
+where accumulated token counts became inconsistent after a specific chunk (452).
+Recalculates correct token counts and updates subsequent chunk metadata.
+"""
 import os
 import json
 import glob

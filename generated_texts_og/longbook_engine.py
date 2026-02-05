@@ -107,7 +107,7 @@ class LongBookGenerator:
         self.device = self.model.device
 
         # Memory modules
-        # Memory modules
+
         # Override config context_window if max_chunk_tokens (CLI) implies a larger requirement
         # We estimate 1 token ~= 4 chars
         config_window = model_config.get("context_window", 8000)
@@ -146,6 +146,8 @@ class LongBookGenerator:
                 print(f"{msg} -> Not found. Starting fresh in {run_id}.")
                 # will be handled in fresh start block
 
+        self.prompt_filename = prompt_filename
+
         
         # Track full text and tokens for global metrics
         self.full_text = ""
@@ -169,7 +171,7 @@ class LongBookGenerator:
             if last_id > 0:
                 print(f"   Found checkpoint at chunk {last_id}")
                 
-                 # SAFE RESUME LOGIC (User Request): Discard the last chunk to ensure clean state
+                # SAFE RESUME LOGIC: Discard the last chunk to ensure clean state
                 print(f"   🛡️ SAFE RESUME: Discarding last chunk ({last_id}) to prevent corruption.")
                 last_id = max(0, last_id - 1)
                 print(f"   -> Resuming from Chunk {last_id}")
@@ -501,9 +503,31 @@ class LongBookGenerator:
         # 2048 tokens -> ~1500 words
         # 4096 tokens -> ~3000 words
         target_words = int(self.max_chunk_tokens * 0.75)
+        # Determine identity based on prompt_filename or metadata
+        # (Assuming prompts filenames contain keywords like 'science', 'philosophy', 'technical')
+        
+        identity_prompt = "You are a novelist continuing a story." # Default
+        
+        # Check metadata or filename for non-fiction keywords
+        pf = self.prompt_filename.lower() if hasattr(self, 'prompt_filename') and self.prompt_filename else ""
+        
+        if "science" in pf or "physics" in pf or "biology" in pf:
+            identity_prompt = "You are an expert science writer and educator."
+        elif "philosophy" in pf:
+            identity_prompt = "You are a philosopher writing a comprehensive treatise."
+        elif "history" in pf or "historical" in pf:
+             # Historical fiction is still a 'novelist' task usually, but maybe 'historian' if non-fiction
+             if "library" in pf: # historical_library.md
+                 identity_prompt = "You are a historical novelist writing an immersive period piece."
+        elif "technical" in pf:
+             identity_prompt = "You are a technical writer creating a detailed reference guide."
+        elif "biography" in pf:
+             identity_prompt = "You are a meticulous biographer recounting a real life."
+             
         length_str = f"{target_words}-{target_words + 500}"
         
         base_prompt = CHUNK_GENERATION_PROMPT.format(
+            identity_prompt=identity_prompt,
             story_contract=self.story_contract,
             memory_summary=memory_summary,
             previous_text=prev_text,
@@ -525,7 +549,7 @@ class LongBookGenerator:
             
             # Estimate remaining chunks for "Finale" logic (assuming 1k tokens/chunk for safety)
             # This is just for prompt phrasing "X chunks remaining"
-            # Estimate remaining chunks for "Finale" logic
+
             # Handle potential zero division if full_tokens is empty (e.g. at very start)
             avg_toks = len(self.full_tokens) / max(1, chunk_id)
             if avg_toks <= 0:
@@ -755,7 +779,7 @@ class LongBookGenerator:
             # if 'accumulated_metrics' in locals(): del accumulated_metrics  # Removed to fix UnboundLocalError
             gc.collect()
 
-            # User request: "Only accumulated metrics should be gated, not local ones."
+            # Only accumulated metrics should be gated, not local ones.
             # We satisfy this by passing acceptance_metrics (accumulated).
             # However, for the 'text' argument which checks for immediate stuttering/n-gram repetition,
             # we MUST use the new_text, otherwise we'd re-scan the whole book for repeats which is wrong.

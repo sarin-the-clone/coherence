@@ -108,7 +108,7 @@ def fix_file(filepath):
         
         data["full_output"] = corrected_text
         # Reset metrics? Calculating metrics is hard without model. 
-        # User just wants text fixed. The metrics will be wrong but that's better than duplication.
+        # Fix text primarily. Metrics might be temporarily inaccurate but better than duplication.
         # We can set metrics to None or leave them (they reflect the bad text).
         # Leaving them is safer for "resuming" unless resumed engine re-checks.
         

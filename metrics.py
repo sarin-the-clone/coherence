@@ -845,18 +845,18 @@ class CoherenceMetrics:
 
     # ------------------------- Structural -------------------------
     def compute_structural_scaling(self):
-        #print("\nStructural")
+
         # 1) β
         t0 = time.perf_counter()
         beta = autocorrelation_decay(self.tokens, device=self.device)
         t1 = time.perf_counter()
-        #print(f" - beta     done in {t1 - t0:.2f}s on {_dev_label(self.device)}")
+
 
         # 2) α
         t0 = time.perf_counter()
         alpha = spectral_exponent(self.tokens, device=self.device)
         t1 = time.perf_counter()
-        #print(f" - alpha    done in {t1 - t0:.2f}s on {_dev_label(self.device)}")
+
 
         # 3) H (DFA) - Multi-order
         t0 = time.perf_counter()
@@ -867,18 +867,18 @@ class CoherenceMetrics:
         # DFA3 (Cubic)
         H3 = hurst_dfa(self.tokens, device=self.device, order=3)
         t1 = time.perf_counter()
-        #print(f" - H (DFA1-3) done in {t1 - t0:.2f}s on {_dev_label(self.device)}")
+
 
         # 4) D (derived from H1 for consistency, or we can output multiple Ds)
         # Let's keep D based on DFA1 for backward compatibility
         D = fractal_dimension(H1)
-        #print(f" - D        computed instantly on Cpu")
+
 
         # 5) DEA (delta)
         t0 = time.perf_counter()
         delta, _ = diffusion_entropy_analysis(self.tokens, device=self.device)
         t1 = time.perf_counter()
-        #print(f" - delta    done in {t1 - t0:.2f}s on Cpu")
+
         
         # 6) DMA (H_DMA)
         t0 = time.perf_counter()
@@ -930,7 +930,7 @@ class CoherenceMetrics:
 
     # ------------------------- Informational -------------------------
     def compute_informational_structure(self):
-        #print("Informational")
+
 
         # 1) Entropy & Perplexity — try GPU first, fallback to CPU
         t0 = time.perf_counter()
@@ -941,7 +941,7 @@ class CoherenceMetrics:
             Hs, PP = shannon_entropy(self.tokens, device="cpu")
             dev_lbl = "Cpu"
         t1 = time.perf_counter()
-        #print(f" - entropy  done in {t1 - t0:.2f}s on {dev_lbl}")
+
         # store both
         self.results.update({"entropy_bits": float(Hs), "perplexity": float(PP)})
 

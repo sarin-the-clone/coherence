@@ -254,13 +254,13 @@ if [[ "$1" -ge 15 && "$1" -le 32 ]]; then
     PROMPTS[25]="generated_texts_og/prompts/science_book.md"; GENRE[25]="Science Book"; REP[25]=2
     PROMPTS[26]="generated_texts_og/prompts/science_book.md"; GENRE[26]="Science Book"; REP[26]=3
     
-    PROMPTS[27]="generated_texts_og/prompts/philosophy_book.md"; GENRE[27]="Philosophy"; REP[27]=1
-    PROMPTS[28]="generated_texts_og/prompts/philosophy_book.md"; GENRE[28]="Philosophy"; REP[28]=2
-    PROMPTS[29]="generated_texts_og/prompts/philosophy_book.md"; GENRE[29]="Philosophy"; REP[29]=3
+    PROMPTS[27]="generated_texts_og/prompts/biography.md"; GENRE[27]="Biography"; REP[27]=1
+    PROMPTS[28]="generated_texts_og/prompts/biography.md"; GENRE[28]="Biography"; REP[28]=2
+    PROMPTS[29]="generated_texts_og/prompts/biography.md"; GENRE[29]="Biography"; REP[29]=3
     
-    PROMPTS[30]="generated_texts_og/prompts/technical_reference.md"; GENRE[30]="Technical Reference"; REP[30]=1
-    PROMPTS[31]="generated_texts_og/prompts/technical_reference.md"; GENRE[31]="Technical Reference"; REP[31]=2
-    PROMPTS[32]="generated_texts_og/prompts/technical_reference.md"; GENRE[32]="Technical Reference"; REP[32]=3
+    PROMPTS[30]="generated_texts_og/prompts/lighthouse_keeper.md"; GENRE[30]="General Fiction"; REP[30]=1
+    PROMPTS[31]="generated_texts_og/prompts/lighthouse_keeper.md"; GENRE[31]="General Fiction"; REP[31]=2
+    PROMPTS[32]="generated_texts_og/prompts/lighthouse_keeper.md"; GENRE[32]="General Fiction"; REP[32]=3
     
     PROMPT_FILE=${PROMPTS[$EXPERIMENT_ID]}
     GENRE_NAME=${GENRE[$EXPERIMENT_ID]}
@@ -280,11 +280,11 @@ if [[ "$1" -ge 15 && "$1" -le 32 ]]; then
         fi
         
         python3 generated_texts_og/run_longbook.py \
-            --model qwen25_small \
+            --model mistral \
             --prompt_file "$PROMPT_FILE" \
             --target_tokens 1000000 \
-            --max_tokens 4096 \
-            --temp_low 1.0 --temp_high 1.3 \
+            --max_tokens 16384 \
+            --temp_low 1.0 --temp_high 1.4 \
             --top_p 0.95 \
             --run_id "$RUN_ID" \
             --restart_every 200

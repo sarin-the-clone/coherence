@@ -1,3 +1,10 @@
+"""
+run_longbook.py
+
+Main entry point for generating long-form books using LLMs.
+Handles CLI arguments, model initialization, generation loop activation,
+and post-processing (EPUB creation).
+"""
 import argparse
 import os
 import sys

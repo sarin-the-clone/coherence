@@ -24,7 +24,6 @@ from matplotlib.colors import to_rgba
 from matplotlib.patches import FancyBboxPatch
 
 # Configuration
-# Configuration
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BATCH_RESULTS_DIR = os.path.join(BASE_DIR, 'natural_texts/Output/batch_results')
 METADATA_FILE = os.path.join(BASE_DIR, 'natural_texts/Output/long_books_with_metadata.csv')
@@ -39,26 +38,15 @@ quant_vars = [
 
 # Genre descriptions for plots
 GENRE_DESCRIPTIONS = {
-    'General Fiction': 'Novels, literary fiction',
+    'Fiction': 'Novels, adventure, mystery, short stories',
+    'Sci-Fi/Fantasy': 'Science fiction, fantasy, mythology',
     'Historical Fiction': 'Historical novels',
     'Romance': 'Romance novels',
-    'Mystery/Crime': 'Detective stories, thrillers',
-    'Sci-Fi/Fantasy': 'Science fiction & fantasy',
-    'Short Stories': 'Story collections',
     'Poetry & Drama': 'Poetry, plays',
-    'Children/YA': 'Children\'s & YA literature',
-    'Adventure': 'Adventure narratives',
-    'Biography': 'Life stories, memoirs',
-    'History': 'Historical works',
-    'Travel': 'Travel narratives',
-    'Science': 'Scientific works',
-    'Philosophy': 'Philosophical works',
-    'Religion': 'Religious texts',
-    'Mythology': 'Myths, legends',
+    'Science & Philosophy': 'Scientific & philosophical works',
     'Reference': 'Dictionaries, guides',
-    'Essays & Letters': 'Essays, correspondence',
-    'Humor': 'Humorous works, satire',
-    'Other': 'Art, Law, Cooking, misc.'
+    'Non-Fiction': 'History, biography, religion, essays',
+    'Unknown': 'Uncategorized works'
 }
 
 def assign_size_category(n_tokens):
@@ -74,6 +62,43 @@ def assign_size_category(n_tokens):
     else:
         return '4-(>800k)'
 
+def simplify_genre(g):
+    if not isinstance(g, str): return 'Unknown'
+    g = g.strip()
+    
+    mapping = {
+        'General Fiction': 'Fiction',
+        'Adventure': 'Fiction', 
+        'Mystery/Crime': 'Fiction',
+        'Short Stories': 'Fiction',
+        'Children/YA': 'Fiction',
+        'Humor': 'Fiction',
+        
+        'Sci-Fi/Fantasy': 'Sci-Fi/Fantasy',
+        'Mythology': 'Sci-Fi/Fantasy',
+        
+        'Historical Fiction': 'Historical Fiction',
+        
+        'Romance': 'Romance',
+        
+        'Poetry & Drama': 'Poetry & Drama',
+        
+        'Science': 'Science & Philosophy',
+        'Philosophy': 'Science & Philosophy',
+        
+        'Reference': 'Reference',
+        
+        'Biography': 'Non-Fiction',
+        'History': 'Non-Fiction',
+        'Essays & Letters': 'Non-Fiction',
+        'Religion': 'Non-Fiction',
+        'Travel': 'Non-Fiction',
+        'Other': 'Non-Fiction'
+    }
+    
+    return mapping.get(g, 'Unknown')
+
+
 def load_all_batch_results():
     """Load all batch results and merge with metadata."""
     batch_files = sorted(glob.glob(f'{BATCH_RESULTS_DIR}/batch_*.json'))
@@ -88,6 +113,9 @@ def load_all_batch_results():
     metadata = pd.read_csv(METADATA_FILE)
     df = df.merge(metadata[['ID', 'FinalGenre', 'AuthorEra']], 
                   left_on='book_id', right_on='ID', how='left')
+    
+    # Simplify genres
+    df['FinalGenre'] = df['FinalGenre'].apply(simplify_genre)
     
     # Add size category
     df['SizeCategory'] = df['n_tokens'].apply(assign_size_category)
@@ -173,23 +201,24 @@ def plot_density_contour(ax, points, color, kde_threshold=8, two_level=True):
                       linewidths=2.5, alpha=0.8)
         else:
             # Gradient with multiple contour lines
-            # Plot multiple contour lines
-            ax.contour(xx, yy, density, levels=5,
-                      colors=[contour_color],
-                      linewidths=1.5, alpha=0.6)
-            
-            # Add gradient fill
             level_max = density.max()
-            level_90 = level_max * 0.1
+            level_95 = level_max * 0.05
             n_levels = 10
-            levels = np.linspace(level_90, level_max, n_levels)
+            levels = np.linspace(level_95, level_max, n_levels)
             
             colors_with_alpha = []
             for alpha_val in np.linspace(0.0, 0.5, n_levels-1):
                 rgba = list(contour_color)
                 rgba[3] = alpha_val
                 colors_with_alpha.append(rgba)
+            
+            # Add gradient fill first
             ax.contourf(xx, yy, density, levels=levels, colors=colors_with_alpha)
+            
+            # Plot multiple contour lines on top
+            ax.contour(xx, yy, density, levels=levels,
+                      colors=[contour_color],
+                      linewidths=1.5, alpha=0.6)
     except:
         pass
 
@@ -351,6 +380,18 @@ def create_individual_category_plots(df, X_pca, pca, categories, category_to_col
     ax_summary = plt.subplot2grid((n_rows, n_cols), (0, 0), colspan=2, rowspan=2, fig=fig)
     
     # Plot median stars for all categories with hierarchical markers
+    # Plot global density contour and points (all samples)
+    points_all = X_pca[:, [pc_x, pc_y]]
+    if len(points_all) >= 8:
+        plot_density_contour(ax_summary, points_all, (0.5, 0.5, 0.5, 1.0), 
+                           kde_threshold=8, two_level=False)
+    
+    # Plot all individual points faintly
+    ax_summary.scatter(points_all[:, 0], points_all[:, 1],
+                     c='gray', s=10, alpha=0.05, 
+                     edgecolors='none', zorder=1)
+
+    # Plot median stars for all categories
     for cat in sorted_categories:
         mask = categories == cat
         if np.sum(mask) > 0:
@@ -402,7 +443,7 @@ def create_individual_category_plots(df, X_pca, pca, categories, category_to_col
         # Always plot individual points (even if < 8)
         if n_points > 0:
             ax.scatter(points[:, 0], points[:, 1],
-                      c=[category_to_color[cat]], s=20, alpha=0.3,
+                      c=[category_to_color[cat]], s=10, alpha=0.05,
                       edgecolors='none')
             
             # Always plot median with hierarchical marker (even if < 8)
@@ -486,6 +527,7 @@ def create_hierarchical_colors(X_pca, categories, unique_categories, base_colorm
     cmap = plt.cm.tab20
     # Sample colors from the colormap
     base_colors = [cmap(i / max(1, n_clusters - 1) if n_clusters > 1 else 0) for i in range(n_clusters)]
+    # Use tab10 for simplified genres (9 categories)
     if n_clusters <= 10:
         cmap = plt.cm.tab10
         base_colors = [cmap(i) for i in range(n_clusters)]
@@ -701,10 +743,6 @@ def create_main_biplot(df, X_pca, pca, categories, category_col,
     )
     
     # Plot density contours - DISABLED for main biplots (contours only in individual subplots)
-    # for cat in unique_categories:
-    #     mask = categories == cat
-    #     points = X_pca[mask, :2]
-    #     plot_density_contour(ax, points, category_to_color[cat])
     
     # Plot individual points
     size_factor = np.log(df['n_tokens']) / np.log(df['n_tokens']).max()

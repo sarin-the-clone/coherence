@@ -1,4 +1,10 @@
+"""
+reproduce_gating.py
 
+Verification script to test the dynamic gating logic used in long-book generation.
+Checks which thresholds are selected for different token counts to ensure
+metrics-based rejection criteria are applied correctly.
+"""
 import sys
 import os
 
