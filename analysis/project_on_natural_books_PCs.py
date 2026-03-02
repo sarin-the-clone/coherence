@@ -3,7 +3,7 @@
 project_on_natural_books_PCs.py
 
 Projects generated books and selected reference texts onto the PCA space derived from natural texts.
-Generates comprehensive genre-based grid density plots (Figure 3/4 combined) to visualize 
+Generates comprehensive genre-based grid density plots to visualize 
 AI-generated trajectories relative to the landscape of human literature.
 """
 
@@ -184,8 +184,9 @@ def load_natural_texts_data(natural_texts_dir):
         if df['ID_num'].isna().all():
              df['ID_num'] = pd.to_numeric(df['book_id'], errors='coerce')
 
-        df = df.merge(metadata[['ID', 'Title', 'FinalGenre', 'AuthorEra']], 
-                     left_on='ID_num', right_on='ID', how='left')    
+        df = df.merge(metadata[['ID', 'Title', 'FinalGenre', 'AuthorEra', 'Genre']], 
+                     left_on='ID_num', right_on='ID', how='left')
+        df.rename(columns={'Genre': 'SpecificGenre'}, inplace=True)
         df['FinalGenre'] = df.apply(lambda x: simplify_genre(x['FinalGenre'], str(x.get('Title', ''))), axis=1)
         
         if 'n_tokens' in df.columns:
@@ -264,11 +265,11 @@ def get_genre_color_map():
     """Get a color map for genres matching the simplified schema."""
     colors = plt.cm.tab10(np.linspace(0, 1, 10))
     genre_colors = {
-        'Fiction': colors[0],            # Blue
-        'Adventure/Mystery/Sci-Fi': colors[1], # Orange
-        'Romance, Poetry & Drama': colors[4], # Purple
-        'Science & Philosophy': colors[5], # Brown
-        'Non-Fiction': colors[2],        # Green
+        'Fiction': colors[4],            
+        'Adventure/Mystery/Sci-Fi': colors[0], 
+        'Romance, Poetry & Drama': colors[6], 
+        'Science & Philosophy': colors[5], 
+        'Non-Fiction': colors[2],        
         'Unknown': (0.5, 0.5, 0.5, 1.0)
     }
     return genre_colors
@@ -277,7 +278,7 @@ def plot_variable_loadings(ax, pca, metric_cols, pc_indices=(0, 1), scale=4):
     """Plot variable loadings as arrows."""
     pc_x, pc_y = pc_indices
     # Define statistical vs informational metrics
-    informational = ['entropy_bits', 'perplexity', 'lz_complexity', 'mi_decay_gamma']
+    informational = ['entropy_bits', 'perplexity', 'lz_complexity', 'mi_decay_gamma', 'mi_tau_max', 'mi_n_lags']
     
     label_map = {
         'entropy_bits': 'Entropy',
@@ -301,17 +302,17 @@ def plot_variable_loadings(ax, pca, metric_cols, pc_indices=(0, 1), scale=4):
             
         if var in informational:
             arrow_color = 'coral'
-            edge_color = 'darkred'
+            edge_color = 'coral'
         else:
-            arrow_color = 'skyblue'
-            edge_color = 'darkblue'
+            arrow_color = 'teal' 
+            edge_color = 'teal'
         
         x_loading = pca.components_[pc_x, i] * scale
         y_loading = pca.components_[pc_y, i] * scale
         
         ax.arrow(0, 0, x_loading, y_loading,
                 head_width=0.2, head_length=0.2,
-                fc=arrow_color, ec=edge_color, alpha=0.7, linewidth=2.0, zorder=30)
+                fc=arrow_color, ec=edge_color, alpha=0.7, linewidth=3.0, zorder=30)
         
         # Position label very close to arrowhead (1.04x length)
         mag = np.sqrt(x_loading**2 + y_loading**2)
@@ -344,7 +345,69 @@ def plot_variable_loadings(ax, pca, metric_cols, pc_indices=(0, 1), scale=4):
                         edgecolor=edge_color, alpha=0.9, linewidth=1.5))
 
 
+        ax.text(lx, ly, disp_name, fontsize=11, ha='center', va='center', fontweight='bold',
+               color=edge_color, zorder=31,
+               bbox=dict(boxstyle='round,pad=0.15', facecolor='white',
+                        edgecolor=edge_color, alpha=0.9, linewidth=1.5))
 
+
+
+def get_arrow_char(x, y):
+    """Return unicode arrow based on vector direction."""
+    angle = np.arctan2(y, x) * 180 / np.pi
+    if angle < 0: angle += 360
+    # Map to 8 directions
+    # 0=E, 45=NE, 90=N, 135=NW, 180=W, 225=SW, 270=S, 315=SE
+    idx = int((angle + 22.5) / 45) % 8
+    arrows = ['→', '↗', '↑', '↖', '←', '↙', '↓', '↘']
+    return arrows[idx]
+
+def plot_composite_arrows(ax, pca, metric_cols, pc_indices=(0, 1), scale=5, plot_labels=False):
+    """Plot composite arrows and return their direction characters."""
+    pc_x, pc_y = pc_indices
+    
+    stat_metrics = ['alpha', 'beta', 'H_DFA1', 'H_DMA', 'H_WT_Haar', 'H_WT_db4', 'H_WT_db4_long']
+    info_metrics = ['entropy_bits', 'perplexity', 'lz_complexity'] 
+    #info_metrics = ['entropy_bits', 'perplexity', 'lz_complexity', 'mi_tau_max', 'mi_n_lags'] 
+    
+    groups = {
+        'Stat.': {'metrics': stat_metrics, 'color': 'teal'},
+        'Info.': {'metrics': info_metrics, 'color': 'coral'}
+    }
+    
+    arrow_chars = {}
+    
+    for label, config in groups.items():
+        indices = [i for i, col in enumerate(metric_cols) if col in config['metrics']]
+        if not indices: 
+            arrow_chars[config['color']] = '?'
+            continue
+        
+        mean_x = np.mean(pca.components_[pc_x, indices])
+        mean_y = np.mean(pca.components_[pc_y, indices])
+        
+        # Determine Unicode Arrow
+        arrow_char = get_arrow_char(mean_x, mean_y)
+        arrow_chars[config['color']] = arrow_char
+        
+        x_loading = mean_x * scale
+        y_loading = mean_y * scale
+        
+        color = config['color']
+        
+        # Plot Arrow
+        ax.arrow(0, 0, x_loading, y_loading,
+                head_width=0.4, head_length=0.4,
+                fc=color, ec=color, alpha=0.6, linewidth=2.5, zorder=10) # zorder 10 (below trajectories=20, above scores=1)
+                
+        if plot_labels:
+            lx, ly = x_loading * 1.15, y_loading * 1.15
+            ax.text(lx, ly, label, fontsize=12, ha='center', va='center', fontweight='bold',
+                color=color, zorder=36,
+                bbox=dict(boxstyle='round,pad=0.2', facecolor='white',
+                            edgecolor=color, alpha=0.8, linewidth=1.5))
+                            
+    return arrow_chars['teal'], arrow_chars['coral']
 def compute_comparison_stats(df_natural, df_generated, metric_mapping):
     """Compute comparison statistics between natural and generated texts."""
     stats_data = []
@@ -447,8 +510,8 @@ def plot_projection(df_natural, projected_books, pca, metric_cols, output_path, 
     
     from collections import defaultdict
     book_grp = defaultdict(list)
-    for name, coords, genre, n_tokens, model_type, is_outlier in projected_books:
-        book_grp[name].append((n_tokens, coords, genre, model_type, is_outlier))
+    for name, coords, genre, n_tokens, model_type, is_outlier, temp_level in projected_books:
+        book_grp[name].append((n_tokens, coords, genre, model_type, is_outlier, temp_level))
     
     human_handles = []
     for name, pts in book_grp.items():
@@ -457,7 +520,7 @@ def plot_projection(df_natural, projected_books, pca, metric_cols, output_path, 
         color, m, ec, lc = genre_colors.get(genre, 'red'), ('^' if is_o else ('D' if is_h else 'o')), ('red' if is_o else ('blue' if is_h else 'black')), ('red' if is_o else ('blue' if is_h else 'black'))
         ax_summary.plot([p[1][0] for p in pts], [p[1][1] for p in pts], color=color, linestyle='-', linewidth=2, alpha=0.7)
         tot_b = pts[-1][0] if is_h else None
-        for i, (nt, coord, _, _, _) in enumerate(pts):
+        for i, (nt, coord, _, _, _, _) in enumerate(pts):
             ntv = nt or 0
             s_b = (250 * (ntv/tot_b)) if (is_h and tot_b) else ((50 + ((min(ntv, 1500000)/100000.0)**2)*15)/2.0)
             ax_summary.scatter(coord[0], coord[1], c=[color], marker=m, s=s_b, edgecolors=ec, linewidths=0.5, zorder=20)
@@ -485,7 +548,7 @@ def plot_projection(df_natural, projected_books, pca, metric_cols, output_path, 
         if len(pts_nat) > 0: ax.scatter(np.median(pts_nat[:, 0]), np.median(pts_nat[:, 1]), c=[size_colors.get(cat,'gray')], s=300, marker='*', edgecolors='black', zorder=10)
 
         for b_name, b_pts in book_grp.items():
-            for nt, coord, genre, mtype, is_o in b_pts:
+            for nt, coord, genre, mtype, is_o, t_level in b_pts:
                 if assign_size_category(nt or 0) == cat:
                     m, ec = ('^' if is_o else ('D' if mtype == 'Human' else 'o')), ('red' if is_o else ('blue' if mtype == 'Human' else 'black'))
                     ax.scatter(coord[0], coord[1], c=[genre_colors.get(genre, 'red')], marker=m, s=50+(min(nt or 0, 1500000)/1000000.0)*350, edgecolors=ec, linewidth=0.5, zorder=20)
@@ -568,25 +631,8 @@ def main():
             books_to_plot.append((os.path.basename(args.metrics).replace('.json', ''), data))
             generated_metrics_list.append(data)
             
-    # Autoload Reference Books from Selected_Books and Selected_Modern_Books
-    ref_dirs = [
-        os.path.join(args.natural_texts_dir, 'Selected_Books'),
-        os.path.join(args.natural_texts_dir, 'Selected_Modern_Books')
-    ]
-    for rdir in ref_dirs:
-        if os.path.exists(rdir):
-            for mfile in glob.glob(os.path.join(rdir, "*.json")):
-                try:
-                    with open(mfile, 'r') as f:
-                        data = json.load(f)
-                    if isinstance(data, list):
-                        for item in data:
-                            books_to_plot.append((item.get('file', 'Unknown').replace('.txt', ''), item))
-                            # Don't add to generated_metrics_list as these are reference humans
-                    elif isinstance(data, dict):
-                        books_to_plot.append((os.path.basename(mfile).replace('.json', ''), data))
-                except Exception as e:
-                    print(f"Warning: Could not load reference metrics from {mfile}: {e}")
+    # Autoload Reference Books removed to avoid duplicates (now handled by gather_metrics)
+    # ref_dirs = ...
     
     df_gen = pd.DataFrame(generated_metrics_list)
     print("\nComputing comparison statistics...")
@@ -627,7 +673,9 @@ def main():
             short_l = full_title
         
         n_toks = metrics.get('n_tokens') or metrics.get('tokens_count')
-        projected_books.append((short_l, coords, simplify_genre(raw_g, full_title), n_toks, model_type, metrics.get('is_outlier', False)))
+        temp_level = metrics.get('temperature_level', 'High')
+        final_g = simplify_genre(raw_g, full_title)
+        projected_books.append((short_l, coords, final_g, n_toks, model_type, metrics.get('is_outlier', False), temp_level))
     
     out_p = args.output or (args.book.replace('.txt', '_pca.jpg') if args.book else args.metrics.replace('.json', '_pca.jpg'))
     print("\nGenerating plots...")
@@ -662,9 +710,9 @@ def plot_genre_breakdown_combined(df_natural, projected_books, pca, genre_colors
 
     ax_ov = plt.subplot2grid((3, 3), (0, 0), rowspan=2, colspan=2)
     colors_ov = 'gray' # Monochromatic overall plot
-    ax_ov.scatter(df_natural['PC1'], df_natural['PC2'], c=colors_ov, s=6, alpha=0.1, edgecolors='none', zorder=1)
+    ax_ov.scatter(df_natural['PC1'], df_natural['PC2'], c=colors_ov, s=15, alpha=0.15, edgecolors='none', zorder=1)
     plot_density_contour(ax_ov, df_natural[['PC1', 'PC2']].values, 'gray')
-    
+
     # Large PC Labels
     ax_ov.set_xlabel(f"PC1 ({pca.explained_variance_ratio_[0]*100:.1f}%)", fontsize=16, fontweight='bold', labelpad=10)
     ax_ov.set_ylabel(f"PC2 ({pca.explained_variance_ratio_[1]*100:.1f}%)", fontsize=16, fontweight='bold', labelpad=10)
@@ -672,13 +720,32 @@ def plot_genre_breakdown_combined(df_natural, projected_books, pca, genre_colors
 
     ov_x_min, ov_x_max = np.percentile(pc1_nat, 3), np.percentile(pc1_nat, 97)
     ov_y_min, ov_y_max = np.percentile(pc2_nat, 3), np.percentile(pc2_nat, 97)
-    # Increased padding to 0.3 for y_max to accommodate Entropy/Perplexity labels
-    ax_ov.set_xlim(ov_x_min - (ov_x_max-ov_x_min)*0.15, ov_x_max + (ov_x_max-ov_x_min)*0.15)
-    ax_ov.set_ylim(ov_y_min - (ov_y_max-ov_y_min)*0.15, ov_y_max + (ov_y_max-ov_y_min)*0.30)
-    ax_ov.set_title("Overall: Natural Coherence Landscape", fontweight='bold', fontsize=16)
-    ax_ov.set_xlabel(f"PC1 ({pca.explained_variance_ratio_[0]*100:.1f}%)", fontsize=14, fontweight='bold')
-    ax_ov.set_ylabel(f"PC2 ({pca.explained_variance_ratio_[1]*100:.1f}%)", fontsize=14, fontweight='bold')
+    
+    # Store initial limits
+    xlims = [ov_x_min - (ov_x_max-ov_x_min)*0.15, ov_x_max + (ov_x_max-ov_x_min)*0.15]
+    ylims = [ov_y_min - (ov_y_max-ov_y_min)*0.15, ov_y_max + (ov_y_max-ov_y_min)*0.30]
+
+    # Dynamically expand limits if chaotic book is present (to ensure it is visible)
+    # This requires looking for the chaotic book BEFORE setting limits?
+    # Or we can just set them later. 
+    # But density lines are plotted based on data, not limits.
+    # Let's set initial limits here and potentially update them later if chaos book is plotted.
+    
+    ax_ov.set_xlim(xlims)
+    ax_ov.set_ylim(ylims)
+    
+    # Updated Main Title and Subtitle
+    # Updated Main Title and Subtitle
+    ax_ov.set_title("(A) Overall : Scores density distribution of natural books in PC1xPC2\n", 
+                   fontweight='bold', fontsize=16)
+    # Add subtitle as separate text for styling
+    ax_ov.text(0.5, 1.01, "Contour lines are at 5% percentile steps", transform=ax_ov.transAxes,
+               fontsize=12, color='gray', fontstyle='italic', ha='center', va='bottom')
+    
+    ax_ov.set_xlabel(f"PC1 ({pca.explained_variance_ratio_[0]*100:.1f}%)", fontsize=10, fontweight='normal')
+    ax_ov.set_ylabel(f"PC2 ({pca.explained_variance_ratio_[1]*100:.1f}%)", fontsize=10, fontweight='normal')
     ax_ov.grid(True, alpha=0.3)
+
 
     # Plot Variable Loadings on Overall (Blue for STAT, Coral for INFO)
     plot_variable_loadings(ax_ov, pca, metric_cols, scale=5)
@@ -686,10 +753,11 @@ def plot_genre_breakdown_combined(df_natural, projected_books, pca, genre_colors
     # --- Plot Size & Era Medians on Overall ---
     summary_handles = []
     
-    # Size Category Medians (Stars)
+    # Size Category Mean (Stars)
     if 'SizeCategory' in df_natural.columns:
         size_cats = sorted([s for s in df_natural['SizeCategory'].unique() if isinstance(s, str) and s != 'Unknown'])
         size_colors = plt.cm.spring(np.linspace(0.1, 0.9, len(size_cats)))
+        size_colors = size_colors[::-1]
         size_pts = []
         for i, sc in enumerate(size_cats):
             sub = df_natural[df_natural['SizeCategory'] == sc]
@@ -697,12 +765,12 @@ def plot_genre_breakdown_combined(df_natural, projected_books, pca, genre_colors
                 mx, my = sub['PC1'].mean(), sub['PC2'].mean()
                 size_pts.append((mx, my))
                 c = size_colors[i]
-                ax_ov.scatter(mx, my, marker='*', s=800, color=c, edgecolor='black', linewidth=1.5, zorder=110, alpha=1.0)
+                ax_ov.scatter(mx, my, marker='*', s=800, color=c, edgecolor='white', linewidth=1.5, zorder=110, alpha=1.0)
                 
                 # Format label for legend: "Mean natural book within 100-150k tokens"
                 range_str = sc.split('(')[1].replace(')', '')
                 summary_handles.append(mlines.Line2D([], [], color=c, marker='*', linestyle='None', 
-                                                   label=f"Mean within {range_str} tokens bin", markersize=14, markeredgecolor='black'))
+                                                   label=f"{range_str}", markersize=14, markeredgecolor='white'))
         if len(size_pts) > 1:
             xs, ys = zip(*size_pts)
             ax_ov.plot(xs, ys, color='black', linestyle='-', linewidth=2.5, alpha=0.8, zorder=100)
@@ -710,50 +778,83 @@ def plot_genre_breakdown_combined(df_natural, projected_books, pca, genre_colors
     # Legend for overall logic
     if summary_handles:
         ax_ov.legend(handles=summary_handles, loc='upper left', fontsize=10, framealpha=0.95, 
-                    ncol=1, title="Mean trajectory of natural books:", 
+                    ncol=1, title="Mean score of natural books within size bins:", 
                     bbox_to_anchor=(0.02, 0.98))
 
     # Pre-process Reference Books logic
     book_groups = defaultdict(list)
-    for name, coords, genre, n_tokens, model_type, is_outlier in projected_books:
-        book_groups[name].append((n_tokens, coords, genre, model_type, is_outlier))
+    for name, coords, genre, n_tokens, model_type, is_outlier, temp_level in projected_books:
+        book_groups[name].append((n_tokens, coords, genre, model_type, is_outlier, temp_level))
 
-    # --- Overall Plot: Add Generated Book Trajectories (Commented out as requested) ---
-    # Derive average tokens per genre for the red-marker highlighting
-    # genre_avg_toks = df_natural.groupby('FinalGenre')['n_tokens'].mean().to_dict()
+    # --- Overall Plot: Add Generated Book Trajectories ---
+    # PLOT SPECIFIC CHAOTIC BOOK TRAJECTORY HERE
+    '''
+    chaos_book_name = "_chaos4m_20251230_012534_the_irresistible_storm_thriller"
+    # Try to find this book in book_groups
+    chaos_entry = None
+    for bname, entry in book_groups.items():
+        # Clean both for comparison
+        clean_key = bname.lower().replace('_', ' ')
+        clean_target = "irresistible storm"
+        if clean_target in clean_key:
+             # Use the first match that is likely the one
+             chaos_entry = entry
+             # Use the first match that is likely the one
+             chaos_entry = entry
+             break
+    
+    # Debug: List all available keys in book_groups
+    # print("DEBUG: Keys in book_groups:", list(book_groups.keys()))
+    if not chaos_entry:
+        print("DEBUG: Chaotic book not found. Trying approximate search...")
+        for key in book_groups:
+             if "_chaos" in key.lower() or "irresistible" in key.lower():
+                 print(f"DEBUG: Found candidate: {key}")
+                 chaos_entry = book_groups[key]
+                 break
+    
+    if chaos_entry:
+         print(f"Found chaotic book for Overall plot: {chaos_book_name}")
+         points = chaos_entry
+         points.sort(key=lambda x: x[0] if x[0] is not None else 0)
+         
+         xs, ys = [p[1][0] for p in points], [p[1][1] for p in points]
+         
+         # Dynamically expand limits if needed
+         if xs and ys:
+             c_x_min, c_x_max = min(xs), max(xs)
+             c_y_min, c_y_max = min(ys), max(ys)
+             
+             # Expand with padding
+             new_xlim = [min(xlims[0], c_x_min - 0.5), max(xlims[1], c_x_max + 0.5)]
+             new_ylim = [min(ylims[0], c_y_min - 0.5), max(ylims[1], c_y_max + 0.5)]
+             
+             ax_ov.set_xlim(new_xlim)
+             ax_ov.set_ylim(new_ylim)
+             print(f"DEBUG: Expanded Overall limits to include Chaotic Book: X {new_xlim}, Y {new_ylim}")
 
-    # for name, points in book_groups.items():
-    #     # Only non-human (generated) books
-    #     if points[0][3] != 'Human':
-    #         points.sort(key=lambda x: x[0] if x[0] is not None else 0)
-    #         xs, ys = [p[1][0] for p in points], [p[1][1] for p in points]
-    #         genre = points[0][2]
-    #         color = genre_colors.get(genre, 'gray')
-    #         avg_toks = genre_avg_toks.get(genre, 0)
-    #         
-    #         # Find node closest to category average length
-    #         closest_idx = -1
-    #         if len(points) > 0 and avg_toks > 0:
-    #             diffs = [abs((p[0] or 0) - avg_toks) for p in points]
-    #             closest_idx = np.argmin(diffs)
-    #         
-    #         # Draw trajectory line
-    #         ax_ov.plot(xs, ys, color=color, alpha=0.3, linewidth=2.0, zorder=40) 
-    #         
-    #         # Nodes
-    #         for i, (nt, coord, _, _, _) in enumerate(points):
-    #             is_closest = (i == closest_idx)
-    #             n_color = 'red' if is_closest else color
-    #             is_last = (i == len(points)-1)
-    #             
-    #             # Smaller markers for overall plot to avoid clutter
-    #             base_s = 300 if is_last else max(40, (nt/1000000)*350) if nt else 80
-    #             s_val = base_s * 0.7 
-    #             
-    #             if is_last:
-    #                 ax_ov.scatter([coord[0]], [coord[1]], color=n_color, s=s_val, alpha=0.8, edgecolors='black', linewidth=1.0, zorder=42)
-    #             else:
-    #                 ax_ov.scatter([coord[0]], [coord[1]], color=n_color, s=s_val, alpha=0.5, edgecolors='black', linewidth=0.5, zorder=41)
+         # Plot Trajectory
+         # Color it distinctly, e.g., 'purple' or 'magenta' or even standard red
+         c_color = 'magenta'
+         
+         ax_ov.plot(xs, ys, color='white', alpha=0.6, linewidth=4.0, zorder=40)
+         ax_ov.plot(xs, ys, color=c_color, alpha=0.9, linewidth=2.0, zorder=41)
+         
+         # Nodes
+         for i, (nt, coord, _, _, _, _) in enumerate(points):
+             is_last = (i == len(points)-1)
+             s_val = 300 if is_last else max(40, (nt/1000000)*350) if nt else 80
+             
+             ax_ov.scatter([coord[0]], [coord[1]], color=c_color, s=s_val, alpha=0.9, edgecolors='black', linewidth=1.0, zorder=42)
+             
+         # Label it
+         if len(xs) > 0:
+             ax_ov.text(xs[-1], ys[-1], "Chaotic Book", color=c_color, fontsize=10, fontweight='bold', 
+                        ha='left', va='bottom', zorder=50, 
+                        bbox=dict(boxstyle='round,pad=0.2', facecolor='white', alpha=0.8, edgecolor=c_color))
+    else:
+         print(f"Warning: Chaotic book '{chaos_book_name}' not found in loaded metrics.")
+    '''
 
     # --- 2. Genre-Specific Subplots (Remaining 5 slots) ---
     genre_positions = [(0, 2), (1, 2), (2, 0), (2, 1), (2, 2)]
@@ -779,12 +880,11 @@ def plot_genre_breakdown_combined(df_natural, projected_books, pca, genre_colors
         import matplotlib.patches as mpatches
         legend_handles = []
         
-        # Median handle removed as requested
-        
         # Shared Generated Book Handles
         target_steps = [100000, 200000, 400000, 600000, 1000000]
         closest_step = min(target_steps, key=lambda x: abs(x - avg_toks))
-        legend_handles.append(mlines.Line2D([], [], color='white', marker='o', markerfacecolor=color, markeredgecolor='black', markersize=10, label='Generated books (1m)'))
+        legend_handles.append(mlines.Line2D([], [], color='white', marker='o', markerfacecolor=color, markeredgecolor='black', markersize=10, label='Generated books (high temperature)'))
+        legend_handles.append(mlines.Line2D([], [], color='white', marker='o', markerfacecolor=color, markeredgecolor='black', markersize=10, alpha=0.15, label='Generated books (low temperature)'))
         legend_handles.append(mlines.Line2D([], [], color='white', marker='o', markerfacecolor='red', markeredgecolor='black', markersize=10, label=f'Partial generations ({int(closest_step/1000)}k)'))
         
         # --- Plot Generated Books (Model != Human) ---
@@ -792,14 +892,23 @@ def plot_genre_breakdown_combined(df_natural, projected_books, pca, genre_colors
         # Sort generated books?
         g_books.sort(key=lambda x: x[0])
         
-        # Limit generated books if too many? (Original code didn't limit explicitly in generated plot, but let's keep it safe)
+        # Counters for independent 1,2,3 numbering for High/Low runs
+        low_counter = 0
+        high_counter = 0
         
         for g_idx, (name, points) in enumerate(g_books):
              points.sort(key=lambda x: x[0] if x[0] is not None else 0)
              xs, ys = [p[1][0] for p in points], [p[1][1] for p in points]
+             
+             is_low_temp = (len(points) > 0 and points[0][5] == 'Low')
+             line_alpha = 0.15 if is_low_temp else 1.0
+             bg_alpha = 0.05 if is_low_temp else 0.5
+             node_alpha = 0.10 if is_low_temp else 0.8
+             term_alpha = 0.20 if is_low_temp else 1.0
+             
              # Draw trajectory line: high-contrast background glow + foreground line (equalized to 2.5)
-             ax.plot(xs, ys, color='white', alpha=0.5, linewidth=5.0, zorder=19) 
-             ax.plot(xs, ys, color=color, alpha=1.0, linewidth=2.5, zorder=20) 
+             ax.plot(xs, ys, color='white', alpha=bg_alpha, linewidth=5.0, zorder=19) 
+             ax.plot(xs, ys, color='black', alpha=line_alpha, linewidth=2.5, zorder=20) 
              # Find node closest to category average length
              closest_idx = -1
              if len(points) > 0:
@@ -809,32 +918,35 @@ def plot_genre_breakdown_combined(df_natural, projected_books, pca, genre_colors
              # Intermediate nodes: matched to reference pentagon scaling
              if len(xs) > 1:
                  for i in range(len(xs)-1):
+                     is_last = (i == len(points)-1)
                      p = points[i]
                      n_color = 'red' if i == closest_idx else color
-                     s_val = max(50, (p[0] / 1000000) * 450) if p[0] else 100
-                     ax.scatter([xs[i]], [ys[i]], color=n_color, s=s_val, alpha=0.8, edgecolors='black', linewidth=1.0, zorder=21)
+                     #s_val = max(50, (p[0] / 1000000) * 450) if p[0] else 100
+                     s_val = 500 if is_last else max(20, (p[0]/1000000)*250) if p[0] else 40
+                     
+                     ax.scatter([xs[i]], [ys[i]], color=n_color, s=s_val, alpha=node_alpha, edgecolors='black', linewidth=1.0, zorder=21)
              
              # Terminal node: Large and emphasized (matching pentagon terminal size)
              if xs:
                  token_size = 500 # Default terminal size
                  if points[-1][0]:
-                      token_size = max(450, (points[-1][0] / 1000000) * 450)
+                      token_size = max(450, (points[-1][0] / 1000000) * 250)
                  
                  is_term_closest = (closest_idx == len(points)-1)
                  term_color = 'red' if is_term_closest else color
                  
-                 ax.scatter([xs[-1]], [ys[-1]], color=term_color, s=token_size, alpha=1.0, edgecolors='none', zorder=22)
+                 ax.scatter([xs[-1]], [ys[-1]], color=term_color, s=token_size, alpha=term_alpha, edgecolors='black', zorder=22)
                  # Label number inside terminal point
-                 g_num = str(g_idx + 1)
-                 ax.text(xs[-1], ys[-1], g_num, color='white', fontsize=14, fontweight='bold', ha='center', va='center', zorder=23,
-                        bbox=dict(boxstyle='circle,pad=0.2', facecolor=term_color, edgecolor='black', alpha=1.0, linewidth=1.0))
-             # Label generated books? Generated plot (Fig3) had numeric labels if list sorted?
-             # Let's check Fig 3 logic from previous view.
-             # It indexed them. 
-             # But here we are mixing. If we index everything, it gets messy.
-             # Maybe we don't label Generated books with text in this combined view unless requested?
-             # Reference books are famous and have labels. Generated books are experiments.
-             # I'll keep the generated trajectory style (lines + circles).
+                 if is_low_temp:
+                     low_counter += 1
+                     g_num = str(low_counter)
+                 else:
+                     high_counter += 1
+                     g_num = str(high_counter)
+                     
+                 ax.text(xs[-1], ys[-1], g_num, color='white', fontsize=15, fontweight='bold', ha='center', va='center', zorder=23,
+                        bbox=dict(boxstyle='circle,pad=0.2', facecolor=term_color, edgecolor='black', alpha=term_alpha, linewidth=1.0))
+
 
         # --- Plot Reference Books (Model == Human) ---
         # Find Reference Books for this genre
@@ -842,7 +954,9 @@ def plot_genre_breakdown_combined(df_natural, projected_books, pca, genre_colors
         r_books = []
         for name, entry in book_groups.items():
             if entry[0][3] == 'Human': # Only Humans
-                if any(sel.lower() in name.lower() for sel in target_refs):
+                # Robust matching: handle underscores in filenames vs spaces in target_refs
+                clean_name = name.lower().replace('_', ' ')
+                if any(sel.lower() in clean_name for sel in target_refs):
                     r_books.append((name, entry))
         
         if r_books:
@@ -864,19 +978,20 @@ def plot_genre_breakdown_combined(df_natural, projected_books, pca, genre_colors
              ax.plot(xs, ys, color=color, linestyle='-', linewidth=2.5, alpha=0.9, zorder=15)
              
              total_toks = points[-1][0] if len(points) else 0
-             for i, (nt, coord, _, _, _) in enumerate(points):
+             for i, (nt, coord, _, _, _, _) in enumerate(points):
                 is_last = (i == len(points)-1)
-                s_val = 500 if is_last else max(50, (nt/1000000)*450) if nt else 100
+                s_val = 600 if is_last else max(50, (nt/1000000)*500) if nt else 100
                 
-                ax.scatter(coord[0], coord[1], c=[color], marker=symbol, s=s_val, edgecolors='black', linewidths=1.0, zorder=20)
+                #ax.scatter(coord[0], coord[1], c=[color], marker=symbol, s=s_val, edgecolors='white', linewidths=0.5, zorder=20)
+                ax.scatter(coord[0], coord[1], c=[color], marker=symbol, s=s_val, edgecolors='white', zorder=20)
                 
                 if is_last:
-                     ax.text(coord[0], coord[1], letter, color='white', fontsize=12, fontweight='bold', ha='center', va='center', zorder=25)
+                     ax.text(coord[0], coord[1], letter, color='white', fontsize=16, fontweight='bold', ha='center', va='center', zorder=25)
                      
                      disp_name = NAME_MAP_CLEAN.get(name, name)
                      if '_' in disp_name and ' ' not in disp_name: disp_name = disp_name.replace('_', ' ').title()
                      ref_label = f"{letter}: {disp_name} ({int(total_toks/1000)}k)"
-                     legend_handles.append(mlines.Line2D([], [], color='white', marker='p', markerfacecolor=color, markeredgecolor='black', markersize=10, label=ref_label))
+                     legend_handles.append(mlines.Line2D([], [], color='white', marker='p', markerfacecolor=color, markeredgecolor='none', markersize=10, label=ref_label))
 
         # Axis limits based on natural points + reference books + generated books
         all_xs = [] # Only trajectories determine expansion beyond contours
@@ -898,20 +1013,65 @@ def plot_genre_breakdown_combined(df_natural, projected_books, pca, genre_colors
         ax.set_xlim(lx_min - (lx_max-lx_min)*pad_factor, lx_max + (lx_max-lx_min)*pad_factor)
         ax.set_ylim(ly_min - (ly_max-ly_min)*pad_factor, ly_max + (ly_max-ly_min)*pad_factor)
         
-        ax.set_title(genre, fontweight='bold', fontsize=14); ax.grid(True, alpha=0.3)
+        # Letter Prefix (B, C, D, E, F) - Overall is A
+        import string
+        plot_letter = string.ascii_uppercase[idx+1]
+        
+        # Override for specific subplots
+        if plot_letter == 'C':
+            ax.set_xlim(right=5.0)
+            ax.set_ylim(-6.0, 5.0)
+        elif plot_letter == 'B':
+            ax.set_xlim(-4.50, 6.0)
+            ax.set_ylim(-6.0, 4.0)
+        elif plot_letter == 'D':
+            ax.set_xlim(-6.0, 8.0)
+            ax.set_ylim(-6.0, 5.0)
+        elif plot_letter == 'E':
+            ax.set_xlim(-4.0, 4.0)
+            ax.set_ylim(-6.0, 5.0)
+        elif plot_letter == 'F':
+            ax.set_xlim(-6.0, 4.0)
+            ax.set_ylim(-7.0, 4.0)
+            
+        ax.set_title(f"({plot_letter}) {genre}", fontweight='bold', fontsize=14, color=color); ax.grid(True, alpha=0.3)
+        
+        # Plot Composite Arrows (Stat/Info) in each subplot
+        blue_arrow, coral_arrow = plot_composite_arrows(ax, pca, metric_cols, scale=5, plot_labels=False)
+
+        # Build Subplot Description Legend
+        subset = df_natural[mask]
+        num_books = len(subset)
+        if 'SpecificGenre' in subset.columns:
+            top_subs = subset['SpecificGenre'].value_counts().head(3).index.tolist()
+            subgenre_str = ", ".join([str(s).replace('/', ' ') for s in top_subs])
+        else:
+            subgenre_str = genre
+            
+        # Line 1: Subgenres (Gray)
+        ax.text(0.04, 0.99, subgenre_str, transform=ax.transAxes, fontsize=8, fontstyle='italic', color='gray', va='top')
+        
+        # Line 2: Book Count (Gray) 
+        ax.text(0.04, 0.96, f"{num_books} books", transform=ax.transAxes, fontsize=9, fontstyle='italic', color='gray', va='top')
+        
+        # Line 3: Avg Len (Red) - Restore red color
+        ax.text(0.04, 0.93, f"Mean length: {int(avg_toks/1000)}k", transform=ax.transAxes, fontsize=9, fontstyle='italic', color='crimson', va='top')
+        
+        # Line 4: Coherence Arrows 
+        ax.text(0.04, 0.90, f"Coherence directions:", transform=ax.transAxes, fontsize=9, fontstyle='italic', color='gray', va='top')
+        ax.text(0.07, 0.87, f"{blue_arrow} statistical, ", transform=ax.transAxes, fontsize=9, fontstyle='italic', fontweight='normal', color='teal', va='top')
+        ax.text(0.07, 0.84, f"{coral_arrow} informational ", transform=ax.transAxes, fontsize=9, fontstyle='italic', fontweight='normal', color='coral', va='top')
         
         if legend_handles:
             # Custom legend placement: right for Adventure, left for others
-            loc = 'lower right' if 'Adventure' in genre else 'lower left'
+            loc = 'lower right' if ('Adventure' in genre or plot_letter in ['D', 'E', 'F']) else 'lower left'
             ax.legend(handles=legend_handles, loc=loc, fontsize=9, framealpha=0.9, facecolor='white', edgecolor='gray')
-            
-        ax.text(0.04, 0.97, f"{len(nat_pts)} books", transform=ax.transAxes, fontsize=9, fontstyle='italic', color='gray', va='top')
-        ax.text(0.04, 0.94, f"Avg len: {int(avg_toks/1000)}k tokens", transform=ax.transAxes, fontsize=9, fontweight='bold', fontstyle='italic', color='crimson', va='top')
-        desc_txt = GENRE_DESCRIPTIONS.get(genre, 'Genre description')
-        ax.text(0.04, 0.91, desc_txt, transform=ax.transAxes, fontsize=9, fontstyle='italic', color='gray', va='top')
+
+        #desc_txt = GENRE_DESCRIPTIONS.get(genre, 'Genre description')
+        #ax.text(0.04, 0.91, desc_txt, transform=ax.transAxes, fontsize=9, fontstyle='italic', color='gray', va='top')
 
     plt.tight_layout(rect=[0, 0, 1, 1])
-    plt.savefig(output_path, dpi=150, bbox_inches='tight')
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.close()
     print(f'Saved Combined Figure to {output_path}')
 

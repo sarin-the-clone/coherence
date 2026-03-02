@@ -101,6 +101,11 @@ python3 analysis/project_on_natural_books_PCs.py
 This generates density plots showing where your generated text falls compared to genres like Fiction, Sci-Fi, and Non-Fiction.
 
 **Aggregate Analysis:**
+First, extract aggregate metrics from all runs into a single file:
+```bash
+python3 analysis/extract_aggregate_metrics.py
+```
+Then plot the aggregated data:
 ```bash
 python3 analysis/plot_aggregate_metrics.py
 ```
