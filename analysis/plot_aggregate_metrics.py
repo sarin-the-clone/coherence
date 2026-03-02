@@ -152,7 +152,21 @@ def aggregate_data_by_tokens(folders: List[Path], bin_size: int = 20000, max_tok
         
     return binned_stats
 
-def plot_aggregate(binned_stats, out_path, structural_metrics, informational_metrics):
+def load_single_book(folder_path: Path):
+    """Load time series for a single specific book folder."""
+    attempts = load_attempts(folder_path)
+    if not attempts:
+        return None
+    series, tokens_map = extract_time_series(attempts)
+    
+    # Convert {chunk: val} to {tokens: val}
+    tokens_series = {}
+    for metric, chunk_map in series.items():
+        tokens_series[metric] = {tokens_map[c]: v for c, v in chunk_map.items() if tokens_map.get(c) is not None}
+    
+    return tokens_series
+
+def plot_aggregate(binned_stats_high, binned_stats_low, out_path, structural_metrics, informational_metrics, chaotic_data=None):
     """
     Plot aggregated mean +/- std from token-binned data.
     """
@@ -162,7 +176,7 @@ def plot_aggregate(binned_stats, out_path, structural_metrics, informational_met
     # We create pseudo-chunks for the segments logic using bin centers
     # Just need a range covering 0 to 1M to generate segments
     dummy_chunks = list(range(0, 10)) # minimal needed
-    dummy_tokens = {0: 0, 1: 1000000} # full range
+    dummy_tokens = {0: 0, 1: 4000000} # full range (extended to 4M)
     
     # Actually, we need to map X-axis (tokens) to bins
     # For the background bands, we can just iterate tokens directly or use the helper
@@ -171,7 +185,8 @@ def plot_aggregate(binned_stats, out_path, structural_metrics, informational_met
     
     bins_Natural = SIZE_STATS.get("bins", []) if SIZE_STATS else []
     
-    palette = ["#5B8FF9", "#FF7F0E", "#2CA02C", "#D62728", "#9467BD", "#8C564B"]
+    # Use a vibrant high-contrast palette avoiding blue and green
+    palette = ["#FF0000", "#FF7F00", "#FFD700", "#FF1493", "#8A2BE2", "#FF00FF"]
     bin_colors = {}
     for idx, b in enumerate(bins_Natural):
         bin_colors[b["name"]] = palette[idx % len(palette)]
@@ -179,32 +194,54 @@ def plot_aggregate(binned_stats, out_path, structural_metrics, informational_met
     band_labels_used = set()
     mean_labels_used = set()
     rows = max(len(structural_metrics), len(informational_metrics))
-    fig, axes = plt.subplots(rows, 2, figsize=(20, 3 * rows), sharex=True)
+    fig, axes = plt.subplots(rows, 2, figsize=(20, 5 * rows), sharex=True)
     if rows == 1:
         axes = axes.reshape(1, 2)
 
     def plot_on_ax(ax, metric):
-        if not metric or metric not in binned_stats:
+        if not metric or (metric not in binned_stats_high and metric not in binned_stats_low):
             ax.axis('off')
             return
             
-        stats_map = binned_stats[metric]
-        # Sort by bin center
-        sorted_centers = sorted(stats_map.keys())
-        if not sorted_centers:
-            return
+        def plot_stats(stats_map, color, label_prefix):
+            if not stats_map: return
+            sorted_centers = sorted(stats_map.keys())
+            if not sorted_centers: return
+            xs = [c / 1000.0 for c in sorted_centers]
+            means = [stats_map[c]["mean"] for c in sorted_centers]
+            stds = [stats_map[c]["std"] for c in sorted_centers]
+            upper = np.array(means) + np.array(stds)
+            lower = np.array(means) - np.array(stds)
             
-        xs = [c / 1000.0 for c in sorted_centers] # k tokens
-        means = [stats_map[c]["mean"] for c in sorted_centers]
-        stds = [stats_map[c]["std"] for c in sorted_centers]
+            ax.plot(xs, means, color=color, linestyle="-", linewidth=2.0, label=f"Mean for {label_prefix}", zorder=10)
+            ax.fill_between(xs, lower, upper, color=color, alpha=0.25, label=f"±1 Std Dev ({label_prefix})", zorder=9)
+
+        if metric in binned_stats_high:
+            plot_stats(binned_stats_high[metric], "blue", "High Temperature runs")
+        if metric in binned_stats_low:
+            plot_stats(binned_stats_low[metric], "steelblue", "Low Temperature runs")
         
-        upper = np.array(means) + np.array(stds)
-        lower = np.array(means) - np.array(stds)
-        
-        # Plot Mean
-        ax.plot(xs, means, color="#333333", linestyle="-", linewidth=2, label="Mean Generated")
-        # Plot Std Dev Shade
-        ax.fill_between(xs, lower, upper, color="#333333", alpha=0.2, label="±1 Std Dev")
+        # Plot Chaotic Run if provided (Dark Gray Dotted, at the bottom of the overlay)
+        if chaotic_data and metric in chaotic_data:
+            c_map = chaotic_data[metric]
+            c_tokens = sorted(c_map.keys())
+            
+            c_xs = []
+            c_vals = []
+            for t in c_tokens:
+                v = c_map[t]
+                if v is not None:
+                    c_xs.append(t / 1000.0)
+                    c_vals.append(v)
+                    
+            if c_xs and c_vals:
+                vals_arr = np.array(c_vals, dtype=np.float64)
+                nan_mask = np.isnan(vals_arr)
+                if np.any(nan_mask):
+                    not_nan_mask = ~nan_mask
+                    if np.any(not_nan_mask):
+                        vals_arr[nan_mask] = np.interp(np.array(c_xs)[nan_mask], np.array(c_xs)[not_nan_mask], vals_arr[not_nan_mask])
+                ax.plot(c_xs, vals_arr, color="gray", linestyle=":", linewidth=2.0, alpha=0.9, label="Chaotic Run (4M tokens)", zorder=8)
         
         is_structural = metric in structural_metrics
         
@@ -222,9 +259,9 @@ def plot_aggregate(binned_stats, out_path, structural_metrics, informational_met
             if lo_tok is None: continue
             if hi_tok is None: hi_tok = 10000000 # Infinity
             
-            # Constrain to plot window (0 to 1M)
+            # Constrain to plot window (0 to 4M)
             start_k = max(0, lo_tok / 1000.0)
-            end_k = min(1000.0, hi_tok / 1000.0)
+            end_k = min(4000.0, hi_tok / 1000.0)
             
             if start_k >= end_k: continue
 
@@ -232,10 +269,15 @@ def plot_aggregate(binned_stats, out_path, structural_metrics, informational_met
             
             label_suffix = ""
             lo_label_k = int(lo_tok // 1000)
-            hi_label_k = "∞" if hi_tok > 9000000 else int(hi_tok // 1000)
-            label_suffix = f" (Natural {lo_label_k}k-{hi_label_k})"
+            if hi_tok > 800000:
+                label_suffix = f" ( >{lo_label_k}k)"
+            else:
+                hi_label_k = int(hi_tok // 1000)
+                label_suffix = f" ( {lo_label_k}-{hi_label_k}k)"
             
-            color = bin_colors.get(b["name"], "skyblue")
+            color = bin_colors.get(b["name"], "#FF00FF")
+            if hi_tok > 800000:
+                color = "#8B0000" # Deep dark red for the >800k bin
             
             if p25 is not None and p75 is not None:
                 label = f"Natural p2.5-p97.5{label_suffix}"
@@ -245,14 +287,11 @@ def plot_aggregate(binned_stats, out_path, structural_metrics, informational_met
                     # Draw 100k+ normally for both structural and informational (no proxy)
                     sub_start = max(start_k, 100.0)
                     if sub_start < end_k:
-                        ax.fill_between([sub_start, end_k], [p25, p25], [p75, p75], color=color, alpha=0.08, zorder=1.5, label=label if label not in band_labels_used else None)
+                        ax.fill_between([sub_start, end_k], [p25, p25], [p75, p75], color=color, alpha=0.05, zorder=1.5, label=label if label not in band_labels_used else None)
                         band_labels_used.add(label)
                 else:
                     # Normal bin
-                    ax.fill_between([start_k, end_k], [p25, p25], [p75, p75], color=color, alpha=0.08, zorder=1.5, label=label if label not in band_labels_used else None)
-                    band_labels_used.add(label)
-                    # Normal bin
-                    ax.fill_between([start_k, end_k], [p25, p25], [p75, p75], color=color, alpha=0.08, zorder=1.5, label=label if label not in band_labels_used else None)
+                    ax.fill_between([start_k, end_k], [p25, p25], [p75, p75], color=color, alpha=0.05, zorder=1.5, label=label if label not in band_labels_used else None)
                     band_labels_used.add(label)
             
             if mean_nat is not None:
@@ -261,25 +300,37 @@ def plot_aggregate(binned_stats, out_path, structural_metrics, informational_met
                 if is_100k_bin: draw_start = max(start_k, 100.0)
                 
                 if draw_start < end_k:
-                    ax.plot([draw_start, end_k], [mean_nat, mean_nat], color=color, linestyle="--", linewidth=1.2, zorder=1.6, label=label if label not in mean_labels_used else None)
+                    # Increased linewidth and zorder for better visibility
+                    ax.plot([draw_start, end_k], [mean_nat, mean_nat], color=color, linestyle="--", linewidth=2.0, zorder=15, label=label if label not in mean_labels_used else None)
                     mean_labels_used.add(label)
 
         ax.set_ylabel(metric)
         ax.grid(True, alpha=0.3)
         ax.set_title(metric)
+        
+        # Apply SymLog Scale with dominance for the 0-1M range
+        # Increasing linscale makes the linear part take up more space
+        ax.set_xscale('symlog', linthresh=1000.0, linscale=5.0)
+        ax.set_xlim(0, 4200.0)
+        
+        # Set Ticks manually for better readability using "M"
+        major_ticks = [0, 200, 400, 600, 800, 1000, 2000, 4000]
+        ax.set_xticks(major_ticks)
+        ax.set_xticklabels(['0', '200k', '400k', '600k', '800k', '1M', '2M', '4M'])
+        ax.tick_params(axis='x', labelsize=9)
 
     # Plot Structural
     for i in range(rows):
         metric = structural_metrics[i] if i < len(structural_metrics) else None
         plot_on_ax(axes[i, 0], metric)
-        if i == rows - 1: axes[i, 0].set_xlabel("Tokens (k)")
+        if i == rows - 1: axes[i, 0].set_xlabel("nonlinear token count")
         
     # Plot Informational
     for i in range(rows):
         metric = informational_metrics[i] if i < len(informational_metrics) else None
         plot_on_ax(axes[i, 1], metric)
-        if i == rows - 1: axes[i, 1].set_xlabel("Tokens (k)")
-
+        if i == rows - 1: axes[i, 1].set_xlabel("nonlinear token count")
+        
     # Legend
     handles, labels = [], []
     for ax in axes.flatten():
@@ -293,19 +344,29 @@ def plot_aggregate(binned_stats, out_path, structural_metrics, informational_met
         if l in seen or not l: continue
         dedup.append((h, l))
         seen.add(l)
+        
+    # Move Chaotic Run to the end
+    chaotic_items = []
+    final_dedup = []
+    for h, l in dedup:
+        if "Chaotic Run" in l:
+            chaotic_items.append((h, l))
+        else:
+            final_dedup.append((h, l))
+    final_dedup.extend(chaotic_items)
     
-    if dedup:
+    if final_dedup:
         fig.legend(
-            [h for h, _ in dedup],
-            [l for _, l in dedup],
+            [h for h, _ in final_dedup],
+            [l for _, l in final_dedup],
             loc='lower center',
             ncol=4,
-            bbox_to_anchor=(0.5, 0.02),
+            bbox_to_anchor=(0.5, 0.01),
             fontsize=9,
             frameon=False
         )
 
-    fig.suptitle("Aggregated Metric Evolution (Mean ± Std Dev) vs Natural Texts\n(Binned by Token Count)", fontsize=16)
+    fig.suptitle("Mean metric evolution vs Natural Texts (binned by token count)", fontsize=16)
     fig.tight_layout(rect=[0, 0.12, 1, 0.96])
     fig.savefig(out_path, dpi=200)
     print(f"Saved aggregated plot → {out_path}")
@@ -313,22 +374,51 @@ def plot_aggregate(binned_stats, out_path, structural_metrics, informational_met
 
 def main():
     parser = argparse.ArgumentParser(description="Plot text metrics aggregated across all books.")
-    parser.add_argument("--out", "-o", default="generated_texts_og/prompts/_aggregated_metrics_evolution.jpg")
-    parser.add_argument("--bin-size", type=int, default=20000, help="Bin size in tokens for aggregation")
+    parser.add_argument("--out", "-o", default="generated_texts_og/Output/_aggregated_metrics_evolution.jpg")
+    parser.add_argument("--in-data", "-i", default="generated_texts_og/Output/aggregated_metrics.json", help="Path to aggregated metrics JSON")
     args = parser.parse_args()
 
-    prompts_dir = ROOT / "generated_texts_og" / "prompts"
-    if not prompts_dir.exists():
-        print(f"Error: {prompts_dir} does not exist")
+    in_path = ROOT / args.in_data
+    if not in_path.exists():
+        print(f"Error: Aggregated metrics file not found: {in_path}")
+        print("Please run coherence/analysis/extract_aggregate_metrics.py first.")
         return
-
-    folders = get_book_folders(prompts_dir)
-    binned_stats = aggregate_data_by_tokens(folders, bin_size=args.bin_size, max_tokens=1000000)
+        
+    print(f"Loading aggregated metrics from {in_path.name}...")
+    with open(in_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+        
+    binned_stats_high_raw = data.get("high_temp", {})
+    binned_stats_low_raw = data.get("low_temp", {})
     
+    # JSON dict keys are strings, convert the numeric token keys back to float
+    def cast_keys(binned_stats):
+        result = {}
+        for metric, bins in binned_stats.items():
+            result[metric] = {float(k): v for k, v in bins.items()}
+        return result
+        
+    binned_stats_high = cast_keys(binned_stats_high_raw)
+    binned_stats_low = cast_keys(binned_stats_low_raw)
+    
+    # Load Chaotic Book separately from its dedicated json
+    chaotic_file = ROOT / "generated_texts_og" / "Output" / "chaotic_run_metrics.json"
+    chaotic_data = None
+    if chaotic_file.exists():
+        print(f"Loading chaotic run: {chaotic_file.name}")
+        with open(chaotic_file, "r") as f:
+            raw_chaotic = json.load(f)
+            # JSON keys are currently strings, convert token keys to int
+            chaotic_data = {}
+            for metric, data_dict in raw_chaotic.items():
+                chaotic_data[metric] = {int(k): v for k, v in data_dict.items()}
+    else:
+        print(f"Warning: Chaotic run file not found: {chaotic_file}")
+
     structural_metrics = ["beta", "alpha", "H_DMA", "H_WT_db4"]
     informational_metrics = ["entropy_bits", "perplexity", "lz_complexity", "mi_decay_gamma"]
     
-    plot_aggregate(binned_stats, args.out, structural_metrics, informational_metrics)
+    plot_aggregate(binned_stats_high, binned_stats_low, args.out, structural_metrics, informational_metrics, chaotic_data=chaotic_data)
 
 
 if __name__ == "__main__":

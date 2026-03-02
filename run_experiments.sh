@@ -306,3 +306,110 @@ fi
 
 
 
+if [[ "$1" -ge 33 && "$1" -le 50 ]]; then
+    # Experiment Batch 33-50 (1M Tokens, 16k Context, Temp 1.0-1.4, Gating Active)
+    # 6 Prompt Types * 3 Replicates
+    
+    EXPERIMENT_ID=$1
+    
+    # Define Prompt Mapping
+    declare -A PROMPTS
+    declare -A GENRE
+    declare -A REP
+    
+    PROMPTS[33]="generated_texts_og/prompts/historical_library.md"; GENRE[33]="Historical Fiction"; REP[33]=1
+    PROMPTS[34]="generated_texts_og/prompts/historical_library.md"; GENRE[34]="Historical Fiction"; REP[34]=2
+    PROMPTS[35]="generated_texts_og/prompts/historical_library.md"; GENRE[35]="Historical Fiction"; REP[35]=3
+    
+    PROMPTS[36]="generated_texts_og/prompts/romance_drama.md"; GENRE[36]="Romance Drama"; REP[36]=1
+    PROMPTS[37]="generated_texts_og/prompts/romance_drama.md"; GENRE[37]="Romance Drama"; REP[37]=2
+    PROMPTS[38]="generated_texts_og/prompts/romance_drama.md"; GENRE[38]="Romance Drama"; REP[38]=3
+    
+    PROMPTS[39]="generated_texts_og/prompts/cyberpunk_grid.md"; GENRE[39]="Cyberpunk"; REP[39]=1
+    PROMPTS[40]="generated_texts_og/prompts/cyberpunk_grid.md"; GENRE[40]="Cyberpunk"; REP[40]=2
+    PROMPTS[41]="generated_texts_og/prompts/cyberpunk_grid.md"; GENRE[41]="Cyberpunk"; REP[41]=3
+    
+    PROMPTS[42]="generated_texts_og/prompts/science_book.md"; GENRE[42]="Science Book"; REP[42]=1
+    PROMPTS[43]="generated_texts_og/prompts/science_book.md"; GENRE[43]="Science Book"; REP[43]=2
+    PROMPTS[44]="generated_texts_og/prompts/science_book.md"; GENRE[44]="Science Book"; REP[44]=3
+    
+    PROMPTS[45]="generated_texts_og/prompts/biography.md"; GENRE[45]="Biography"; REP[45]=1
+    PROMPTS[46]="generated_texts_og/prompts/biography.md"; GENRE[46]="Biography"; REP[46]=2
+    PROMPTS[47]="generated_texts_og/prompts/biography.md"; GENRE[47]="Biography"; REP[47]=3
+    
+    PROMPTS[48]="generated_texts_og/prompts/lighthouse_keeper.md"; GENRE[48]="General Fiction"; REP[48]=1
+    PROMPTS[49]="generated_texts_og/prompts/lighthouse_keeper.md"; GENRE[49]="General Fiction"; REP[49]=2
+    PROMPTS[50]="generated_texts_og/prompts/lighthouse_keeper.md"; GENRE[50]="General Fiction"; REP[50]=3
+    
+    PROMPT_FILE=${PROMPTS[$EXPERIMENT_ID]}
+    GENRE_NAME=${GENRE[$EXPERIMENT_ID]}
+    REPLICATE=${REP[$EXPERIMENT_ID]}
+    RUN_ID="run_${EXPERIMENT_ID}_${GENRE_NAME// /_}_rep${REPLICATE}"
+    RUN_ID=$(echo "$RUN_ID" | tr '[:upper:]' '[:lower:]') # Lowercase
+    
+    while :; do
+        echo "Starting Run $EXPERIMENT_ID: $GENRE_NAME (Replicate $REPLICATE)..."
+        echo "  Prompt: $PROMPT_FILE"
+        echo "  Run ID: $RUN_ID"
+        
+        # Verify Prompt File Exists
+        if [ ! -f "$PROMPT_FILE" ]; then
+            echo "❌ Error: Prompt file not found: $PROMPT_FILE"
+            exit 1
+        fi
+        
+        python3 -u generated_texts_og/run_longbook.py \
+            --model mistral \
+            --prompt_file "$PROMPT_FILE" \
+            --target_tokens 1000000 \
+            --max_tokens 16384 \
+            --temp_low 0.6 --temp_high 0.9 \
+            --top_p 0.95 \
+            --run_id "$RUN_ID" \
+            --restart_every 200
+            # Gating is active by default (no --disable_gating)
+
+        EXIT_CODE=$?
+
+        if [ $EXIT_CODE -eq 0 ]; then
+            echo "✅ Run $EXPERIMENT_ID Complete."
+            break
+        else
+            echo "❌ Run $EXPERIMENT_ID Crashed (Code $EXIT_CODE)." 
+            echo "$(date): Run $EXPERIMENT_ID Crashed with exit code $EXIT_CODE" >> "run_${EXPERIMENT_ID}_oom_events.log"
+            echo "Restarting in 10s..."
+            sleep 10
+        fi
+    done
+fi
+
+if [ "$1" == "51" ]; then
+    # Run 51 (Qwen 72B Test - 50k Tokens)
+    while :; do
+        echo "Starting Run 51 (Qwen 72B Test)..."
+        python3 -u generated_texts_og/run_longbook.py \
+            --model qwen25_72b \
+            --prompt_file "generated_texts_og/prompts/space_opera_last_star.md" \
+            --target_tokens 150000 \
+            --max_tokens 16384 \
+            --temp_low 0.8 --temp_high 1.0 \
+            --top_p 0.95 \
+            --run_id run_51_qwen72b_test \
+            --restart_every 200 \
+            --repetition_penalty 1.1 \
+            --n_attempts 3
+
+        EXIT_CODE=$?
+
+        if [ $EXIT_CODE -eq 0 ]; then
+            echo "✅ Run 51 Complete."
+            break
+        else
+            echo "❌ Run 51 Crashed (Code $EXIT_CODE)." 
+            echo "$(date): Run 51 Crashed with exit code $EXIT_CODE" >> run_51_oom_events.log
+            echo "Restarting in 10s..."
+            sleep 10
+        fi
+    done
+fi
+

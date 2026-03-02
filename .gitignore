@@ -1,8 +1,6 @@
 # Exclude large generation artifacts
-# Exclude large generation artifacts
-generated_texts_rag/
+
 # generated_texts_og/ # Un-ignored to allow code/templates
-generated_texts_og/Output/
 generated_texts_og/Texts/
 generated_texts_og/Epub/
 generated_texts_og/Pdf/
@@ -33,6 +31,7 @@ env/
 *.h5
 *.avro
 *.parquet
+*.xz
 
 # Exclude OS files
 .DS_Store
@@ -44,7 +43,7 @@ analysis/output/
 *.zip
 batch_15_32_log.txt
 
-
+natural_texts/books.zip
 natural_texts/Selected_Books
 natural_texts/Selected_Modern_Books
 natural_texts/books
@@ -59,4 +58,4 @@ run_*_monitoring.log
 run_*_oom_events.log
 run_*_nohup.log
 genres_list.txt
-central_books*.txt
+central_books*.txtnatural_texts/books.zip

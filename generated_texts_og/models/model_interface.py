@@ -40,10 +40,41 @@ class HuggingFaceLLM(BaseLLM):
             self.model_name,
             device_map=self.device,
             trust_remote_code=True,
-            torch_dtype=torch.float16 if self.device == "cuda" else torch.float32
+            torch_dtype=torch.float16 if self.device == "cuda" else torch.float32,
+            **self._get_quantization_kwargs()
         )
         self.model.eval()
         print("Model loaded successfully.")
+
+    def _get_quantization_kwargs(self):
+        """Helper to construct quantization arguments."""
+        quant_mode = self.config.get("quantization", None)
+        
+        if not quant_mode:
+            return {}
+            
+        print(f"Quantization enabled: {quant_mode}")
+        
+        if quant_mode == "4bit":
+            # Requires check for bitsandbytes
+            try:
+                from transformers import BitsAndBytesConfig
+                return {
+                    "quantization_config": BitsAndBytesConfig(
+                        load_in_4bit=True,
+                        bnb_4bit_compute_dtype=torch.float16,
+                        bnb_4bit_quant_type="nf4",
+                        bnb_4bit_use_double_quant=True,
+                    )
+                }
+            except ImportError:
+                 print("Warning: bitsandbytes not found. Falling back to simple load_in_4bit=True (might fail).")
+                 return {"load_in_4bit": True}
+                 
+        elif quant_mode == "8bit":
+             return {"load_in_8bit": True}
+        
+        return {}
 
     def generate(self, prompt: str, stop_sequences: Optional[List[str]] = None, max_new_tokens: int = None, prefix_embeds: Optional[torch.Tensor] = None, top_p: float = 0.9, **kwargs) -> str:
         if max_new_tokens is None:

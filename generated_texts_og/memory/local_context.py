@@ -33,9 +33,11 @@ class LocalContext:
 
         self.context = (self.context + "\n" + new_chunk).strip()
 
-        # Hard trim by characters (approx tokens)
-        if len(self.context) > self.max_tokens:
-            self.context = self.context[-self.max_tokens:]
+        # Hard trim by characters (approx 4 chars per token)
+        # User requested simple multiplication here
+        char_limit = self.max_tokens * 4
+        if len(self.context) > char_limit:
+            self.context = self.context[-char_limit:]
 
         return self.context
 

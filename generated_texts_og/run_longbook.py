@@ -252,6 +252,16 @@ def main():
         "--restart_every", type=int, default=None,
         help="Restart process after N chunks to clear VRAM fragmentation (exit code 42)."
     )
+    
+    parser.add_argument(
+        "--repetition_penalty", type=float, default=1.1,
+        help="Repetition penalty for generation (default: 1.1). Try 1.05-1.2 for different models."
+    )
+    
+    parser.add_argument(
+        "--n_attempts", type=int, default=3,
+        help="Number of regeneration attempts per chunk before moving on (default: 3)."
+    )
 
     parser.add_argument(
         "--resume", type=str, default=None,
@@ -307,6 +317,9 @@ def main():
         ppl_threshold=args.ppl_min,
         disable_gating=args.disable_gating,
         restart_every=args.restart_every,
+        
+        repetition_penalty=args.repetition_penalty,
+        n_attempts=args.n_attempts,
     )
 
     # Handle Prompt Source

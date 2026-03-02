@@ -34,6 +34,7 @@ from generated_texts_og.memory.memory_summarizer import MemorySummarizer
 from generated_texts_og.utils.title_and_genre import generate_title_and_genre
 from generated_texts_og.utils.prompt_templates import CHUNK_GENERATION_PROMPT, get_variation_hint
 from generated_texts_og.utils.story_contract_parser import parse_initial_prompt, format_contract_for_prompt
+from generated_texts_og.utils.prompt_sanitizer import strip_chat_prefixes
 
 # tokenizer + metrics (root)
 from tokenizer import Tokenizer
@@ -68,6 +69,7 @@ class LongBookGenerator:
         ppl_threshold=None,
         disable_gating=False,
         restart_every=None,
+        repetition_penalty=1.1, # Default 1.1
     ):
         # Load config
         with open("generated_texts_og/config/model_config.yaml", "r") as f:
@@ -87,6 +89,7 @@ class LongBookGenerator:
         self.n_attempts = n_attempts
         self.restart_every = restart_every
         self.disable_gating = disable_gating
+        self.repetition_penalty = repetition_penalty
         
         # Metadata Fix: Update config to reflect runtime overrides
         self.model_config["max_tokens"] = self.max_chunk_tokens
@@ -335,6 +338,7 @@ class LongBookGenerator:
                 "max_chunk_tokens": self.max_chunk_tokens,
                 "temperature_range": self.temperature_range,
                 "n_attempts": self.n_attempts,
+                "repetition_penalty": self.repetition_penalty,
                 "debug_folder": self.serializer.debug_root,
                 "compression_method": "llm_native_hidden_state"
             }
@@ -432,6 +436,13 @@ class LongBookGenerator:
         # Prepare memory for title generation
         memory_data = self.summary_manager.to_serializable()
         
+        # Inject Initial Prompt Use (Fixing Recency Bias)
+        if hasattr(self, 'initial_prompt') and self.initial_prompt:
+             memory_data["initial_prompt"] = self.initial_prompt
+        
+        if hasattr(self, 'prompt_filename') and self.prompt_filename:
+             memory_data["prompt_filename"] = self.prompt_filename
+
         # Use robust extraction
         broader, specific, title = generate_title_and_genre(memory_data, self.model)
         title_slug = slugify(title)
@@ -611,12 +622,12 @@ class LongBookGenerator:
 
             # Dynamic Sampling Parameters for High Attempts
             current_top_p = self.top_p
-            current_rep_penalty = 1.1
+            current_rep_penalty = self.repetition_penalty
             
             # If failing (attempt 3+), relax constraints to allow higher entropy
             if attempt >= 3:
                 current_top_p = 0.98  # Open up the tail
-                current_rep_penalty = 1.15 # Force vocabulary diversity
+                current_rep_penalty = max(self.repetition_penalty, 1.15) # Force vocabulary diversity
             if attempt >= 4:
                 current_top_p = 1.0   # Full random tail
             
@@ -655,6 +666,11 @@ class LongBookGenerator:
             
             # Extract text (still useful to clean up potential artifacts)
             new_text = extract_new_text(self.local_context.get_context(), full_output, prompt=base_prompt)
+            
+            # --- NEW: LIGHTWEIGHT SANITIZATION (REGEX) ---
+            if new_text:
+                new_text = strip_chat_prefixes(new_text)
+                
             last_output = new_text
 
             # Skip this attempt if extraction resulted in empty text

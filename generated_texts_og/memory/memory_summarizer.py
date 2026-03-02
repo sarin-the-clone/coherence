@@ -202,6 +202,53 @@ class MemorySummarizer:
 
     @staticmethod
     def summarize_for_title(memory: Dict[str, Any]) -> str:
-        """Creates a focused summary for title/genre extraction."""
-        # Similar to generation but more concise
-        return MemorySummarizer.summarize_for_generation(memory)
+        """
+        Creates a focused summary for title/genre extraction.
+        CRITICAL FIX: Ignores recent chunks to avoid recency bias.
+        Uses Global Summary + Original Intent + Narrative Arc.
+        """
+        summary_parts = []
+
+        # 1. Original Intent (The Prompt)
+        initial_prompt = memory.get("initial_prompt", "")
+        prompt_filename = memory.get("prompt_filename", "")
+        
+        if initial_prompt:
+             # Truncate if insanely long, but usually prompts are key
+             summary_parts.append(f"**ORIGINAL BOOK INTENT/PROMPT:**\n{initial_prompt[:2000]}\n")
+        
+        if prompt_filename:
+             summary_parts.append(f"**Source Category/Filename:** {prompt_filename}\n")
+
+        # 2. Global Story Summary (The "Book Jacket" summary)
+        global_summary = memory.get("global_summary", "")
+        if isinstance(global_summary, str) and global_summary.strip():
+            # Clean up artifacts
+            clean_summary = global_summary.strip()
+            if not (clean_summary.startswith('{') or clean_summary.startswith('"')):
+                 summary_parts.append(f"**Story Overview:**\n{clean_summary}\n")
+
+        # 3. Full Narrative Arc (from Episodes)
+        # We want the trajectory, not just the last scene
+        episodes = memory.get("episodes", [])
+        if episodes:
+            summary_parts.append("**Narrative Arc / Evolution:**")
+            # Take first, middle, and last episode arcs if available
+            indices = []
+            if len(episodes) > 0: indices.append(0)
+            if len(episodes) > 2: indices.append(len(episodes) // 2)
+            if len(episodes) > 1: indices.append(len(episodes) - 1)
+            
+            # Deduplicate indices
+            indices = sorted(list(set(indices)))
+            
+            for i in indices:
+                ep = episodes[i]
+                if isinstance(ep, list) and ep: ep = ep[0] # handle list wrapper
+                if isinstance(ep, dict):
+                     arc = ep.get("narrative_arc", "")
+                     if arc:
+                         label = "Beginning" if i == 0 else ("Ending" if i == len(episodes)-1 else "Middle")
+                         summary_parts.append(f"- {label}: {arc}")
+
+        return "\n".join(summary_parts)

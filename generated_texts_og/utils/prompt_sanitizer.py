@@ -99,3 +99,53 @@ def quick_contamination_check(text: str) -> bool:
             return True
     
     return False
+
+
+def strip_chat_prefixes(text: str) -> str:
+    """
+    Remove common chatty prefixes from model output using regex.
+    This is much faster than LLM-based sanitization.
+    """
+    import re
+    
+    # Common prefixes to strip
+    # "Here is the story:"
+    # "Sure, I can help:"
+    # "Assistant:"
+    # "I will write the story now."
+    patterns = [
+        # Match "Here is the story:" up to colon/newline
+        r"^(Here is|Here's) (the|a) (story|continuation|text|chapter|scene).*?[:\n]",
+        
+        # Match "Sure...", "I will..." up to end of line or punctuation
+        # We assume these are one-liners followed by the real text
+        r"^Sure, I can (help|write|continue).*?[\.!\n]",
+        r"^Assistant:?\s*",
+        r"^\[Assistant\]:?\s*",
+        r"^I will (write|continue|generate).*?[\.!\n]",
+        r"^Let me (write|continue|help).*?[\.!\n]",
+        r"^(Okay|Ok|Great), here is.*?[\.!\n:\,]",
+        r"^Here is what I wrote.*?[\.!\n:]",
+        r"^\(Story Continuation\)\s*",
+    ]
+    
+    # We only look at the start of the string
+    cleaned = text
+    for pat in patterns:
+        # We use DOTALL only if we explicitly want to match across lines (which we don't for these specific line-based prefixes)
+        # Actually, let's NOT use DOTALL so .* stops at newline. 
+        # But some prefixes might be "Sure!\nHere is it:" (multi-line).
+        # We handle that by running the loop multiple times? No, we modify `cleaned`.
+        # If we have "Sure!\nHere is it:", the first pass might catch "Sure!", the second "Here is it:".
+        
+        # We repeat the cleaning until no more prefixes are found at the start
+        # This handles stacked prefixes.
+        
+        while True:
+            match = re.search(pat, cleaned, re.IGNORECASE)
+            if match and match.start() == 0:
+                cleaned = cleaned[match.end():].lstrip()
+            else:
+                break
+
+    return cleaned.strip()
