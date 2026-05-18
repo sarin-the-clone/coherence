@@ -38,6 +38,8 @@ class SummaryManager:
         self.episodes = []           # list of dict (episodic summaries E2)
         self.global_summary = None   # G3 (string)
         self.semantic_memory = SemanticMemory()  # low-dim embeddings
+        self.retrieval_chunks = []   # compact raw-text excerpts for long-range recall
+        self.pending_episode_source = None
 
     # ---------------------------------------------------------------
     def reset(self):
@@ -46,6 +48,8 @@ class SummaryManager:
         self.episodes.clear()
         self.global_summary = None
         self.semantic_memory = SemanticMemory()
+        self.retrieval_chunks.clear()
+        self.pending_episode_source = None
 
     # ---------------------------------------------------------------
     def add_chunk_summary(self, summary_dict):
@@ -83,6 +87,32 @@ class SummaryManager:
         self.global_summary = summary_text
 
     # ---------------------------------------------------------------
+    def add_retrieval_chunk(self, chunk_record):
+        """
+        Add a compact raw-text record used for long-range retrieval.
+        Expected keys:
+          - chunk_id
+          - excerpt
+        """
+        if not isinstance(chunk_record, dict):
+            return
+
+        excerpt = str(chunk_record.get("excerpt", "")).strip()
+        if not excerpt:
+            return
+
+        chunk_id = chunk_record.get("chunk_id")
+        try:
+            chunk_id = int(chunk_id)
+        except (TypeError, ValueError):
+            chunk_id = None
+
+        self.retrieval_chunks.append({
+            "chunk_id": chunk_id,
+            "excerpt": excerpt,
+        })
+
+    # ---------------------------------------------------------------
     def add_semantic_vector(self, vector):
         """Append a new semantic 64-dim vector (from CompressionTransformer)."""
         self.semantic_memory.append(vector)
@@ -100,7 +130,7 @@ class SummaryManager:
         if len(self.chunks) > 10:
             self.chunks = self.chunks[-10:]
 
-        # episodes are usually few; we keep all
+        # episodes and retrieval archive are kept in full
 
     # ---------------------------------------------------------------
     # JSON EXPORT
@@ -113,6 +143,7 @@ class SummaryManager:
             "episodes": self.episodes,
             "recent_chunks": self.chunks,
             "semantic_memory": sem,
+            "retrieval_chunks": self.retrieval_chunks,
         }
 
     # ---------------------------------------------------------------
@@ -137,3 +168,7 @@ class SummaryManager:
         # semantic memory
         with open(os.path.join(folder_path, f"{prefix}_semantic.json"), "w") as f:
             json.dump(self.semantic_memory.to_serializable(), f, indent=2)
+
+        # raw retrieval excerpts
+        with open(os.path.join(folder_path, f"{prefix}_retrieval.json"), "w") as f:
+            json.dump(self.retrieval_chunks, f, indent=2)

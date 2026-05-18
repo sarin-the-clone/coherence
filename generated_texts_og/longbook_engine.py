@@ -6,6 +6,7 @@ import os
 import json
 import yaml
 from datetime import datetime
+import numpy as np
 import torch
 from tqdm import tqdm
 import sys
@@ -131,6 +132,376 @@ class LongBookGenerator:
 
         # LZ State (for incremental complexity calculation)
         self.lz_state = None
+        self.retrieval_vectors = []
+
+    @staticmethod
+    def _event_label_from_summary(item, max_chars=96):
+        if isinstance(item, dict):
+            label = item.get("details", item.get("description", item.get("event", "")))
+            if isinstance(label, list):
+                label = " ".join(str(x) for x in label)
+        elif isinstance(item, list):
+            label = " ".join(str(x) for x in item)
+        else:
+            label = str(item) if item else ""
+
+        label = " ".join(str(label).split()).strip()
+        if len(label) > max_chars:
+            label = label[:max_chars].rsplit(" ", 1)[0].strip()
+        return label
+
+    @staticmethod
+    def _normalize_summary_labels(items, field_name):
+        labels = []
+        if not isinstance(items, list):
+            return labels
+
+        for item in items:
+            label = None
+            if isinstance(item, str):
+                label = item
+            elif isinstance(item, dict):
+                if field_name == "characters":
+                    label = item.get("name", item.get("label"))
+                elif field_name == "places":
+                    label = item.get("name", item.get("location"))
+                elif field_name == "objects":
+                    label = item.get("name", item.get("label"))
+                elif field_name == "concepts":
+                    label = item.get("concept", item.get("name"))
+            elif item:
+                label = str(item)
+
+            label = " ".join(str(label).split()).strip() if label else ""
+            if label:
+                labels.append(label)
+        return labels
+
+    @staticmethod
+    def _make_retrieval_excerpt(text, max_chars=900):
+        if not text:
+            return ""
+
+        paragraphs = [p.strip() for p in str(text).split("\n\n") if p.strip()]
+        excerpt_parts = []
+        total_chars = 0
+        for paragraph in paragraphs:
+            excerpt_parts.append(paragraph)
+            total_chars += len(paragraph)
+            if total_chars >= max_chars:
+                break
+
+        excerpt = "\n\n".join(excerpt_parts) if excerpt_parts else " ".join(str(text).split())
+        excerpt = " ".join(excerpt.split())
+        if len(excerpt) <= max_chars:
+            return excerpt
+
+        clipped = excerpt[:max_chars].rsplit(" ", 1)[0].strip()
+        if not clipped:
+            clipped = excerpt[:max_chars].strip()
+        return clipped
+
+    def _build_retrieval_query_text(self, current_context, lead_in_chars=600):
+        context_text = str(current_context or "").strip()
+        last_chunk_text = str(getattr(self, "last_chunk_text", "") or "").strip()
+
+        if not last_chunk_text:
+            return context_text
+
+        prefix = ""
+        if context_text.endswith(last_chunk_text):
+            prefix = context_text[:-len(last_chunk_text)].rstrip()
+        else:
+            marker = context_text.rfind(last_chunk_text)
+            if marker >= 0:
+                prefix = context_text[:marker].rstrip()
+
+        lead_in = prefix[-lead_in_chars:].strip() if prefix else ""
+        if lead_in:
+            return f"{lead_in}\n\n{last_chunk_text}"
+
+        return last_chunk_text or context_text
+
+    @staticmethod
+    def _clip_text_start(text, max_chars):
+        text = " ".join(str(text).split())
+        if len(text) <= max_chars:
+            return text
+
+        clipped = text[:max_chars].rsplit(" ", 1)[0].strip()
+        if not clipped:
+            clipped = text[:max_chars].strip()
+        return clipped + " ..."
+
+    @staticmethod
+    def _clip_text_end(text, max_chars):
+        text = " ".join(str(text).split())
+        if len(text) <= max_chars:
+            return text
+
+        clipped = text[-max_chars:].lstrip()
+        parts = clipped.split(" ", 1)
+        if len(parts) == 2:
+            clipped = parts[1].strip()
+        return "... " + clipped
+
+    def _load_archived_chunk_text(self, chunk_id):
+        try:
+            chunk_id = int(chunk_id)
+        except (TypeError, ValueError):
+            return ""
+
+        cached = self.retrieval_text_cache.get(chunk_id)
+        if cached:
+            return cached
+
+        debug_root = getattr(self.serializer, "debug_root", None)
+        if not debug_root or not os.path.isdir(debug_root):
+            return ""
+
+        prefix = f"chunk_{chunk_id:03d}_attempt_"
+        best_path = None
+        best_attempt = -1
+        for name in os.listdir(debug_root):
+            if not name.startswith(prefix) or not name.endswith(".txt") or "_prompt" in name:
+                continue
+            match = re.search(r"attempt_(\d+)\.txt$", name)
+            if not match:
+                continue
+            attempt_id = int(match.group(1))
+            if attempt_id > best_attempt:
+                best_attempt = attempt_id
+                best_path = os.path.join(debug_root, name)
+
+        if not best_path:
+            return ""
+
+        try:
+            with open(best_path, "r", encoding="utf-8") as f:
+                content = f.read()
+            try:
+                payload = json.loads(content)
+                text = str(payload.get("new_text") or payload.get("full_output") or "").strip()
+            except json.JSONDecodeError:
+                text = content.strip()
+        except Exception:
+            return ""
+
+        if text:
+            self.retrieval_text_cache[chunk_id] = text
+        return text
+
+    def _build_retrieval_prompt_excerpt(self, text, min_chars=220, max_chars=420):
+        paragraphs = [p.strip() for p in str(text or "").split("\n\n") if p.strip()]
+        if not paragraphs:
+            return ""
+
+        if len(paragraphs) == 1:
+            paragraph = paragraphs[0]
+            if len(paragraph) <= max_chars:
+                return paragraph
+            head = self._clip_text_start(paragraph, max_chars // 2)
+            tail = self._clip_text_end(paragraph, max_chars // 2)
+            if head == tail:
+                return head
+            return f"{head}\n\n[...]\n\n{tail}"
+
+        head_parts = []
+        head_len = 0
+        head_end = 0
+        while head_end < len(paragraphs) and (head_len < min_chars or not head_parts):
+            head_parts.append(paragraphs[head_end])
+            head_len += len(paragraphs[head_end])
+            head_end += 1
+            if head_len >= max_chars:
+                break
+
+        tail_parts = []
+        tail_len = 0
+        tail_start = len(paragraphs) - 1
+        while tail_start >= head_end and (tail_len < min_chars or not tail_parts):
+            tail_parts.insert(0, paragraphs[tail_start])
+            tail_len += len(paragraphs[tail_start])
+            tail_start -= 1
+            if tail_len >= max_chars:
+                break
+
+        head_text = self._clip_text_start("\n\n".join(head_parts), max_chars)
+        if not tail_parts:
+            return head_text
+
+        tail_text = self._clip_text_end("\n\n".join(tail_parts), max_chars)
+        if head_text == tail_text:
+            return head_text
+
+        return f"{head_text}\n\n[...]\n\n{tail_text}"
+
+    def _select_retrieved_chunks(self, current_vector, top_k=2, min_similarity=0.22, recent_exclusion=3):
+        records = getattr(self.summary_manager, "retrieval_chunks", [])
+        debug = {
+            "min_similarity": float(min_similarity),
+            "recent_exclusion": int(recent_exclusion),
+            "top_k": int(top_k),
+            "archive_size": len(records),
+            "eligible_candidate_count": 0,
+            "threshold_candidate_count": 0,
+            "mode": "none",
+            "used_fallback": False,
+            "selected": [],
+        }
+        if current_vector is None:
+            debug["reason"] = "missing_current_vector"
+            return [], debug
+        if not records or not self.retrieval_vectors:
+            debug["reason"] = "empty_retrieval_archive"
+            return [], debug
+
+        total = min(len(records), len(self.retrieval_vectors))
+        known_chunk_ids = []
+        for record in records[:total]:
+            try:
+                known_chunk_ids.append(int(record.get("chunk_id")))
+            except (TypeError, ValueError):
+                continue
+        latest_chunk_id = max(known_chunk_ids) if known_chunk_ids else None
+
+        candidates = []
+        for idx in range(total):
+            record = records[idx]
+            vector = self.retrieval_vectors[idx]
+            if vector is None:
+                continue
+
+            try:
+                chunk_id = int(record.get("chunk_id"))
+            except (TypeError, ValueError):
+                chunk_id = None
+
+            if latest_chunk_id is not None and chunk_id is not None and chunk_id > (latest_chunk_id - recent_exclusion):
+                continue
+            if latest_chunk_id is None and idx >= max(0, total - recent_exclusion):
+                continue
+
+            similarity = MemorySummarizer._cosine_similarity(current_vector, vector)
+            candidates.append((similarity, idx))
+
+        candidates.sort(key=lambda item: item[0], reverse=True)
+        debug["eligible_candidate_count"] = len(candidates)
+
+        threshold_candidates = [item for item in candidates if item[0] >= min_similarity]
+        debug["threshold_candidate_count"] = len(threshold_candidates)
+
+        chosen_candidates = threshold_candidates
+        if threshold_candidates:
+            debug["mode"] = "threshold"
+        elif candidates:
+            chosen_candidates = candidates
+            debug["mode"] = "fallback"
+            debug["used_fallback"] = True
+        else:
+            debug["reason"] = "no_eligible_candidates_after_recent_exclusion"
+            return [], debug
+
+        selected = []
+        seen_chunk_ids = set()
+        for similarity, idx in chosen_candidates:
+            record = records[idx]
+            chunk_id = record.get("chunk_id")
+            if chunk_id in seen_chunk_ids:
+                continue
+
+            archived_text = self._load_archived_chunk_text(chunk_id)
+            prompt_excerpt = self._build_retrieval_prompt_excerpt(
+                archived_text or record.get("excerpt", "")
+            )
+
+            selected.append({
+                "chunk_id": chunk_id,
+                "excerpt": record.get("excerpt", ""),
+                "prompt_excerpt": prompt_excerpt or record.get("excerpt", ""),
+                "similarity": round(float(similarity), 4),
+            })
+            seen_chunk_ids.add(chunk_id)
+            if len(selected) >= top_k:
+                break
+
+        debug["selected"] = [
+            {
+                "chunk_id": item.get("chunk_id"),
+                "similarity": item.get("similarity"),
+            }
+            for item in selected
+        ]
+        if not selected:
+            debug["mode"] = "none"
+            debug["used_fallback"] = False
+            debug["reason"] = "no_unique_selection"
+
+        return selected, debug
+
+    def _rebuild_retrieval_index(self):
+        self.retrieval_vectors = []
+        retrieval_chunks = getattr(self.summary_manager, "retrieval_chunks", [])
+        if not retrieval_chunks:
+            return
+
+        print(f"   ⏳ Rebuilding raw-chunk retrieval index from {len(retrieval_chunks)} excerpts...")
+        for record in retrieval_chunks:
+            excerpt = str(record.get("excerpt", "")).strip()
+            if not excerpt:
+                self.retrieval_vectors.append(None)
+                continue
+
+            try:
+                vec = self.model.get_embedding(excerpt)
+                self.retrieval_vectors.append(vec[0].detach().cpu().numpy().astype(float))
+            except Exception as e:
+                print(f"   ⚠️ Retrieval embedding rebuild failed: {e}")
+                self.retrieval_vectors.append(None)
+        print("   ✓ Retrieval index restored.")
+
+    def _update_graph_from_summary(self, summary):
+        if not isinstance(summary, dict):
+            return
+
+        self.graph_memory.age_all()
+
+        characters = self._normalize_summary_labels(summary.get("characters", []), "characters")
+        places = self._normalize_summary_labels(summary.get("places", []), "places")
+        objects = self._normalize_summary_labels(summary.get("objects", []), "objects")
+        concepts = self._normalize_summary_labels(summary.get("concepts", []), "concepts")
+        raw_events = summary.get("main_events", [])
+        events = [self._event_label_from_summary(item) for item in raw_events]
+        events = [evt for evt in events if evt]
+
+        char_ids = [self.graph_memory.register_node(label, "character") for label in characters]
+        place_ids = [self.graph_memory.register_node(label, "place") for label in places]
+        object_ids = [self.graph_memory.register_node(label, "object") for label in objects]
+        concept_ids = [self.graph_memory.register_node(label, "concept") for label in concepts]
+        event_ids = [self.graph_memory.register_node(label, "event") for label in events[:2]]
+
+        for i, src_id in enumerate(char_ids):
+            for dst_id in char_ids[i + 1:]:
+                self.graph_memory.register_edge(src_id, dst_id, "co_occurs_with")
+                self.graph_memory.register_edge(dst_id, src_id, "co_occurs_with")
+
+        for char_id in char_ids:
+            for place_id in place_ids[:2]:
+                self.graph_memory.register_edge(char_id, place_id, "appears_in")
+
+        for char_id in char_ids:
+            for object_id in object_ids[:2]:
+                self.graph_memory.register_edge(char_id, object_id, "mentions")
+
+        for event_id in event_ids:
+            for char_id in char_ids[:3]:
+                self.graph_memory.register_edge(event_id, char_id, "involves")
+            for place_id in place_ids[:2]:
+                self.graph_memory.register_edge(event_id, place_id, "occurs_in")
+            for concept_id in concept_ids[:2]:
+                self.graph_memory.register_edge(event_id, concept_id, "centers_on")
+
+        self.graph_memory.prune()
 
     # ------------------------------------------------------------
     # MAIN ENTRY
@@ -160,6 +531,9 @@ class LongBookGenerator:
         
         # Reset LZ State
         self.lz_state = None
+        self.retrieval_vectors = []
+        self.last_chunk_text = ""
+        self.retrieval_text_cache = {}
 
         start_chunk_id = 1
         
@@ -171,6 +545,7 @@ class LongBookGenerator:
             from generated_texts_og.utils.resume_helper import find_latest_chunk_id, load_memory_snapshot, reconstruct_text_history
             
             last_id = find_latest_chunk_id(resume_from_dir)
+            mem_snap = None
             if last_id > 0:
                 print(f"   Found checkpoint at chunk {last_id}")
                 
@@ -192,11 +567,12 @@ class LongBookGenerator:
                     self.summary_manager.chunks = mem_snap.get("recent_chunks", [])
                     self.summary_manager.episodes = mem_snap.get("episodes", [])
                     self.summary_manager.global_summary = mem_snap.get("global_summary", "")
+                    self.summary_manager.retrieval_chunks = mem_snap.get("retrieval_chunks", [])
+                    self.summary_manager.pending_episode_source = None
                     
                     # Try to load tokens.npy for exact state restoration
                     tokens_path = os.path.join(resume_from_dir, f"memory_{last_id:03d}", "tokens.npy")
                     if os.path.exists(tokens_path):
-                        import numpy as np
                         try:
                             self.full_tokens = list(np.load(tokens_path))
                             print(f"   ✓ RESTORED EXACT TOKEN STATE from tokens.npy ({len(self.full_tokens)} tokens)")
@@ -204,7 +580,6 @@ class LongBookGenerator:
                             # Restore LZ State (Requires one-time compute)
                             if len(self.full_tokens) > 0:
                                  print("   ⏳ Re-hydrating LZ Complexity state (this may take a moment)...")
-                                 from coherence.metrics import CoherenceMetrics
                                  # We compute from scratch ONCE to get the state
                                  m = CoherenceMetrics(self.full_tokens).compute_all()
                                  if 'lz_complexity_count' in m:
@@ -228,18 +603,24 @@ class LongBookGenerator:
                     # SemanticMemory structure reconstruction (simplified)
                     if isinstance(sem_data, dict):
                         raw_vecs = sem_data.get("vectors", [])
-                        import numpy as np
                         self.summary_manager.semantic_memory.memory = [np.array(v) for v in raw_vecs]
                         self.summary_manager.semantic_memory.dim = sem_data.get("dim", len(raw_vecs[0]) if raw_vecs else 64)
                     elif isinstance(sem_data, list):
                         # Fallback for legacy format if any
-                        import numpy as np
                         self.summary_manager.semantic_memory.memory = [np.array(v) for v in sem_data]
+
+                    graph_data = mem_snap.get("graph_memory")
+                    if graph_data:
+                        self.graph_memory.restore_from_serializable(graph_data)
+                    elif self.summary_manager.chunks:
+                        for summary in self.summary_manager.chunks:
+                            self._update_graph_from_summary(summary)
                     print("   ✓ Memory restored.")
 
                 # 2. Restore Text History
                 restored_full_text, last_chunk_text, text_parts = reconstruct_text_history(resume_from_dir, last_id)
                 self.full_text = restored_full_text
+                self.last_chunk_text = last_chunk_text or ""
                 
                 # 3. Restore Local Context (from last chunk purely)
                 if last_chunk_text:
@@ -260,6 +641,7 @@ class LongBookGenerator:
                 else:
                     print(f"   ✓ Skipping re-tokenization (loaded {len(self.full_tokens)} tokens).")
 
+                self._rebuild_retrieval_index()
                 print(f"   ✓ History ready ({len(self.full_tokens)} tokens)")
 
                 # 5. Set pointers
@@ -484,22 +866,26 @@ class LongBookGenerator:
         memory_data = self.summary_manager.to_serializable()
         memory_data["recent_chunks"] = memory_data.get("recent_chunks", [])
         memory_data["global_summary"] = memory_data.get("global_summary", "")
+        memory_data["graph_memory"] = self.graph_memory.to_serializable()
         
         # 1.5. Compute current context semantic vector using LLM Native Embedding
         current_semantic_vector_list = None
         current_semantic_tensor = None
         
         current_context = self.local_context.get_context()
-        if current_context and len(current_context) > 100:
-            # Use last ~1000 chars for context embedding
-            context_sample = current_context[-1000:]
+        query_text = self._build_retrieval_query_text(current_context)
+        if query_text and len(query_text) > 100:
             
             # Get LLM's internal representation (Zero-Shot)
             # Returns (1, hidden_size) e.g. (1, 4096)
-            vec = self.model.get_embedding(context_sample)
+            vec = self.model.get_embedding(query_text)
             
             current_semantic_tensor = vec # Keep tensor for injection
             current_semantic_vector_list = vec[0].cpu().tolist() # List for summarizer
+
+        retrieved_chunks, retrieval_debug = self._select_retrieved_chunks(current_semantic_vector_list)
+        if retrieved_chunks:
+            memory_data["retrieved_chunks"] = retrieved_chunks
         
         memory_summary = MemorySummarizer.summarize_for_generation(
             memory_data,
@@ -747,6 +1133,7 @@ class LongBookGenerator:
             attempt_dump = {
                 "prompt": base_prompt,
                 "temperature": T,
+                "retrieval_debug": retrieval_debug,
                 "full_output": full_output,
                 "new_text": new_text,
                 "chunk_metrics": chunk_metrics,
@@ -1012,56 +1399,28 @@ class LongBookGenerator:
                 "concepts": [],
             }
 
+        summary["chunk_id"] = chunk_id
         self.summary_manager.add_chunk_summary(summary)
+        self.last_chunk_text = str(new_text or "").strip()
+        if self.last_chunk_text:
+            self.retrieval_text_cache[chunk_id] = self.last_chunk_text
 
-        # ---- Graph memory (handle both strings and dicts/lists from LLM)
-        for item in summary.get("characters", []):
-            if isinstance(item, str):
-                label = item
-            elif isinstance(item, dict):
-                label = item.get("name", item.get("label", None))
-            else:
-                label = str(item) if item else None
-            if label:
-                self.graph_memory.register_node(label, "character")
-        
-        for item in summary.get("places", []):
-            if isinstance(item, str):
-                label = item
-            elif isinstance(item, dict):
-                label = item.get("name", item.get("location", None))
-            else:
-                label = str(item) if item else None
-            if label:
-                self.graph_memory.register_node(label, "place")
-        
-        for item in summary.get("objects", []):
-            if isinstance(item, str):
-                label = item
-            elif isinstance(item, dict):
-                label = item.get("name", item.get("label", None))
-            else:
-                label = str(item) if item else None
-            if label:
-                self.graph_memory.register_node(label, "object")
-        
-        for item in summary.get("concepts", []):
-            if isinstance(item, str):
-                label = item
-            elif isinstance(item, dict):
-                label = item.get("concept", item.get("name", None))
-            else:
-                label = str(item) if item else None
-            if label:
-                self.graph_memory.register_node(label, "concept")
+        # ---- Graph memory
+        self._update_graph_from_summary(summary)
 
-        self.graph_memory.age_all()
-        self.graph_memory.prune()
+        # ---- Semantic memory + raw-chunk retrieval
+        retrieval_excerpt = self._make_retrieval_excerpt(new_text)
+        embedding_text = retrieval_excerpt or new_text[:1000]
+        vec = self.model.get_embedding(embedding_text)  # Returns (1, hidden_size)
+        vec_np = vec[0].detach().cpu().numpy().astype(float)
 
-        # ---- Semantic memory (LLM-Native)
-        # Get the model's internal representation of the new chunk
-        vec = self.model.get_embedding(new_text)  # Returns (1, hidden_size)
-        self.summary_manager.add_semantic_vector(vec[0].cpu().tolist())
+        self.summary_manager.add_semantic_vector(vec_np.tolist())
+        if retrieval_excerpt:
+            self.summary_manager.add_retrieval_chunk({
+                "chunk_id": chunk_id,
+                "excerpt": retrieval_excerpt,
+            })
+            self.retrieval_vectors.append(vec_np)
 
         # ---- Episodic
         if getattr(self.summary_manager, "pending_episode_source", None):
@@ -1121,5 +1480,6 @@ class LongBookGenerator:
             self.summary_manager, 
             f"chunk_{chunk_id:03d}",
             full_tokens=self.full_tokens,
-            accumulated_metrics=accumulated_metrics
+            accumulated_metrics=accumulated_metrics,
+            graph_memory=self.graph_memory.to_serializable(),
         )

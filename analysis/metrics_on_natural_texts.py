@@ -16,7 +16,7 @@ import requests
 import multiprocessing as mp
 from tqdm import tqdm
 from tokenizer import Tokenizer
-from coherence_metrics import CoherenceMetrics
+from metrics import CoherenceMetrics
 
 
 

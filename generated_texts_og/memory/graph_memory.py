@@ -182,6 +182,62 @@ class GraphMemory:
         }
 
     # ---------------------------------------------------------------
+    def restore_from_serializable(self, data):
+        """Restore graph state from serialized JSON-friendly data."""
+        if not isinstance(data, dict):
+            return
+
+        nodes = data.get("nodes", [])
+        edges = data.get("edges", [])
+
+        self.nodes = {}
+        self.edges = {}
+
+        max_node_id = 0
+        for node in nodes:
+            if not isinstance(node, dict):
+                continue
+            try:
+                node_id = int(node.get("id"))
+            except (TypeError, ValueError):
+                continue
+
+            restored = {
+                "id": node_id,
+                "label": str(node.get("label", "")).strip(),
+                "type": str(node.get("type", "concept")).strip() or "concept",
+                "frequency": int(node.get("frequency", 1)),
+                "recency": int(node.get("recency", 0)),
+            }
+            self.nodes[node_id] = restored
+            max_node_id = max(max_node_id, node_id)
+
+        max_edge_id = 0
+        for edge in edges:
+            if not isinstance(edge, dict):
+                continue
+            try:
+                edge_id = int(edge.get("id"))
+                source = int(edge.get("source"))
+                target = int(edge.get("target"))
+            except (TypeError, ValueError):
+                continue
+
+            restored = {
+                "id": edge_id,
+                "source": source,
+                "target": target,
+                "relation": str(edge.get("relation", "related_to")).strip() or "related_to",
+                "frequency": int(edge.get("frequency", 1)),
+                "recency": int(edge.get("recency", 0)),
+            }
+            self.edges[edge_id] = restored
+            max_edge_id = max(max_edge_id, edge_id)
+
+        self.next_node_id = max_node_id + 1
+        self.next_edge_id = max_edge_id + 1
+
+    # ---------------------------------------------------------------
     def dump_to_folder(self, folder_path, prefix="memory_graph"):
         """Save a JSON dump for ED64 debugging."""
         import os

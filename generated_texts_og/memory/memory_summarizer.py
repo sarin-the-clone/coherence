@@ -43,6 +43,121 @@ class MemorySummarizer:
         return top_indices
 
     @staticmethod
+    def _clip_excerpt(text, max_chars=420):
+        text = " ".join(str(text).split())
+        if len(text) <= max_chars:
+            return text
+
+        clipped = text[:max_chars].rsplit(" ", 1)[0].strip()
+        if not clipped:
+            clipped = text[:max_chars].strip()
+        return clipped + " ..."
+
+    @staticmethod
+    def _summarize_graph(graph_data, max_nodes=8, max_edges=5):
+        if not isinstance(graph_data, dict):
+            return []
+
+        nodes = graph_data.get("nodes", [])
+        edges = graph_data.get("edges", [])
+        if not nodes:
+            return []
+
+        node_lookup = {}
+        for node in nodes:
+            if not isinstance(node, dict):
+                continue
+            try:
+                node_id = int(node.get("id"))
+            except (TypeError, ValueError):
+                continue
+            node_lookup[node_id] = node
+
+        sorted_nodes = sorted(
+            [n for n in node_lookup.values() if str(n.get("label", "")).strip()],
+            key=lambda n: (int(n.get("recency", 0)), -int(n.get("frequency", 1)), str(n.get("label", "")).lower())
+        )[:max_nodes]
+
+        grouped = {}
+        for node in sorted_nodes:
+            node_type = str(node.get("type", "concept"))
+            grouped.setdefault(node_type, [])
+            grouped[node_type].append(str(node.get("label", "")).strip())
+
+        lines = ["**Entity Graph:**"]
+        display_order = ["character", "place", "object", "concept", "event"]
+        display_names = {
+            "character": "Characters",
+            "place": "Places",
+            "object": "Objects",
+            "concept": "Concepts",
+            "event": "Event Threads",
+        }
+        for key in display_order:
+            labels = grouped.get(key)
+            if labels:
+                lines.append(f"- {display_names[key]}: {', '.join(labels[:4])}")
+
+        sorted_edges = sorted(
+            [e for e in edges if isinstance(e, dict)],
+            key=lambda e: (int(e.get("recency", 0)), -int(e.get("frequency", 1)))
+        )
+
+        edge_lines = []
+        for edge in sorted_edges:
+            src = node_lookup.get(edge.get("source"))
+            dst = node_lookup.get(edge.get("target"))
+            if not src or not dst:
+                continue
+
+            src_label = str(src.get("label", "")).strip()
+            dst_label = str(dst.get("label", "")).strip()
+            if not src_label or not dst_label:
+                continue
+
+            relation = str(edge.get("relation", "related_to")).replace("_", " ").strip()
+            edge_lines.append(f"- {src_label} {relation} {dst_label}")
+            if len(edge_lines) >= max_edges:
+                break
+
+        if edge_lines:
+            lines.append("**Key Relationships:**")
+            lines.extend(edge_lines)
+        lines.append("")
+        return lines
+
+    @staticmethod
+    def _render_retrieved_chunks(retrieved_chunks, max_items=2):
+        if not isinstance(retrieved_chunks, list) or not retrieved_chunks:
+            return []
+
+        lines = ["**Retrieved Earlier Passages:**"]
+        added = 0
+        for rec in retrieved_chunks:
+            if not isinstance(rec, dict):
+                continue
+            excerpt = str(rec.get("prompt_excerpt") or rec.get("excerpt", "")).strip()
+            if not excerpt:
+                continue
+
+            try:
+                chunk_id = int(rec.get("chunk_id"))
+                label = f"Chunk {chunk_id}"
+            except (TypeError, ValueError):
+                label = "Earlier passage"
+
+            lines.append(f"{label}: {excerpt}")
+            added += 1
+            if added >= max_items:
+                break
+
+        if added == 0:
+            return []
+
+        lines.append("")
+        return lines
+
+    @staticmethod
     def summarize_for_generation(memory: Dict[str, Any], current_semantic_vector=None) -> str:
         """Creates a comprehensive summary for story generation with rich narrative context."""
         summary_parts = []
@@ -58,8 +173,13 @@ class MemorySummarizer:
         if recent_chunks:
             summary_parts.append("**Recent Plot Developments:**")
             # Take last 3 chunks to give model more context
-            for i, chunk in enumerate(recent_chunks[-3:]):
-                chunk_num = len(recent_chunks) - 3 + i + 1
+            visible_chunks = recent_chunks[-3:]
+            fallback_start = max(1, len(recent_chunks) - len(visible_chunks) + 1)
+            for i, chunk in enumerate(visible_chunks):
+                try:
+                    chunk_num = int(chunk.get("chunk_id"))
+                except (AttributeError, TypeError, ValueError):
+                    chunk_num = fallback_start + i
                 events = chunk.get("main_events", [])
                 if events:
                     event_text = []
@@ -88,50 +208,18 @@ class MemorySummarizer:
                     if event_text:
                         summary_parts.append(f"Chunk {chunk_num}: {' '.join(event_text)}")
             summary_parts.append("")  # blank line
-        
-        # 3. Semantically Similar Past Chunks (NEW!)
-        if current_semantic_vector and memory.get("semantic_memory"):
-            similar_indices = MemorySummarizer._find_similar_chunks(
-                current_semantic_vector,
-                memory["semantic_memory"],
-                recent_chunks,
-                top_k=2
-            )
-            
-            if similar_indices:
-                summary_parts.append("**Relevant Earlier Scenes:**")
-                for idx in similar_indices:
-                    if idx < len(recent_chunks):
-                        chunk = recent_chunks[idx]
-                        events = chunk.get("main_events", [])
-                        if events:
-                            event_text = []
-                            # Handle both list and dict types
-                            if isinstance(events, list):
-                                events_to_process = events[:3]
-                            else:
-                                events_to_process = [events]
-                            
-                            for event in events_to_process:
-                                if isinstance(event, dict):
-                                    desc = event.get("details", event.get("description", event.get("event", "")))
-                                    if isinstance(desc, list):
-                                        desc = " ".join(str(d) for d in desc)
-                                    elif not isinstance(desc, str):
-                                        desc = str(desc)
-                                    
-                                    if desc:
-                                        event_text.append(desc)
-                                elif isinstance(event, str):
-                                    event_text.append(event)
-                                elif isinstance(event, list):
-                                    event_text.append(" ".join(str(e) for e in event))
-                            
-                            if event_text:
-                                summary_parts.append(f"Earlier (Chunk {idx+1}): {' '.join(event_text)}")
-                summary_parts.append("")
-        
-        # 4. Active Characters with Context
+
+        # 3. Raw-text long-range retrieval
+        summary_parts.extend(
+            MemorySummarizer._render_retrieved_chunks(memory.get("retrieved_chunks", []))
+        )
+
+        # 4. Entity graph
+        summary_parts.extend(
+            MemorySummarizer._summarize_graph(memory.get("graph_memory", {}))
+        )
+
+        # 5. Active Characters with Context
         characters = []
         char_details = {}
         # Collect characters from last 2 chunks to get more context
@@ -155,7 +243,7 @@ class MemorySummarizer:
                     summary_parts.append(f"- {name}")
             summary_parts.append("")
 
-        # 4. Current Setting & Atmosphere
+        # 6. Current Setting & Atmosphere
         places = []
         for chunk in recent_chunks[-2:]:
             locs = chunk.get("places", [])
@@ -170,7 +258,7 @@ class MemorySummarizer:
         if places:
             summary_parts.append(f"**Current Setting:** {', '.join(places)}\n")
         
-        # 5. Narrative Momentum (from episodic summaries if available)
+        # 7. Narrative Momentum (from episodic summaries if available)
         episodes = memory.get("episodes", [])
         if episodes:
             last_episode = episodes[-1]

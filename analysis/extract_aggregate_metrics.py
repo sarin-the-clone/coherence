@@ -40,6 +40,36 @@ def convert_np_types(obj):
     else:
         return obj
 
+
+def classify_run(folder: Path) -> str:
+    """
+    Classify a completed run into one of three cohorts:
+      - low_temp
+      - high_temp
+      - self_conditioned_high_temp
+
+    The full three-component self-conditioning runs are the recent high-temp runs
+    whose saved chunk payloads include retrieval diagnostics.
+    """
+    first_chunk = folder / "chunk_001_attempt_1.txt"
+    temp = 1.0
+    has_retrieval_debug = False
+
+    if first_chunk.exists():
+        try:
+            with open(first_chunk, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            temp = data.get("temperature", 1.0)
+            has_retrieval_debug = "retrieval_debug" in data
+        except Exception:
+            pass
+
+    if temp < 0.8:
+        return "low_temp"
+    if has_retrieval_debug:
+        return "self_conditioned_high_temp"
+    return "high_temp"
+
 def main():
     parser = argparse.ArgumentParser(description="Extract text metrics aggregated across all books into a JSON.")
     parser.add_argument("--out", "-o", default="generated_texts_og/Output/aggregated_metrics.json")
@@ -55,33 +85,40 @@ def main():
     
     high_folders = []
     low_folders = []
+    self_conditioned_high_folders = []
     for folder in folders:
-        pattern = folder / "chunk_001_attempt_1.txt"
-        temp = 1.0 # default
-        if pattern.exists():
-            try:
-                with open(pattern, "r") as f:
-                    data = json.load(f)
-                    temp = data.get("temperature", 1.0)
-            except Exception:
-                pass
-        if temp < 0.8:
+        cohort = classify_run(folder)
+        if cohort == "low_temp":
             low_folders.append(folder)
+        elif cohort == "self_conditioned_high_temp":
+            self_conditioned_high_folders.append(folder)
         else:
             high_folders.append(folder)
             
-    print(f"Found {len(high_folders)} high temp runs, {len(low_folders)} low temp runs")
+    print(
+        "Found "
+        f"{len(high_folders)} legacy high temp runs, "
+        f"{len(low_folders)} low temp runs, "
+        f"{len(self_conditioned_high_folders)} self-conditioned high temp runs"
+    )
     
     print("Aggregating high temperature runs...")
     binned_stats_high = pam.aggregate_data_by_tokens(high_folders, bin_size=args.bin_size, max_tokens=1000000)
     print("Aggregating low temperature runs...")
     binned_stats_low = pam.aggregate_data_by_tokens(low_folders, bin_size=args.bin_size, max_tokens=1000000)
+    print("Aggregating self-conditioned high temperature runs...")
+    binned_stats_self_conditioned_high = pam.aggregate_data_by_tokens(
+        self_conditioned_high_folders,
+        bin_size=args.bin_size,
+        max_tokens=1000000,
+    )
     
     output_path = ROOT / args.out
     
     result = {
         "high_temp": binned_stats_high,
-        "low_temp": binned_stats_low
+        "low_temp": binned_stats_low,
+        "self_conditioned_high_temp": binned_stats_self_conditioned_high,
     }
     
     # Clean numpy floats before dumping

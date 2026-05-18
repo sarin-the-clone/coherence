@@ -149,7 +149,7 @@ class SmartSerializer:
     # -----------------------------------------------------------
     # MEMORY SNAPSHOT
     # -----------------------------------------------------------
-    def save_memory_snapshot(self, memory_manager, timestamp, full_tokens=None, accumulated_metrics=None):
+    def save_memory_snapshot(self, memory_manager, timestamp, full_tokens=None, accumulated_metrics=None, graph_memory=None):
         if self.debug_root is None:
             raise RuntimeError("Book folder not initialized.")
 
@@ -157,6 +157,8 @@ class SmartSerializer:
         ensure_dir(folder)
 
         mem = memory_manager.to_serializable()
+        if graph_memory is not None:
+            mem["graph_memory"] = graph_memory
         path = os.path.join(folder, "memory.json")
 
         with open(path, "w") as f:

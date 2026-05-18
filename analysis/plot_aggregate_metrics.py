@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 """
-Plot aggregated metric evolution (Mean +/- Std) across ALL generated books.
+Plot aggregated metric evolution across generated books.
 
-Usage:
-  python coherence/analysis/plot_aggregate_metrics.py [--out aggregate_evolution.jpg]
+Default behavior now produces two figures:
+  1. legacy low/high temperature runs on a linear 0-1M token axis
+  2. chaotic run vs full self-conditioning high-temp runs on a nonlinear axis
 """
 
 import argparse
 import json
-import re
-import glob
 import sys
 import numpy as np
 from pathlib import Path
@@ -166,31 +165,27 @@ def load_single_book(folder_path: Path):
     
     return tokens_series
 
-def plot_aggregate(binned_stats_high, binned_stats_low, out_path, structural_metrics, informational_metrics, chaotic_data=None):
-    """
-    Plot aggregated mean +/- std from token-binned data.
-    """
+def plot_aggregate_generic(
+    cohort_specs,
+    out_path,
+    structural_metrics,
+    informational_metrics,
+    title,
+    chaotic_data=None,
+    xscale="linear",
+    xmax_k=1000.0,
+    xlabel="token count",
+):
+    """Plot aggregated mean +/- std from token-binned data."""
     # Load natural stats for overlays
     SIZE_STATS = load_size_stats()
-    
-    # We create pseudo-chunks for the segments logic using bin centers
-    # Just need a range covering 0 to 1M to generate segments
-    dummy_chunks = list(range(0, 10)) # minimal needed
-    dummy_tokens = {0: 0, 1: 4000000} # full range (extended to 4M)
-    
-    # Actually, we need to map X-axis (tokens) to bins
-    # For the background bands, we can just iterate tokens directly or use the helper
-    # The helper expects chunk-indexed maps. Let's BYPASS build_size_segments and iterate specific ranges
-    # since we are on a pure token axis now. Much easier!
-    
     bins_Natural = SIZE_STATS.get("bins", []) if SIZE_STATS else []
-    
-    # Use a vibrant high-contrast palette avoiding blue and green
+
     palette = ["#FF0000", "#FF7F00", "#FFD700", "#FF1493", "#8A2BE2", "#FF00FF"]
     bin_colors = {}
     for idx, b in enumerate(bins_Natural):
         bin_colors[b["name"]] = palette[idx % len(palette)]
-        
+
     band_labels_used = set()
     mean_labels_used = set()
     rows = max(len(structural_metrics), len(informational_metrics))
@@ -199,33 +194,35 @@ def plot_aggregate(binned_stats_high, binned_stats_low, out_path, structural_met
         axes = axes.reshape(1, 2)
 
     def plot_on_ax(ax, metric):
-        if not metric or (metric not in binned_stats_high and metric not in binned_stats_low):
+        metric_present = any(metric in stats_map for stats_map, _, _ in cohort_specs)
+        if chaotic_data and metric in chaotic_data:
+            metric_present = True
+        if not metric or not metric_present:
             ax.axis('off')
             return
-            
+
         def plot_stats(stats_map, color, label_prefix):
-            if not stats_map: return
+            if not stats_map:
+                return
             sorted_centers = sorted(stats_map.keys())
-            if not sorted_centers: return
+            if not sorted_centers:
+                return
             xs = [c / 1000.0 for c in sorted_centers]
             means = [stats_map[c]["mean"] for c in sorted_centers]
             stds = [stats_map[c]["std"] for c in sorted_centers]
             upper = np.array(means) + np.array(stds)
             lower = np.array(means) - np.array(stds)
-            
+
             ax.plot(xs, means, color=color, linestyle="-", linewidth=2.0, label=f"Mean for {label_prefix}", zorder=10)
             ax.fill_between(xs, lower, upper, color=color, alpha=0.25, label=f"±1 Std Dev ({label_prefix})", zorder=9)
 
-        if metric in binned_stats_high:
-            plot_stats(binned_stats_high[metric], "blue", "High Temperature runs")
-        if metric in binned_stats_low:
-            plot_stats(binned_stats_low[metric], "steelblue", "Low Temperature runs")
-        
-        # Plot Chaotic Run if provided (Dark Gray Dotted, at the bottom of the overlay)
+        for stats_map, color, label in cohort_specs:
+            if metric in stats_map:
+                plot_stats(stats_map[metric], color, label)
+
         if chaotic_data and metric in chaotic_data:
             c_map = chaotic_data[metric]
             c_tokens = sorted(c_map.keys())
-            
             c_xs = []
             c_vals = []
             for t in c_tokens:
@@ -242,31 +239,27 @@ def plot_aggregate(binned_stats_high, binned_stats_low, out_path, structural_met
                     if np.any(not_nan_mask):
                         vals_arr[nan_mask] = np.interp(np.array(c_xs)[nan_mask], np.array(c_xs)[not_nan_mask], vals_arr[not_nan_mask])
                 ax.plot(c_xs, vals_arr, color="gray", linestyle=":", linewidth=2.0, alpha=0.9, label="Chaotic Run (4M tokens)", zorder=8)
-        
-        is_structural = metric in structural_metrics
-        
-        # Overlay Natural Text Bands (Pure Token Range Logic)
+
         for b in bins_Natural:
             mstats = b.get("metrics", {}).get(metric)
             if not mstats:
                 continue
-            
+
             p25 = mstats.get("p2_5") or mstats.get("p5") or mstats.get("p25")
             p75 = mstats.get("p97_5") or mstats.get("p95") or mstats.get("p75")
             mean_nat = mstats.get("mean")
-            
             lo_tok, hi_tok = b.get("range_tokens", [None, None])
-            if lo_tok is None: continue
-            if hi_tok is None: hi_tok = 10000000 # Infinity
-            
-            # Constrain to plot window (0 to 4M)
+            if lo_tok is None:
+                continue
+            if hi_tok is None:
+                hi_tok = 10000000
+
             start_k = max(0, lo_tok / 1000.0)
-            end_k = min(4000.0, hi_tok / 1000.0)
-            
-            if start_k >= end_k: continue
+            end_k = min(xmax_k, hi_tok / 1000.0)
+            if start_k >= end_k:
+                continue
 
             is_100k_bin = (abs(lo_tok - 100000) < 1000)
-            
             label_suffix = ""
             lo_label_k = int(lo_tok // 1000)
             if hi_tok > 800000:
@@ -276,15 +269,12 @@ def plot_aggregate(binned_stats_high, binned_stats_low, out_path, structural_met
                 label_suffix = f" ( {lo_label_k}-{hi_label_k}k)"
             
             color = bin_colors.get(b["name"], "#FF00FF")
-            if hi_tok > 800000:
-                color = "#8B0000" # Deep dark red for the >800k bin
-            
+            if hi_tok > 800000 and xmax_k > 1000:
+                color = "#8B0000"
+
             if p25 is not None and p75 is not None:
                 label = f"Natural p2.5-p97.5{label_suffix}"
-                
-                # Logic for 100k bin special handling
                 if is_100k_bin:
-                    # Draw 100k+ normally for both structural and informational (no proxy)
                     sub_start = max(start_k, 100.0)
                     if sub_start < end_k:
                         ax.fill_between([sub_start, end_k], [p25, p25], [p75, p75], color=color, alpha=0.05, zorder=1.5, label=label if label not in band_labels_used else None)
@@ -297,55 +287,55 @@ def plot_aggregate(binned_stats_high, binned_stats_low, out_path, structural_met
             if mean_nat is not None:
                 label = f"Natural Mean{label_suffix}"
                 draw_start = start_k
-                if is_100k_bin: draw_start = max(start_k, 100.0)
-                
+                if is_100k_bin:
+                    draw_start = max(start_k, 100.0)
                 if draw_start < end_k:
-                    # Increased linewidth and zorder for better visibility
                     ax.plot([draw_start, end_k], [mean_nat, mean_nat], color=color, linestyle="--", linewidth=2.0, zorder=15, label=label if label not in mean_labels_used else None)
                     mean_labels_used.add(label)
 
         ax.set_ylabel(metric)
         ax.grid(True, alpha=0.3)
         ax.set_title(metric)
-        
-        # Apply SymLog Scale with dominance for the 0-1M range
-        # Increasing linscale makes the linear part take up more space
-        ax.set_xscale('symlog', linthresh=1000.0, linscale=5.0)
-        ax.set_xlim(0, 4200.0)
-        
-        # Set Ticks manually for better readability using "M"
-        major_ticks = [0, 200, 400, 600, 800, 1000, 2000, 4000]
-        ax.set_xticks(major_ticks)
-        ax.set_xticklabels(['0', '200k', '400k', '600k', '800k', '1M', '2M', '4M'])
+
+        if xscale == "linear":
+            ax.set_xscale("linear")
+            ax.set_xlim(0, xmax_k)
+            major_ticks = [0, 200, 400, 600, 800, 1000]
+            ax.set_xticks(major_ticks)
+            ax.set_xticklabels(['0', '200k', '400k', '600k', '800k', '1M'])
+        else:
+            ax.set_xscale('symlog', linthresh=1000.0, linscale=5.0)
+            ax.set_xlim(0, xmax_k + 200.0)
+            major_ticks = [0, 200, 400, 600, 800, 1000, 2000, 4000]
+            ax.set_xticks(major_ticks)
+            ax.set_xticklabels(['0', '200k', '400k', '600k', '800k', '1M', '2M', '4M'])
         ax.tick_params(axis='x', labelsize=9)
 
-    # Plot Structural
     for i in range(rows):
         metric = structural_metrics[i] if i < len(structural_metrics) else None
         plot_on_ax(axes[i, 0], metric)
-        if i == rows - 1: axes[i, 0].set_xlabel("nonlinear token count")
-        
-    # Plot Informational
+        if i == rows - 1:
+            axes[i, 0].set_xlabel(xlabel)
+
     for i in range(rows):
         metric = informational_metrics[i] if i < len(informational_metrics) else None
         plot_on_ax(axes[i, 1], metric)
-        if i == rows - 1: axes[i, 1].set_xlabel("nonlinear token count")
-        
-    # Legend
+        if i == rows - 1:
+            axes[i, 1].set_xlabel(xlabel)
+
     handles, labels = [], []
     for ax in axes.flatten():
         h, l = ax.get_legend_handles_labels()
         handles.extend(h)
         labels.extend(l)
-    
     seen = set()
     dedup = []
     for h, l in zip(handles, labels):
-        if l in seen or not l: continue
+        if l in seen or not l:
+            continue
         dedup.append((h, l))
         seen.add(l)
-        
-    # Move Chaotic Run to the end
+
     chaotic_items = []
     final_dedup = []
     for h, l in dedup:
@@ -360,13 +350,13 @@ def plot_aggregate(binned_stats_high, binned_stats_low, out_path, structural_met
             [h for h, _ in final_dedup],
             [l for _, l in final_dedup],
             loc='lower center',
-            ncol=4,
+            ncol=3 if xscale == "linear" else 4,
             bbox_to_anchor=(0.5, 0.01),
             fontsize=9,
             frameon=False
         )
 
-    fig.suptitle("Mean metric evolution vs Natural Texts (binned by token count)", fontsize=16)
+    fig.suptitle(title, fontsize=16)
     fig.tight_layout(rect=[0, 0.12, 1, 0.96])
     fig.savefig(out_path, dpi=200)
     print(f"Saved aggregated plot → {out_path}")
@@ -374,8 +364,17 @@ def plot_aggregate(binned_stats_high, binned_stats_low, out_path, structural_met
 
 def main():
     parser = argparse.ArgumentParser(description="Plot text metrics aggregated across all books.")
-    parser.add_argument("--out", "-o", default="generated_texts_og/Output/_aggregated_metrics_evolution.jpg")
     parser.add_argument("--in-data", "-i", default="generated_texts_og/Output/aggregated_metrics.json", help="Path to aggregated metrics JSON")
+    parser.add_argument(
+        "--out-linear",
+        default="generated_texts_og/Output/_aggregated_metrics_evolution_linear_1m.jpg",
+        help="Output path for the low/high linear 0-1M figure",
+    )
+    parser.add_argument(
+        "--out-chaotic-selfcond",
+        default="generated_texts_og/Output/_aggregated_metrics_evolution_chaotic_selfcond.jpg",
+        help="Output path for the chaotic vs self-conditioned nonlinear figure",
+    )
     args = parser.parse_args()
 
     in_path = ROOT / args.in_data
@@ -390,6 +389,7 @@ def main():
         
     binned_stats_high_raw = data.get("high_temp", {})
     binned_stats_low_raw = data.get("low_temp", {})
+    binned_stats_self_conditioned_high_raw = data.get("self_conditioned_high_temp", {})
     
     # JSON dict keys are strings, convert the numeric token keys back to float
     def cast_keys(binned_stats):
@@ -400,6 +400,7 @@ def main():
         
     binned_stats_high = cast_keys(binned_stats_high_raw)
     binned_stats_low = cast_keys(binned_stats_low_raw)
+    binned_stats_self_conditioned_high = cast_keys(binned_stats_self_conditioned_high_raw)
     
     # Load Chaotic Book separately from its dedicated json
     chaotic_file = ROOT / "generated_texts_og" / "Output" / "chaotic_run_metrics.json"
@@ -417,8 +418,42 @@ def main():
 
     structural_metrics = ["beta", "alpha", "H_DMA", "H_WT_db4"]
     informational_metrics = ["entropy_bits", "perplexity", "lz_complexity", "mi_decay_gamma"]
-    
-    plot_aggregate(binned_stats_high, binned_stats_low, args.out, structural_metrics, informational_metrics, chaotic_data=chaotic_data)
+
+    linear_cohorts = [
+        (binned_stats_low, "steelblue", "Low Temperature runs"),
+        (binned_stats_high, "blue", "High Temperature runs"),
+    ]
+    nonlinear_cohorts = [
+        (
+            binned_stats_self_conditioned_high,
+            "darkorange",
+            "High Temperature + Full Self-Conditioning runs",
+        ),
+    ]
+
+    plot_aggregate_generic(
+        linear_cohorts,
+        args.out_linear,
+        structural_metrics,
+        informational_metrics,
+        title="Mean metric evolution vs Natural Texts: Low vs High Temperature runs",
+        chaotic_data=None,
+        xscale="linear",
+        xmax_k=1000.0,
+        xlabel="token count",
+    )
+
+    plot_aggregate_generic(
+        nonlinear_cohorts,
+        args.out_chaotic_selfcond,
+        structural_metrics,
+        informational_metrics,
+        title="Mean metric evolution vs Natural Texts: Chaotic run vs Full Self-Conditioning runs",
+        chaotic_data=chaotic_data,
+        xscale="symlog",
+        xmax_k=4000.0,
+        xlabel="nonlinear token count",
+    )
 
 
 if __name__ == "__main__":
