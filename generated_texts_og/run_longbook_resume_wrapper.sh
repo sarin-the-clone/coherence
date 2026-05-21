@@ -17,9 +17,12 @@ TEMP_HIGH="${7:-1.4}"
 TOP_P="${8:-0.95}"
 N_ATTEMPTS="${9:-5}"
 RESTART_EVERY="${10:-200}"
+EXTRA_ARGS=("${@:11}")
 
 source /home/sarin/pienicolol/bin/activate
 cd /home/sarin/pienicolol/src/coherence || exit 1
+export HF_HUB_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
 
 stop_requested=0
 child_pid=""
@@ -44,7 +47,8 @@ while :; do
         --top_p "${TOP_P}" \
         --n_attempts "${N_ATTEMPTS}" \
         --restart_every "${RESTART_EVERY}" \
-        --run_id "${RUN_ID}" &
+        --run_id "${RUN_ID}" \
+        "${EXTRA_ARGS[@]}" &
 
     child_pid=$!
     wait "${child_pid}"

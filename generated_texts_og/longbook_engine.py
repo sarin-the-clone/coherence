@@ -69,6 +69,7 @@ class LongBookGenerator:
         entropy_threshold=None,
         ppl_threshold=None,
         disable_gating=False,
+        disable_self_conditioning=False,
         restart_every=None,
         repetition_penalty=1.1, # Default 1.1
     ):
@@ -90,6 +91,7 @@ class LongBookGenerator:
         self.n_attempts = n_attempts
         self.restart_every = restart_every
         self.disable_gating = disable_gating
+        self.disable_self_conditioning = disable_self_conditioning
         self.repetition_penalty = repetition_penalty
         
         # Metadata Fix: Update config to reflect runtime overrides
@@ -291,48 +293,23 @@ class LongBookGenerator:
             self.retrieval_text_cache[chunk_id] = text
         return text
 
-    def _build_retrieval_prompt_excerpt(self, text, min_chars=220, max_chars=420):
-        paragraphs = [p.strip() for p in str(text or "").split("\n\n") if p.strip()]
-        if not paragraphs:
+    def _build_retrieval_prompt_excerpt(self, text):
+        text = str(text or "").strip()
+        if not text:
             return ""
 
-        if len(paragraphs) == 1:
-            paragraph = paragraphs[0]
-            if len(paragraph) <= max_chars:
-                return paragraph
-            head = self._clip_text_start(paragraph, max_chars // 2)
-            tail = self._clip_text_end(paragraph, max_chars // 2)
-            if head == tail:
-                return head
-            return f"{head}\n\n[...]\n\n{tail}"
+        text_len = len(text)
+        quarter = max(1, text_len // 4)
+        head_end = quarter
+        tail_start = max(0, text_len - quarter)
 
-        head_parts = []
-        head_len = 0
-        head_end = 0
-        while head_end < len(paragraphs) and (head_len < min_chars or not head_parts):
-            head_parts.append(paragraphs[head_end])
-            head_len += len(paragraphs[head_end])
-            head_end += 1
-            if head_len >= max_chars:
-                break
+        if head_end >= tail_start:
+            return text
 
-        tail_parts = []
-        tail_len = 0
-        tail_start = len(paragraphs) - 1
-        while tail_start >= head_end and (tail_len < min_chars or not tail_parts):
-            tail_parts.insert(0, paragraphs[tail_start])
-            tail_len += len(paragraphs[tail_start])
-            tail_start -= 1
-            if tail_len >= max_chars:
-                break
-
-        head_text = self._clip_text_start("\n\n".join(head_parts), max_chars)
-        if not tail_parts:
-            return head_text
-
-        tail_text = self._clip_text_end("\n\n".join(tail_parts), max_chars)
-        if head_text == tail_text:
-            return head_text
+        head_text = text[:head_end].rstrip()
+        tail_text = text[tail_start:].lstrip()
+        if not head_text or not tail_text or head_text == tail_text:
+            return text
 
         return f"{head_text}\n\n[...]\n\n{tail_text}"
 
@@ -721,6 +698,7 @@ class LongBookGenerator:
                 "temperature_range": self.temperature_range,
                 "n_attempts": self.n_attempts,
                 "repetition_penalty": self.repetition_penalty,
+                "disable_self_conditioning": self.disable_self_conditioning,
                 "debug_folder": self.serializer.debug_root,
                 "compression_method": "llm_native_hidden_state"
             }
@@ -863,34 +841,37 @@ class LongBookGenerator:
     def _generate_one_chunk(self, chunk_id):
 
         # 1. Convert memory to natural language summary
-        memory_data = self.summary_manager.to_serializable()
-        memory_data["recent_chunks"] = memory_data.get("recent_chunks", [])
-        memory_data["global_summary"] = memory_data.get("global_summary", "")
-        memory_data["graph_memory"] = self.graph_memory.to_serializable()
-        
-        # 1.5. Compute current context semantic vector using LLM Native Embedding
         current_semantic_vector_list = None
         current_semantic_tensor = None
-        
+        retrieval_debug = {"mode": "disabled", "reason": "self_conditioning_disabled"} if self.disable_self_conditioning else {"mode": "none"}
+        memory_summary = ""
         current_context = self.local_context.get_context()
-        query_text = self._build_retrieval_query_text(current_context)
-        if query_text and len(query_text) > 100:
-            
-            # Get LLM's internal representation (Zero-Shot)
-            # Returns (1, hidden_size) e.g. (1, 4096)
-            vec = self.model.get_embedding(query_text)
-            
-            current_semantic_tensor = vec # Keep tensor for injection
-            current_semantic_vector_list = vec[0].cpu().tolist() # List for summarizer
 
-        retrieved_chunks, retrieval_debug = self._select_retrieved_chunks(current_semantic_vector_list)
-        if retrieved_chunks:
-            memory_data["retrieved_chunks"] = retrieved_chunks
-        
-        memory_summary = MemorySummarizer.summarize_for_generation(
-            memory_data,
-            current_semantic_vector=current_semantic_vector_list
-        )
+        if not self.disable_self_conditioning:
+            memory_data = self.summary_manager.to_serializable()
+            memory_data["recent_chunks"] = memory_data.get("recent_chunks", [])
+            memory_data["global_summary"] = memory_data.get("global_summary", "")
+            memory_data["graph_memory"] = self.graph_memory.to_serializable()
+
+            # 1.5. Compute current context semantic vector using LLM Native Embedding
+            query_text = self._build_retrieval_query_text(current_context)
+            if query_text and len(query_text) > 100:
+
+                # Get LLM's internal representation (Zero-Shot)
+                # Returns (1, hidden_size) e.g. (1, 4096)
+                vec = self.model.get_embedding(query_text)
+
+                current_semantic_tensor = vec # Keep tensor for injection
+                current_semantic_vector_list = vec[0].cpu().tolist() # List for summarizer
+
+            retrieved_chunks, retrieval_debug = self._select_retrieved_chunks(current_semantic_vector_list)
+            if retrieved_chunks:
+                memory_data["retrieved_chunks"] = retrieved_chunks
+
+            memory_summary = MemorySummarizer.summarize_for_generation(
+                memory_data,
+                current_semantic_vector=current_semantic_vector_list
+            )
         
         # 2. Build natural language prompt
         # Use minimal context (last ~2000 chars) to give the model immediate continuity
@@ -1026,7 +1007,7 @@ class LongBookGenerator:
 
             # Prepare Soft Prompt (Vector Injection)
             prefix_embeds = None
-            if current_semantic_tensor is not None:
+            if (not self.disable_self_conditioning) and current_semantic_tensor is not None:
                 # Use the native embedding directly as a prefix
                 # Shape is already (1, hidden_size), need (1, 1, hidden_size)
                 prefix_embeds = current_semantic_tensor.unsqueeze(1)

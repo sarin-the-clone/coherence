@@ -244,6 +244,11 @@ def main():
     )
 
     parser.add_argument(
+        "--disable_self_conditioning", action="store_true",
+        help="Disable long-range self-conditioning injections (summaries, graph, retrieval, semantic prefix)."
+    )
+
+    parser.add_argument(
         "--ppl_min", type=float, default=None,
         help="Override minimum perplexity threshold (gating)."
     )
@@ -316,6 +321,7 @@ def main():
         entropy_threshold=args.entropy_min,
         ppl_threshold=args.ppl_min,
         disable_gating=args.disable_gating,
+        disable_self_conditioning=args.disable_self_conditioning,
         restart_every=args.restart_every,
         
         repetition_penalty=args.repetition_penalty,
