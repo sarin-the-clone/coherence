@@ -4,7 +4,7 @@
 # Decides whether an LLM-produced chunk is acceptable.
 # Uses a mixture of:
 #   - spectral beta, alpha
-#   - H (DFA1 / DFA2 / DFA3 / DMA / WT Haar / WT db4)
+#   - H_DFA1 for Hurst-style gating
 #   - entropy
 #   - LZ complexity
 #   - MI decay rate gamma
@@ -77,8 +77,11 @@ def load_binned_config():
 
 _BINNED_CFG = load_binned_config()
 
-# Metrics actively used in gating decisions
-GATED_METRICS = {"beta", "alpha", "H_DMA", "entropy_bits", "lz_complexity", "mi_decay_gamma", "perplexity"}
+# Metrics actively used in gating decisions.
+#
+# H_DMA/H_WT_db4 are reported as diagnostics, but they are too locally volatile
+# to be hard accept/reject signals. Use DFA1 for the Hurst-style gate.
+GATED_METRICS = {"beta", "alpha", "H_DFA1", "entropy_bits", "lz_complexity", "mi_decay_gamma", "perplexity"}
 
 
 def get_dynamic_thresholds(n_tokens):
@@ -311,9 +314,9 @@ def is_chunk_acceptable(metrics, cfg=None, text=None, chunk_id=None, disable_gat
 
         # --- CONDITIONALLY GATED (Extensive / Slow Convergence) ---
         
-        # 6. Hurst (H_DMA)
-        if "H_DMA" in metrics:
-            if not check_gate("H_DMA", metrics["H_DMA"], "H_DMA_min", "H_DMA_max", condition=is_late_stage):
+        # 6. Hurst (DFA1). H_DMA is diagnostic-only.
+        if "H_DFA1" in metrics:
+            if not check_gate("H_DFA1", metrics["H_DFA1"], "H_min", "H_max", condition=is_late_stage):
                 return False
 
         # 7. Lz Complexity (Second-order growth)
@@ -341,11 +344,13 @@ def is_chunk_acceptable(metrics, cfg=None, text=None, chunk_id=None, disable_gat
     
     return True
 
-def calculate_metric_distance(metrics, cfg=None, chunk_id=None, verbose=False, text=None):
+def calculate_metric_distance(metrics, cfg=None, chunk_id=None, verbose=False, text=None, disable_metric_gates=False):
     """
     Calculate a distance score for the metrics relative to the thresholds.
     Lower is better. 0.0 means all metrics are within bounds.
     Used for selecting the 'least bad' attempt when all fail.
+    If disable_metric_gates is True, metric-distance terms are skipped but
+    repetition penalties still apply when text is provided.
     """
     # Resolve dynamic config
     cfg = resolve_effective_config(metrics, cfg)
@@ -408,21 +413,27 @@ def calculate_metric_distance(metrics, cfg=None, chunk_id=None, verbose=False, t
     
     # Debug print to diagnose early gating (Controlled verbosity)
     if verbose:
-        print(f"DEBUG: Chunk {chunk_id}, Tokens: {n_tokens}, FullGate: {is_late_stage} (Threshold: {start_tokens_threshold})")
+        print(
+            f"DEBUG: Chunk {chunk_id}, Tokens: {n_tokens}, "
+            f"FullGate: {is_late_stage and not disable_metric_gates} "
+            f"(Threshold: {start_tokens_threshold})"
+        )
+
+    metric_terms_enabled = not disable_metric_gates
 
     if "beta" in metrics:
-        total_distance += add_dist("beta", metrics["beta"], "beta_min", "beta_max", std_key="beta_std", condition=is_late_stage)
+        total_distance += add_dist("beta", metrics["beta"], "beta_min", "beta_max", std_key="beta_std", condition=is_late_stage and metric_terms_enabled)
     
     if "alpha" in metrics:
-        total_distance += add_dist("alpha", metrics["alpha"], "alpha_min", "alpha_max", std_key="alpha_std", condition=is_late_stage)
+        total_distance += add_dist("alpha", metrics["alpha"], "alpha_min", "alpha_max", std_key="alpha_std", condition=is_late_stage and metric_terms_enabled)
         
     if "entropy_bits" in metrics:
         # Informational metrics are valid early
-        total_distance += add_dist("entropy_bits", metrics["entropy_bits"], "entropy_min", "entropy_max", std_key="entropy_bits_std")
+        total_distance += add_dist("entropy_bits", metrics["entropy_bits"], "entropy_min", "entropy_max", std_key="entropy_bits_std", condition=metric_terms_enabled)
         
     if "perplexity" in metrics and metrics["perplexity"] is not None:
         # Informational metrics are valid early
-        total_distance += add_dist("perplexity", metrics["perplexity"], "ppl_min", "ppl_max", std_key=None)
+        total_distance += add_dist("perplexity", metrics["perplexity"], "ppl_min", "ppl_max", std_key=None, condition=metric_terms_enabled)
 
     # --- PENALIZE REPETITION ---
     if text is not None:
@@ -431,13 +442,13 @@ def calculate_metric_distance(metrics, cfg=None, chunk_id=None, verbose=False, t
              # Add a large penalty to make it worse than "slightly off metric" attempts
              total_distance += 100.0
         
-    if "H_DMA" in metrics:
-        total_distance += add_dist("H_DMA", metrics["H_DMA"], "H_DMA_min", "H_DMA_max", std_key="H_DMA_std", condition=is_late_stage)
+    if "H_DFA1" in metrics:
+        total_distance += add_dist("H_DFA1", metrics["H_DFA1"], "H_min", "H_max", std_key="H_DFA1_std", condition=is_late_stage and metric_terms_enabled)
         
     if "lz_complexity" in metrics:
-        total_distance += add_dist("lz_complexity", metrics["lz_complexity"], "lz_min", "lz_max", std_key="lz_complexity_std", condition=is_late_stage)
+        total_distance += add_dist("lz_complexity", metrics["lz_complexity"], "lz_min", "lz_max", std_key="lz_complexity_std", condition=is_late_stage and metric_terms_enabled)
         
     if "mi_decay_gamma" in metrics:
-        total_distance += add_dist("mi_decay_gamma", metrics["mi_decay_gamma"], "gamma_min", "gamma_max", std_key="mi_decay_gamma_std", condition=is_late_stage)
+        total_distance += add_dist("mi_decay_gamma", metrics["mi_decay_gamma"], "gamma_min", "gamma_max", std_key="mi_decay_gamma_std", condition=is_late_stage and metric_terms_enabled)
         
     return total_distance

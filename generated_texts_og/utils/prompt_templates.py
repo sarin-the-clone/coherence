@@ -5,18 +5,9 @@
 # Chunk Generation
 # -------------------------------------------------------------------
 
-CHUNK_GENERATION_PROMPT = """{identity_prompt} Write at least {target_length} words.
+CHUNK_GENERATION_PROMPT = """{header_line}
 
-STORY CONTRACT (maintain throughout):
-{story_contract}
-
-CONTEXT:
-{memory_summary}
-
-PREVIOUS TEXT (last section):
-{previous_text}
-
-CRITICAL RULES:
+{story_contract_section}{memory_summary_section}{previous_text_section}CRITICAL RULES:
 - Write ONLY prose content - no code, no JSON, no meta-commentary
 - Do NOT include the original prompt or instructions
 - Do NOT start with "assistant:" or any prefix
@@ -35,6 +26,11 @@ STYLE REQUIREMENTS (for natural text quality):
 - **THEMATIC CONTINUITY**: While varying your language, maintain the core atmosphere and recurring motifs. Repetition of key thematic words is acceptable for coherence.
 {variation_hint}
 Write the continuation now (prose only):
+"""
+
+MINIMAL_CHUNK_GENERATION_PROMPT = """{header_line}
+
+{story_contract_section}{previous_text_section}Write the continuation now (prose only):
 """
 
 # -------------------------------------------------------------------

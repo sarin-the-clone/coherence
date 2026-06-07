@@ -7,9 +7,11 @@ Usage:
 
 What it does:
   - Reads all chunk_*_attempt_*.txt JSON files (skips *_prompt.txt).
-  - For each chunk, treats the highest attempt index as the accepted attempt.
+  - Reads optional token_naturalness_by_chunk.jsonl sidecar if present.
+  - Infers accepted attempts from accepted markers / next prompts.
   - Plots the accepted attempts as a line.
   - Overlays all failed attempts as faint scatter points.
+  - Does not compute metrics or tokenize text.
 """
 
 import argparse
@@ -27,9 +29,6 @@ import matplotlib as mpl
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
-
-from tokenizer import Tokenizer
-from metrics import CoherenceMetrics
 
 # Coherence thresholds (soft gate) pulled from coherence_decision.py
 try:
@@ -51,6 +50,100 @@ def load_size_stats():
     return None
 
 SIZE_STATS = load_size_stats()
+
+METRIC_PRESETS = {
+    "legacy-vs-additional": (
+        ["beta", "alpha", "H_DFA1", "entropy_bits", "perplexity", "lz_complexity", "mi_decay_gamma"],
+        [
+            "tp_entropy_slope",
+            "tr_repeat_gap_burstiness",
+            "tr_repeat_gap_cv",
+            "tr_repeat_gap_logbin_entropy",
+            "td_hapax_token_fraction",
+            "td_zipf_exponent",
+            "td_heaps_exponent",
+        ],
+    ),
+    "statistical-descriptors": (
+        ["beta", "alpha", "H_DFA1"],
+    ),
+    "informational-descriptors": (
+        ["entropy_bits", "perplexity"],
+        ["lz_complexity", "mi_decay_gamma"],
+    ),
+    "additional-descriptors": (
+        ["tp_entropy_slope", "tr_repeat_gap_burstiness", "tr_repeat_gap_cv", "tr_repeat_gap_logbin_entropy"],
+        ["td_zipf_exponent", "td_zipf_r2", "td_heaps_exponent", "td_heaps_r2"],
+    ),
+    "default": (
+        ["beta", "alpha", "H_DFA1"],
+        ["entropy_bits", "perplexity", "lz_complexity", "mi_decay_gamma"],
+    ),
+    "token-fast": (
+        ["td_hapax_token_fraction", "td_zipf_exponent", "td_zipf_r2", "td_heaps_exponent", "td_heaps_r2"],
+        ["tr_repeat_gap_burstiness", "tr_repeat_gap_cv", "tr_repeat_gap_logbin_entropy"],
+    ),
+    "token-predictability": (
+        ["tp_entropy_0", "tp_redundancy_1", "tp_entropy_slope", "tp_context_efficiency_4"],
+    ),
+    "token-curated": (
+        ["tp_entropy_0", "tp_redundancy_1", "tp_entropy_slope", "tp_context_efficiency_4"],
+        ["td_hapax_token_fraction", "td_zipf_exponent", "td_zipf_r2", "td_heaps_exponent", "td_heaps_r2"],
+        ["tr_repeat_gap_burstiness", "tr_repeat_gap_cv", "tr_repeat_gap_logbin_entropy"],
+    ),
+    "default-plus-token-fast": (
+        ["beta", "alpha", "H_DMA", "H_WT_db4", "td_zipf_exponent", "td_heaps_exponent"],
+        ["entropy_bits", "perplexity", "lz_complexity", "mi_decay_gamma", "tr_repeat_gap_burstiness", "tr_repeat_gap_cv", "tr_repeat_gap_logbin_entropy"],
+    ),
+}
+
+PRESET_TITLES = {
+    "legacy-vs-additional": "Legacy vs Additional Descriptor Evolution",
+    "statistical-descriptors": "Statistical Descriptor Evolution",
+    "informational-descriptors": "Informational Descriptor Evolution",
+    "additional-descriptors": "Additional Token Descriptor Evolution",
+    "default": "Statistical and Informational Descriptor Evolution",
+    "token-fast": "Token Distribution and Recurrence Descriptor Evolution",
+    "token-predictability": "Token Predictability Descriptor Evolution",
+    "token-curated": "Curated Token Descriptor Evolution",
+    "default-plus-token-fast": "Descriptor Evolution",
+}
+
+SECONDARY_METRIC_OVERLAYS = {
+    "td_zipf_exponent": "td_zipf_r2",
+    "td_heaps_exponent": "td_heaps_r2",
+}
+
+
+def parse_metric_list(value: str | None) -> List[str] | None:
+    if value is None:
+        return None
+    metrics = [item.strip() for item in value.split(",") if item.strip()]
+    return metrics or None
+
+
+def normalize_preset_columns(groups: Tuple[List[str], ...]) -> Tuple[List[str], List[str]]:
+    """
+    Convert a preset with one or more metric groups into two plot columns.
+
+    Some token presets are naturally three groups (tp, td, tr), while the
+    plotting layout has two columns. Keep the first two groups as anchors, then
+    append any remaining groups to the currently shorter column.
+    """
+    if not groups:
+        return [], []
+    if len(groups) == 1:
+        return list(groups[0]), []
+
+    left = list(groups[0])
+    right = list(groups[1])
+    for group in groups[2:]:
+        if len(left) <= len(right):
+            left.extend(group)
+        else:
+            right.extend(group)
+    return left, right
+
 
 def load_attempts(folder: Path) -> Dict[int, Dict[int, Dict]]:
     """Return {chunk: {attempt: record}}."""
@@ -80,10 +173,44 @@ def load_attempts(folder: Path) -> Dict[int, Dict[int, Dict]]:
     return attempts_by_chunk
 
 
+def load_token_naturalness_by_chunk(folder: Path) -> Dict[int, Dict]:
+    """Read retrospective accumulated token-naturalness sidecar, if present."""
+    path = folder / "token_naturalness_by_chunk.jsonl"
+    records: Dict[int, Dict] = {}
+    if not path.exists():
+        return records
+
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                rec = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            chunk_id = rec.get("chunk_id")
+            if chunk_id is None:
+                continue
+            records[int(chunk_id)] = rec
+    return records
+
 
 # Helper to find which attempt was actually accepted based on the next chunk's prompt
 def find_accepted_attempt(chunk_idx: int, attempts_by_chunk: Dict[int, Dict[int, Dict]]) -> int:
     attempts_dict = attempts_by_chunk[chunk_idx]
+    sample_file = list(attempts_dict.values())[0].get("_file_path")
+    if sample_file:
+        folder_path = Path(sample_file).parent
+        accepted_path = folder_path / f"chunk_{chunk_idx:03d}_accepted.txt"
+        if accepted_path.exists():
+            try:
+                accepted_data = json.loads(accepted_path.read_text())
+                accepted_attempt = accepted_data.get("accepted_attempt")
+                if accepted_attempt is not None and int(accepted_attempt) in attempts_dict:
+                    return int(accepted_attempt)
+            except Exception:
+                pass
     
     # If this is the last chunk effectively (no next chunk found), fallback to max
     next_chunk = chunk_idx + 1
@@ -93,13 +220,10 @@ def find_accepted_attempt(chunk_idx: int, attempts_by_chunk: Dict[int, Dict[int,
     # If we represent the next chunk, we can check its prompt file matching
     # We look for any prompt file for next_chunk (e.g. chunk_32_attempt_1_prompt.txt)
     # Since we only have the folder path available via the attempt filenames, let's derive it
-    sample_file = list(attempts_dict.values())[0].get("_file_path") 
     if not sample_file:
         # Fallback if we didn't store file path (we need to modify load_attempts to store it)
         return max(attempts_dict)
         
-    folder_path = Path(sample_file).parent
-    
     # Find any prompt file for the next chunk
     next_prompts = list(folder_path.glob(f"chunk_{next_chunk:03d}_attempt_*_prompt.txt"))
     if not next_prompts:
@@ -134,74 +258,87 @@ def find_accepted_attempt(chunk_idx: int, attempts_by_chunk: Dict[int, Dict[int,
         if snippet in next_prompt_content:
             return att_id
     
-    # If no match found, fallback
+    # If no match found, fallback to a read-only inference.
     return max(attempts_dict)
 
 
-def estimate_cumulative_tokens(attempts_by_chunk: Dict[int, Dict[int, Dict]]) -> Dict[int, int]:
+def load_cumulative_tokens(
+    attempts_by_chunk: Dict[int, Dict[int, Dict]],
+    sidecar_by_chunk: Dict[int, Dict] | None = None,
+) -> Dict[int, int]:
     """
-    Get cumulative token counts per chunk.
-    Priority 1: Use 'accumulated_metrics.n_tokens' if available (Global count).
-    Priority 2: Estimate by summing 'new_text' lengths (Local count).
+    Read cumulative token counts per chunk.
+
+    This intentionally does not estimate or tokenize. If no monotonic token
+    counts are available, callers should plot against chunk index.
     """
-    cumulative = {}
+    sidecar_by_chunk = sidecar_by_chunk or {}
     
     # Check if we have explicit global tokens
     has_global = False
     global_counts = {}
     
-    # First pass: collect global counts for accepted chunks
     sorted_chunks = sorted(attempts_by_chunk.keys())
     for chunk in sorted_chunks:
-        # USE CORRECT ACCEPTED LOGIC HERE
+        if chunk in sidecar_by_chunk and sidecar_by_chunk[chunk].get("n_tokens") is not None:
+            global_counts[chunk] = int(sidecar_by_chunk[chunk]["n_tokens"])
+            has_global = True
+            continue
+
         best_attempt = find_accepted_attempt(chunk, attempts_by_chunk)
         rec = attempts_by_chunk[chunk][best_attempt]
-        # Check deep key
         if rec.get("accumulated_metrics") and "n_tokens" in rec["accumulated_metrics"]:
-            val = rec["accumulated_metrics"]["n_tokens"]
-            global_counts[chunk] = val
+            global_counts[chunk] = int(rec["accumulated_metrics"]["n_tokens"])
             has_global = True
 
-    if has_global:
-        # Check integrity/monotonicity
-        is_monotonic = True
-        prev_val = -1
-        for chunk in sorted_chunks:
-            val = global_counts.get(chunk, prev_val) # handle gaps if any
-            if val < prev_val:
-                print(f"⚠️ Non-monotonic global tokens detected at chunk {chunk}: {val} < {prev_val}. Switching to estimation.")
-                is_monotonic = False
-                break
-            prev_val = val
-        
-        if is_monotonic:
-            print(f"DEBUG: Using explicit 'n_tokens' from accumulated_metrics (Monotonicity Check Passed).")
-            # Fill gaps if any simplisticly
-            return global_counts
-        else:
-            print("DEBUG: Global tokens valid but non-monotonic. Discarding and recalculating.")
+    if not has_global:
+        return {}
 
-    # Fallback: Local Summation
-    lengths = {}
-    for chunk, attempts in attempts_by_chunk.items():
-        best_attempt = find_accepted_attempt(chunk, attempts_by_chunk)
-        rec = attempts[best_attempt]
-        text = rec.get("new_text") or rec.get("full_output") or ""
-        tokens = len(Tokenizer(kind="gpt4").encode(text))
-        lengths[chunk] = tokens
+    prev_val = -1
+    monotonic_counts = {}
+    for chunk in sorted_chunks:
+        if chunk not in global_counts:
+            continue
+        val = global_counts[chunk]
+        if val < prev_val:
+            print(
+                f"⚠️ Non-monotonic stored n_tokens at chunk {chunk}: "
+                f"{val} < {prev_val}. Token x-axis disabled."
+            )
+            return {}
+        prev_val = val
+        monotonic_counts[chunk] = val
 
-    avg_calc = int(sum(lengths.values()) / len(lengths)) if lengths else 1500
-    print(f"DEBUG: Calculated average tokens per chunk: {avg_calc}")
-    print(f"DEBUG: Total estimated tokens: {sum(lengths.values())}")
-    
-    avg_len = avg_calc
-    cum = 0
-    for chunk in sorted(attempts_by_chunk.keys()):
-        chunk_tokens = lengths.get(chunk, avg_len)
-        chunk_tokens = max(chunk_tokens, int(0.5 * avg_len))
-        cum += chunk_tokens
-        cumulative[chunk] = cum
-    return cumulative
+    return monotonic_counts
+
+
+def compute_gating_frequency(
+    attempts_by_chunk: Dict[int, Dict[int, Dict]],
+    cumulative_tokens: Dict[int, int],
+    start_tokens_threshold: int = 100000,
+) -> Tuple[int, int, float]:
+    """
+    Chunk-level gating proxy based on retries.
+
+    A chunk counts as a single gating event if more than one attempt file exists
+    for that chunk, regardless of whether it took 2 or 5 attempts.
+    Chunks before the full-gating threshold are excluded.
+    """
+    eligible_chunks = [
+        chunk for chunk in attempts_by_chunk
+        if cumulative_tokens.get(chunk, 0) >= start_tokens_threshold
+    ]
+    total_chunks = len(eligible_chunks)
+    if total_chunks == 0:
+        return 0, 0, 0.0
+
+    gated_chunks = sum(
+        1
+        for chunk in eligible_chunks
+        if len(attempts_by_chunk[chunk]) > 1
+    )
+    gating_rate = gated_chunks / total_chunks
+    return gated_chunks, total_chunks, gating_rate
 
 
 def build_size_segments(chunks_sorted, cumulative_tokens):
@@ -251,16 +388,51 @@ def build_size_segments(chunks_sorted, cumulative_tokens):
     return segments
 
 
+def finite_float(value) -> float | None:
+    try:
+        value = float(value)
+    except (TypeError, ValueError):
+        return None
+    if value != value or value in (float("inf"), float("-inf")):
+        return None
+    return value
+
+
+def apply_y_limits_from_values(ax, values: List[float]) -> None:
+    values = [value for value in values if finite_float(value) is not None]
+    if not values:
+        return
+
+    y_min = min(values)
+    y_max = max(values)
+    if y_min == y_max:
+        pad = max(abs(y_min) * 0.05, 1e-6)
+    else:
+        pad = (y_max - y_min) * 0.08
+    ax.set_ylim(y_min - pad, y_max + pad)
+
+
 def plot_metrics(
     attempts_by_chunk: Dict[int, Dict[int, Dict]], out_path: Path, 
-    structural_metrics: List[str], informational_metrics: List[str]
+    structural_metrics: List[str], informational_metrics: List[str],
+    sidecar_by_chunk: Dict[int, Dict] | None = None,
+    y_axis_ignore_first_n: int = 50,
+    title: str | None = None,
 ) -> None:
     """Create the metrics plot with two columns: structural and informational."""
+    sidecar_by_chunk = sidecar_by_chunk or {}
     chunks_sorted = sorted(attempts_by_chunk.keys())
     if not chunks_sorted:
         raise SystemExit("No chunk attempts found.")
+    y_axis_ignore_first_n = max(0, int(y_axis_ignore_first_n))
+    chunk_rank = {chunk: idx for idx, chunk in enumerate(chunks_sorted)}
 
-    cumulative_tokens = estimate_cumulative_tokens(attempts_by_chunk)
+    cumulative_tokens = load_cumulative_tokens(attempts_by_chunk, sidecar_by_chunk)
+    use_token_x_axis = bool(cumulative_tokens)
+    gated_chunks, total_chunks, gating_rate = compute_gating_frequency(
+        attempts_by_chunk,
+        cumulative_tokens,
+    )
     size_segments = build_size_segments(chunks_sorted, cumulative_tokens)
     palette = ["#5B8FF9", "#FF7F0E", "#2CA02C", "#D62728", "#9467BD", "#8C564B"]
     bin_colors = {}
@@ -276,8 +448,15 @@ def plot_metrics(
     if rows == 1:
         axes = axes.reshape(1, 2)
 
-    def get_metric(rec: Dict, metric: str):
-        """Prefer accumulated_metrics, then chunk/metrics."""
+    def get_x(chunk: int) -> float:
+        if use_token_x_axis:
+            return cumulative_tokens.get(chunk, 0) / 1000.0
+        return float(chunk)
+
+    def get_metric(chunk: int, rec: Dict, metric: str, include_sidecar: bool = False):
+        """Read metric values only; sidecar values are accepted-history metrics."""
+        if include_sidecar and chunk in sidecar_by_chunk and metric in sidecar_by_chunk[chunk]:
+            return sidecar_by_chunk[chunk][metric]
         if rec.get("accumulated_metrics") and metric in rec["accumulated_metrics"]:
             return rec["accumulated_metrics"][metric]
         if rec.get("chunk_metrics") and metric in rec["chunk_metrics"]:
@@ -295,6 +474,16 @@ def plot_metrics(
 
         xs_line = []
         ys_line = []
+        y_limit_values: List[float] = []
+
+        rejected_label = f"rejected chunk (gating frequency: {gating_rate * 100:.1f}%)"
+        def contributes_to_ylim(chunk: int) -> bool:
+            return chunk_rank.get(chunk, 0) >= y_axis_ignore_first_n
+
+        def add_ylim_value(value) -> None:
+            value = finite_float(value)
+            if value is not None:
+                y_limit_values.append(value)
 
         for chunk in chunks_sorted:
             attempts = attempts_by_chunk[chunk]
@@ -302,20 +491,31 @@ def plot_metrics(
             
             # Plot failed attempts as faint scatter
             for att, rec in attempts.items():
-                y = get_metric(rec, metric)
+                y = get_metric(chunk, rec, metric, include_sidecar=False)
                 if y is None:
                     continue  # missing metric
-                x = cumulative_tokens.get(chunk, 0) / 1000.0  # Convert to k tokens
+                x = get_x(chunk)
                 if att == best_attempt:
                     continue
-                ax.scatter(x, y, color="gray", alpha=0.35, s=12, marker="x", label="rejected chunk")
+                if contributes_to_ylim(chunk):
+                    add_ylim_value(y)
+                ax.scatter(
+                    x, y,
+                    color="gray",
+                    alpha=0.35,
+                    s=12,
+                    marker="x",
+                    label=rejected_label,
+                )
 
             # Record accepted attempt for line
             best_rec = attempts[best_attempt]
-            y_best = get_metric(best_rec, metric)
+            y_best = get_metric(chunk, best_rec, metric, include_sidecar=True)
             if y_best is not None:
-                xs_line.append(cumulative_tokens.get(chunk, 0) / 1000.0)
+                xs_line.append(get_x(chunk))
                 ys_line.append(y_best)
+                if contributes_to_ylim(chunk):
+                    add_ylim_value(y_best)
 
         ax.plot(xs_line, ys_line, marker="o", markersize=4, linewidth=1.5, label="accepted")
         ax.lines[-1].set_label("accepted chunk")
@@ -356,6 +556,7 @@ def plot_metrics(
                 
                 # Default draw range: within the bin (likely >100k for the first bin in new logic)
                 draw_x0 = x0
+                segment_contributes_to_ylim = chunk_rank.get(end, 0) >= y_axis_ignore_first_n
                 
                 if is_100k_bin:
                     # If it's the 100k bin, handle <100k visualization
@@ -365,6 +566,9 @@ def plot_metrics(
                         draw_x0 = max(x0, 100.0)
                         
                         if draw_x0 < x1:
+                            if segment_contributes_to_ylim:
+                                add_ylim_value(p25)
+                                add_ylim_value(p75)
                             ax.fill_between(
                                 [draw_x0, x1], [p25, p25], [p75, p75],
                                 color=color, alpha=0.08, zorder=1.5,
@@ -378,6 +582,9 @@ def plot_metrics(
                         # This just means we plot the main bin like structural.
                         draw_x0 = max(x0, 100.0)
                         if draw_x0 < x1:
+                            if segment_contributes_to_ylim:
+                                add_ylim_value(p25)
+                                add_ylim_value(p75)
                             ax.fill_between(
                                 [draw_x0, x1], [p25, p25], [p75, p75],
                                 color=color, alpha=0.08, zorder=1.5,
@@ -387,6 +594,9 @@ def plot_metrics(
 
                 else:
                     # Normal bin including 100k+
+                    if segment_contributes_to_ylim:
+                        add_ylim_value(p25)
+                        add_ylim_value(p75)
                     ax.fill_between(
                         [draw_x0, x1], [p25, p25], [p75, p75],
                         color=color, alpha=0.08, zorder=1.5,
@@ -406,6 +616,8 @@ def plot_metrics(
                     draw_x0 = max(x0, 100.0)
                 
                 if draw_x0 < x1:
+                    if chunk_rank.get(end, 0) >= y_axis_ignore_first_n:
+                        add_ylim_value(mean)
                     ax.plot(
                         [draw_x0, x1], [mean, mean],
                         color=color, linestyle="--", linewidth=1.2, zorder=1.6,
@@ -413,8 +625,37 @@ def plot_metrics(
                     )
                 mean_labels_used.add(label_key)
 
+        secondary_metric = SECONDARY_METRIC_OVERLAYS.get(metric)
+        if secondary_metric:
+            secondary_color = "#4b5563"
+            secondary_ys = []
+            for chunk in chunks_sorted:
+                attempts = attempts_by_chunk[chunk]
+                best_attempt = find_accepted_attempt(chunk, attempts_by_chunk)
+                best_rec = attempts[best_attempt]
+                y_secondary = get_metric(chunk, best_rec, secondary_metric, include_sidecar=True)
+                y_secondary = finite_float(y_secondary)
+                if y_secondary is None:
+                    continue
+                secondary_ys.append(y_secondary)
+
+            if secondary_ys:
+                mean_r2 = sum(secondary_ys) / len(secondary_ys)
+                ax.text(
+                    0.02,
+                    0.92,
+                    f"mean(R^2) = {mean_r2:.3f}",
+                    transform=ax.transAxes,
+                    ha="left",
+                    va="top",
+                    fontsize=8.5,
+                    color=secondary_color,
+                    bbox=dict(facecolor="white", edgecolor=secondary_color, alpha=0.82, boxstyle="round,pad=0.2"),
+                )
+
         ax.set_ylabel(metric)
         ax.grid(True, alpha=0.3)
+        apply_y_limits_from_values(ax, y_limit_values)
 
     legend_handles = []
 
@@ -423,14 +664,14 @@ def plot_metrics(
         metric = structural_metrics[i] if i < len(structural_metrics) else None
         plot_on_ax(axes[i, 0], metric)
         if i == rows - 1:
-            axes[i, 0].set_xlabel("Tokens (k)")
+            axes[i, 0].set_xlabel("Tokens (k)" if use_token_x_axis else "Chunk")
 
     # Plot Informational Column (Right)
     for i in range(rows):
         metric = informational_metrics[i] if i < len(informational_metrics) else None
         plot_on_ax(axes[i, 1], metric)
         if i == rows - 1:
-            axes[i, 1].set_xlabel("Tokens (k)")
+            axes[i, 1].set_xlabel("Tokens (k)" if use_token_x_axis else "Chunk")
 
     # Collect legend handles once from the first axis and remove per-plot legends
     handles, labels = [], []
@@ -462,7 +703,10 @@ def plot_metrics(
             frameon=False
         )
 
-    fig.suptitle("Metric Evolution per accumulated generated chunks: Structural (left column) vs Informational (right column)", fontsize=14)
+    title = title or "Metric Evolution per accumulated generated chunks"
+    if y_axis_ignore_first_n:
+        title += f"\nY-axis range ignores the first {y_axis_ignore_first_n} chunks"
+    fig.suptitle(title, fontsize=14)
     # Increase bottom margin significantly for legend (12%)
     fig.tight_layout(rect=[0, 0.12, 1, 0.96])
     fig.savefig(out_path, dpi=200)
@@ -478,9 +722,33 @@ def main():
         default=None,
         help="Output image path (default: <folder>/_metrics_evolution.jpg)",
     )
-    # No longer taking generic --metrics arg, but we can keep it if we want to override both lists?
-    # For simplicity, let's hardcode the split as requested or allow passing separated lists?
-    # Separate them in code. Let's just use the defaults requested.
+    parser.add_argument(
+        "--preset",
+        choices=sorted(METRIC_PRESETS),
+        default="default",
+        help="Metric preset. Sidecar metrics require token_naturalness_by_chunk.jsonl to exist.",
+    )
+    parser.add_argument(
+        "--structural-metrics",
+        default=None,
+        help="Comma-separated metrics for left column. Overrides --preset left column.",
+    )
+    parser.add_argument(
+        "--informational-metrics",
+        default=None,
+        help="Comma-separated metrics for right column. Overrides --preset right column.",
+    )
+    parser.add_argument(
+        "--y-axis-ignore-first-n",
+        type=int,
+        default=50,
+        help="Draw early chunks but exclude the first N chunks from y-axis autoscaling. Use 0 to disable.",
+    )
+    parser.add_argument(
+        "--title",
+        default=None,
+        help="Optional plot title. Defaults to a title derived from --preset.",
+    )
     
     args = parser.parse_args()
 
@@ -489,12 +757,22 @@ def main():
         raise SystemExit(f"Folder not found: {folder}")
 
     attempts_by_chunk = load_attempts(folder)
+    sidecar_by_chunk = load_token_naturalness_by_chunk(folder)
     out_path = Path(args.out) if args.out else folder / "_metrics_evolution.jpg"
 
-    structural_metrics = ["beta", "alpha", "H_DMA", "H_WT_db4"]
-    informational_metrics = ["entropy_bits", "perplexity", "lz_complexity", "mi_decay_gamma"]
+    structural_metrics, informational_metrics = normalize_preset_columns(METRIC_PRESETS[args.preset])
+    structural_metrics = parse_metric_list(args.structural_metrics) or structural_metrics
+    informational_metrics = parse_metric_list(args.informational_metrics) or informational_metrics
 
-    plot_metrics(attempts_by_chunk, out_path, structural_metrics, informational_metrics)
+    plot_metrics(
+        attempts_by_chunk,
+        out_path,
+        structural_metrics,
+        informational_metrics,
+        sidecar_by_chunk=sidecar_by_chunk,
+        y_axis_ignore_first_n=args.y_axis_ignore_first_n,
+        title=args.title or PRESET_TITLES.get(args.preset),
+    )
 
 
 if __name__ == "__main__":

@@ -1,327 +1,626 @@
 #!/usr/bin/env python3
 """
-Plot aggregated metric evolution across generated books.
+Plot aggregate descriptor evolution by conditioning mode.
 
-Default behavior now produces two figures:
-  1. legacy low/high temperature runs on a linear 0-1M token axis
-  2. chaotic run vs full self-conditioning high-temp runs on a nonlinear axis
+The script reads generated-book prompt folders directly:
+  - legacy descriptors from accepted chunk attempt JSON
+  - additional token descriptors from token_naturalness_by_chunk.jsonl
+
+It bins each run on accumulated token count, averages within each run/bin, then
+computes group mean/std across runs. This keeps dense stride-1 sidecars from
+overweighting a group relative to sparse sidecars.
 """
+
+from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
-import numpy as np
+from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, Iterable, List, Tuple
 
 import matplotlib.pyplot as plt
+import numpy as np
 
-# Ensure repo root on path
+
 ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = ROOT.parent
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
 
-# Ensure analysis dir is on path for sibling import
 ANALYSIS_DIR = Path(__file__).parent
 if str(ANALYSIS_DIR) not in sys.path:
     sys.path.append(str(ANALYSIS_DIR))
 
 import plot_chunk_metrics as pcm
 
-# Alias functions for convenience
-load_attempts = pcm.load_attempts
-find_accepted_attempt = pcm.find_accepted_attempt
-estimate_cumulative_tokens = pcm.estimate_cumulative_tokens
-load_size_stats = pcm.load_size_stats
-build_size_segments = pcm.build_size_segments
 
-def get_book_folders(base_path: Path) -> List[Path]:
-    """Find all run folders in generated_texts_og/prompts/."""
-    # We assume any folder starting with a year or 'run_' or just generic foldernames
-    # Filter out code files or non-run directories if any.
+DEFAULT_PROMPTS_DIR = ROOT / "generated_texts_og" / "prompts"
+DEFAULT_OUT_LEGACY = ROOT / "generated_texts_og" / "Output" / "_aggregate_legacy_descriptors_by_group.jpg"
+DEFAULT_OUT_ADDITIONAL = ROOT / "generated_texts_og" / "Output" / "_aggregate_additional_descriptors_by_group.jpg"
+DEFAULT_CACHE = ROOT / "generated_texts_og" / "Output" / "_aggregate_descriptor_group_stats.json"
+CACHE_VERSION = 1
+
+LEGACY_METRICS = [
+    "beta",
+    "alpha",
+    "H_DFA1",
+    "entropy_bits",
+    "perplexity",
+    "lz_complexity",
+    "mi_decay_gamma",
+]
+
+ADDITIONAL_METRICS = [
+    "tp_entropy_slope",
+    "tr_repeat_gap_burstiness",
+    "tr_repeat_gap_cv",
+    "tr_repeat_gap_logbin_entropy",
+    "td_hapax_token_fraction",
+    "td_zipf_exponent",
+    "td_heaps_exponent",
+]
+
+SUMMARIES_GROUPS = [
+    "summaries_high_temperature",
+    "summaries_low_temperature",
+]
+
+CONDITIONING_GROUPS = [
+    "extended_conditioning",
+    "basic_conditioning",
+    "minimal_fixed_conditioning",
+    "markov_rolling_conditioning",
+]
+
+GROUP_ORDER = SUMMARIES_GROUPS + CONDITIONING_GROUPS
+
+GROUP_LABELS = {
+    "summaries_high_temperature": "Summaries high-temp",
+    "summaries_low_temperature": "Summaries low-temp",
+    "extended_conditioning": "Extended/full",
+    "basic_conditioning": "Basic",
+    "minimal_fixed_conditioning": "Minimal fixed",
+    "markov_rolling_conditioning": "Markov rolling",
+}
+
+GROUP_COLORS = {
+    "summaries_high_temperature": "#1f77b4",
+    "summaries_low_temperature": "#17becf",
+    "extended_conditioning": "#d62728",
+    "basic_conditioning": "#2ca02c",
+    "minimal_fixed_conditioning": "#9467bd",
+    "markov_rolling_conditioning": "#8c564b",
+}
+
+CHAOTIC_METRICS_PATH = ROOT / "generated_texts_og" / "Output" / "chaotic_run_metrics.json"
+
+
+def finite_float(value) -> float | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        value = float(value)
+        if math.isfinite(value):
+            return value
+    return None
+
+
+def has_attempt_files(folder: Path) -> bool:
+    return any("prompt" not in path.name for path in folder.glob("chunk_*_attempt_*.txt"))
+
+
+def read_metadata(folder: Path) -> dict:
+    path = folder / "metadata.json"
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def infer_conditioning_group(folder: Path) -> str | None:
+    name = folder.name
+    meta = read_metadata(folder)
+    mode = meta.get("conditioning_mode")
+
+    if not mode:
+        for candidate in (
+            "summaries_conditioning",
+            "extended_conditioning",
+            "basic_conditioning",
+            "minimal_fixed_conditioning",
+            "markov_rolling_conditioning",
+            "minimal_rolling_conditioning",
+        ):
+            if candidate in name:
+                mode = candidate
+                break
+
+    if mode == "summaries_conditioning":
+        if "low_temperature" in name:
+            return "summaries_low_temperature"
+        if "high_temperature" in name:
+            return "summaries_high_temperature"
+        temp_range = meta.get("temperature_range")
+        if isinstance(temp_range, list) and temp_range:
+            return "summaries_low_temperature" if max(temp_range) <= 0.9 else "summaries_high_temperature"
+        return "summaries_high_temperature"
+
+    if mode == "extended_conditioning":
+        return "extended_conditioning"
+    if mode == "basic_conditioning":
+        return "basic_conditioning"
+    if mode == "minimal_fixed_conditioning":
+        return "minimal_fixed_conditioning"
+    if mode in {"markov_rolling_conditioning", "minimal_rolling_conditioning"}:
+        return "markov_rolling_conditioning"
+    return None
+
+
+def iter_run_folders(prompts_dir: Path, pattern: str | None = None) -> List[Path]:
     folders = []
-    for p in base_path.glob("*"):
-        if p.is_dir() and not p.name.startswith("_"):
-            # Check if it has chunk files to confirm it's a run folder
-            if list(p.glob("chunk_*.txt")):
-                folders.append(p)
+    for folder in sorted(prompts_dir.iterdir(), key=lambda path: path.name):
+        if not folder.is_dir() or folder.name.startswith("_"):
+            continue
+        if pattern and pattern not in folder.name:
+            continue
+        if not has_attempt_files(folder):
+            continue
+        if infer_conditioning_group(folder) is None:
+            continue
+        folders.append(folder)
     return folders
 
-def extract_time_series(attempts_by_chunk: Dict[int, Dict]) -> Dict[str, Dict[int, float]]:
-    """
-    Extract accepted values for each metric for this book.
-    Returns: {metric_name: {chunk_idx: value}}
-    Also returns estimated tokens mapping: {chunk_idx: tokens}
-    """
-    cumulative_tokens = estimate_cumulative_tokens(attempts_by_chunk)
-    
-    series_data = {}
-    
-    chunk_indices = sorted(attempts_by_chunk.keys())
-    for chunk in chunk_indices:
-        best_attempt = find_accepted_attempt(chunk, attempts_by_chunk)
-        rec = attempts_by_chunk[chunk][best_attempt]
-        
-        # Extract all metrics
-        # Standardize extraction: accumulated > chunk_metrics > metrics
-        sources = [
-            rec.get("accumulated_metrics", {}),
-            rec.get("chunk_metrics", {}),
-            rec.get("metrics", {})
-        ]
-        
-        # Merge them (priority first)
-        combined = {}
-        for s in reversed(sources):
-            if s:
-                combined.update(s)
-                
-        for m, val in combined.items():
-            if isinstance(val, (int, float)):
-                if m not in series_data:
-                    series_data[m] = {}
-                series_data[m][chunk] = val
-                
-    return series_data, cumulative_tokens
 
-def aggregate_data_by_tokens(folders: List[Path], bin_size: int = 20000, max_tokens: int = 1000000):
-    """
-    Load all books and aggregate metrics into token bins.
-    
-    Returns:
-       binned_stats: {metric: {bin_center: {'mean': x, 'std': y, 'count': n}}}
-    """
-    # 1. Collect all (token_count, value) pairs for each metric
-    raw_data = {}  # {metric: [(tokens, val), ...]}
-    
-    print(f"Found {len(folders)} run folders.")
-    
-    for folder in folders:
-        print(f"Loading {folder.name}...")
-        attempts = load_attempts(folder)
-        if not attempts:
+def accepted_attempt_metrics(folder: Path) -> Dict[str, List[Tuple[float, float, int]]]:
+    attempts_by_chunk = pcm.load_attempts(folder)
+    if not attempts_by_chunk:
+        return {}
+    sidecar_by_chunk = pcm.load_token_naturalness_by_chunk(folder)
+    token_map = pcm.load_cumulative_tokens(attempts_by_chunk, sidecar_by_chunk)
+
+    series: Dict[str, List[Tuple[float, float, int]]] = defaultdict(list)
+    for chunk_id in sorted(attempts_by_chunk):
+        attempts = attempts_by_chunk[chunk_id]
+        accepted = pcm.find_accepted_attempt(chunk_id, attempts_by_chunk)
+        rec = attempts[accepted]
+        tokens = finite_float(token_map.get(chunk_id))
+        if tokens is None:
             continue
-            
-        series, tokens_map = extract_time_series(attempts)
-        
-        # Align series by tokens
-        for metric, chunk_map in series.items():
-            if metric not in raw_data:
-                raw_data[metric] = []
-                
-            for chunk, val in chunk_map.items():
-                t = tokens_map.get(chunk)
-                if t is not None and t <= max_tokens:
-                    raw_data[metric].append((t, val))
 
-    # 2. Bin the data
-    # Create bins: 0, bin_size, 2*bin_size, ...
-    bins = np.arange(0, max_tokens + bin_size, bin_size)
-    binned_stats = {}
-    
-    print(f"Aggregating into {len(bins)-1} bins of size {bin_size}...")
-    
-    for metric, points in raw_data.items():
+        combined = {}
+        for source in (
+            rec.get("metrics", {}),
+            rec.get("chunk_metrics", {}),
+            rec.get("accumulated_metrics", {}),
+        ):
+            if source:
+                combined.update(source)
+
+        for metric in LEGACY_METRICS:
+            val = finite_float(combined.get(metric))
+            if val is not None:
+                series[metric].append((tokens, val, chunk_id))
+    return series
+
+
+def sidecar_metrics(folder: Path) -> Dict[str, List[Tuple[float, float, int]]]:
+    records = pcm.load_token_naturalness_by_chunk(folder)
+    series: Dict[str, List[Tuple[float, float, int]]] = defaultdict(list)
+    metrics = set(ADDITIONAL_METRICS)
+    for rec in records.values():
+        tokens = finite_float(rec.get("n_tokens"))
+        if tokens is None:
+            continue
+        chunk_id = rec.get("chunk_id")
+        if chunk_id is None:
+            continue
+        chunk_id = int(chunk_id)
+        for metric in metrics:
+            val = finite_float(rec.get(metric))
+            if val is not None:
+                series[metric].append((tokens, val, chunk_id))
+    return series
+
+
+def folder_metric_series(folder: Path) -> Dict[str, List[Tuple[float, float, int]]]:
+    series = accepted_attempt_metrics(folder)
+    for metric, points in sidecar_metrics(folder).items():
+        series[metric].extend(points)
+    return dict(series)
+
+
+def bin_folder_series(
+    series: Dict[str, List[Tuple[float, float, int]]],
+    bin_edges: np.ndarray,
+    max_tokens: int,
+    y_axis_ignore_first_n: int,
+) -> Dict[str, Dict[float, dict]]:
+    binned: Dict[str, Dict[float, dict]] = {}
+    for metric, points in series.items():
         if not points:
             continue
-            
-        points_arr = np.array(points) # Shape (N, 2) -> col 0: tokens, col 1: values
-        token_vals = points_arr[:, 0]
-        metric_vals = points_arr[:, 1]
-        
-        # Digitizing tells us which bin index each point belongs to
-        # indices 1..len(bins)-1
-        bin_indices = np.digitize(token_vals, bins)
-        
-        metric_stats = {}
-        for i in range(1, len(bins)):
-            # Get values falling into this bin
-            mask = bin_indices == i
-            vals_in_bin = metric_vals[mask]
-            
-            if len(vals_in_bin) > 0:
-                bin_center = (bins[i-1] + bins[i]) / 2.0
-                metric_stats[bin_center] = {
-                    "mean": np.mean(vals_in_bin),
-                    "std": np.std(vals_in_bin),
-                    "count": len(vals_in_bin)
+        values_by_bin: Dict[float, List[float]] = defaultdict(list)
+        ylim_values_by_bin: Dict[float, List[float]] = defaultdict(list)
+        for tokens, value, chunk_id in points:
+            if tokens < 0 or tokens > max_tokens:
+                continue
+            idx = np.searchsorted(bin_edges, tokens, side="right") - 1
+            if idx < 0 or idx >= len(bin_edges) - 1:
+                continue
+            center = float((bin_edges[idx] + bin_edges[idx + 1]) / 2.0)
+            values_by_bin[center].append(value)
+            if metric in LEGACY_METRICS or chunk_id > y_axis_ignore_first_n:
+                ylim_values_by_bin[center].append(value)
+        if values_by_bin:
+            binned[metric] = {
+                center: {
+                    "value": float(np.mean(vals)),
+                    "ylim_value": float(np.mean(ylim_values_by_bin[center]))
+                    if ylim_values_by_bin.get(center)
+                    else None,
                 }
-        
-        binned_stats[metric] = metric_stats
-        
-    return binned_stats
+                for center, vals in values_by_bin.items()
+                if vals
+            }
+    return binned
 
-def load_single_book(folder_path: Path):
-    """Load time series for a single specific book folder."""
-    attempts = load_attempts(folder_path)
-    if not attempts:
+
+def aggregate_groups(
+    folders: Iterable[Path],
+    bin_size: int,
+    max_tokens: int,
+    y_axis_ignore_first_n: int,
+) -> tuple[dict, Counter]:
+    bin_edges = np.arange(0, max_tokens + bin_size, bin_size, dtype=float)
+    values: Dict[str, Dict[str, Dict[float, List[float]]]] = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+    ylim_values: Dict[str, Dict[str, Dict[float, List[float]]]] = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+    counts: Counter = Counter()
+
+    for folder in folders:
+        group = infer_conditioning_group(folder)
+        if group is None:
+            continue
+        counts[group] += 1
+        series = folder_metric_series(folder)
+        binned = bin_folder_series(series, bin_edges, max_tokens, y_axis_ignore_first_n)
+        for metric, bin_map in binned.items():
+            for center, rec in bin_map.items():
+                values[group][metric][center].append(rec["value"])
+                if rec["ylim_value"] is not None:
+                    ylim_values[group][metric][center].append(rec["ylim_value"])
+
+    stats = {}
+    for group, metric_map in values.items():
+        stats[group] = {}
+        for metric, bin_map in metric_map.items():
+            stats[group][metric] = {}
+            for center, vals in sorted(bin_map.items()):
+                if not vals:
+                    continue
+                arr = np.array(vals, dtype=float)
+                stats[group][metric][center] = {
+                    "mean": float(np.mean(arr)),
+                    "std": float(np.std(arr)),
+                    "count": int(len(arr)),
+                }
+                ylim_arr = np.array(ylim_values[group][metric].get(center, []), dtype=float)
+                if ylim_arr.size:
+                    stats[group][metric][center].update(
+                        {
+                            "ylim_mean": float(np.mean(ylim_arr)),
+                            "ylim_std": float(np.std(ylim_arr)),
+                            "ylim_count": int(len(ylim_arr)),
+                        }
+                    )
+    return stats, counts
+
+
+def cache_settings(
+    prompts_dir: Path,
+    pattern: str | None,
+    bin_size: int,
+    max_tokens: int,
+    y_axis_ignore_first_n: int,
+) -> dict:
+    return {
+        "version": CACHE_VERSION,
+        "prompts_dir": str(prompts_dir.resolve()),
+        "pattern": pattern,
+        "bin_size": int(bin_size),
+        "max_tokens": int(max_tokens),
+        "y_axis_ignore_first_n": int(y_axis_ignore_first_n),
+        "legacy_metrics": LEGACY_METRICS,
+        "additional_metrics": ADDITIONAL_METRICS,
+        "groups": GROUP_ORDER,
+    }
+
+
+def serialize_stats(stats: dict) -> dict:
+    return {
+        group: {
+            metric: {str(center): rec for center, rec in bin_map.items()}
+            for metric, bin_map in metric_map.items()
+        }
+        for group, metric_map in stats.items()
+    }
+
+
+def deserialize_stats(raw_stats: dict) -> dict:
+    stats = {}
+    for group, metric_map in raw_stats.items():
+        stats[group] = {}
+        for metric, bin_map in metric_map.items():
+            stats[group][metric] = {}
+            for center, rec in bin_map.items():
+                try:
+                    stats[group][metric][float(center)] = rec
+                except (TypeError, ValueError):
+                    continue
+    return stats
+
+
+def load_cached_aggregate(cache_path: Path, settings: dict) -> tuple[dict, Counter] | None:
+    if not cache_path.exists():
         return None
-    series, tokens_map = extract_time_series(attempts)
-    
-    # Convert {chunk: val} to {tokens: val}
-    tokens_series = {}
-    for metric, chunk_map in series.items():
-        tokens_series[metric] = {tokens_map[c]: v for c, v in chunk_map.items() if tokens_map.get(c) is not None}
-    
-    return tokens_series
+    try:
+        raw = json.loads(cache_path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        print(f"Cache read failed ({exc}); recalculating.")
+        return None
+    if raw.get("settings") != settings:
+        print(f"Cache settings differ from current options; recalculating.")
+        return None
+    stats = deserialize_stats(raw.get("stats", {}))
+    counts = Counter({group: int(count) for group, count in raw.get("counts", {}).items()})
+    if not stats:
+        return None
+    print(f"Loaded aggregate stats cache -> {cache_path}")
+    return stats, counts
 
-def plot_aggregate_generic(
-    cohort_specs,
-    out_path,
-    structural_metrics,
-    informational_metrics,
-    title,
-    chaotic_data=None,
-    xscale="linear",
-    xmax_k=1000.0,
-    xlabel="token count",
-):
-    """Plot aggregated mean +/- std from token-binned data."""
-    # Load natural stats for overlays
-    SIZE_STATS = load_size_stats()
-    bins_Natural = SIZE_STATS.get("bins", []) if SIZE_STATS else []
 
-    palette = ["#FF0000", "#FF7F00", "#FFD700", "#FF1493", "#8A2BE2", "#FF00FF"]
-    bin_colors = {}
-    for idx, b in enumerate(bins_Natural):
-        bin_colors[b["name"]] = palette[idx % len(palette)]
+def write_cached_aggregate(
+    cache_path: Path,
+    settings: dict,
+    folders: Iterable[Path],
+    stats: dict,
+    counts: Counter,
+) -> None:
+    payload = {
+        "settings": settings,
+        "folder_count": int(sum(counts.values())),
+        "folders": [folder.name for folder in folders],
+        "counts": dict(counts),
+        "stats": serialize_stats(stats),
+    }
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    cache_path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    print(f"Wrote aggregate stats cache -> {cache_path}")
 
-    band_labels_used = set()
-    mean_labels_used = set()
-    rows = max(len(structural_metrics), len(informational_metrics))
-    fig, axes = plt.subplots(rows, 2, figsize=(20, 5 * rows), sharex=True)
+
+NATURAL_BENCHMARK_PALETTE = ["#5B8FF9", "#FF7F0E", "#2CA02C", "#D62728", "#9467BD", "#8C564B"]
+DEFAULT_Y_PAD_FRACTION = 0.18
+METRIC_Y_PAD_FRACTION = {
+    "beta": 0.25,
+    "alpha": 0.25,
+}
+METRIC_Y_FLOOR = {
+    "beta": 0.0,
+    "alpha": 0.0,
+}
+
+
+def natural_segments_for_metric(metric: str, xmax_k: float):
+    size_stats = pcm.load_size_stats()
+    if not size_stats:
+        return []
+
+    segments = []
+    for idx, b in enumerate(size_stats.get("bins", [])):
+        mstats = b.get("metrics", {}).get(metric)
+        if not mstats:
+            continue
+        lo_tok, hi_tok = b.get("range_tokens", [None, None])
+        if lo_tok is None:
+            continue
+        if hi_tok is None:
+            hi_tok = 10_000_000
+        x0 = max(0.0, lo_tok / 1000.0)
+        x1 = min(xmax_k, hi_tok / 1000.0)
+        if x0 >= x1:
+            continue
+        p_low = mstats.get("p2_5") or mstats.get("p5") or mstats.get("p25")
+        p_high = mstats.get("p97_5") or mstats.get("p95") or mstats.get("p75")
+        mean = mstats.get("mean")
+        color = NATURAL_BENCHMARK_PALETTE[idx % len(NATURAL_BENCHMARK_PALETTE)]
+        segments.append((x0, x1, p_low, p_high, mean, color))
+    return segments
+
+
+def plot_natural_overlay(
+    ax,
+    metric: str,
+    xmax_k: float,
+    y_values: list[float],
+    *,
+    contribute_to_ylim: bool = False,
+) -> None:
+    for idx, (x0, x1, p_low, p_high, mean, color) in enumerate(natural_segments_for_metric(metric, xmax_k)):
+        if p_low is not None and p_high is not None:
+            ax.fill_between(
+                [x0, x1],
+                [p_low, p_low],
+                [p_high, p_high],
+                color=color,
+                alpha=0.10,
+                zorder=1,
+                label="natural p2.5-p97.5" if idx == 0 else None,
+            )
+            if contribute_to_ylim:
+                y_values.extend([p_low, p_high])
+        if mean is not None:
+            ax.plot(
+                [x0, x1],
+                [mean, mean],
+                color=color,
+                linestyle="--",
+                linewidth=1.15,
+                zorder=2,
+                label="natural mean" if idx == 0 else None,
+            )
+            if contribute_to_ylim:
+                y_values.append(mean)
+
+
+def y_limits_from_values(values: list[float], pad_fraction: float = 0.18) -> tuple[float, float] | None:
+    finite = np.array([v for v in values if math.isfinite(v)], dtype=float)
+    if finite.size < 2:
+        return None
+    lo = float(np.nanmin(finite))
+    hi = float(np.nanmax(finite))
+    if not math.isfinite(lo) or not math.isfinite(hi) or lo == hi:
+        return None
+    pad = pad_fraction * (hi - lo)
+    return lo - pad, hi + pad
+
+
+def y_limits_for_metric(metric: str, values: list[float]) -> tuple[float, float] | None:
+    limits = y_limits_from_values(
+        values,
+        pad_fraction=METRIC_Y_PAD_FRACTION.get(metric, DEFAULT_Y_PAD_FRACTION),
+    )
+    if limits is None:
+        return None
+    lo, hi = limits
+    floor = METRIC_Y_FLOOR.get(metric)
+    if floor is not None:
+        lo = max(floor, lo)
+    return lo, hi
+
+
+def load_chaotic_data(max_tokens: int) -> Dict[str, Dict[float, float]]:
+    if not CHAOTIC_METRICS_PATH.exists():
+        return {}
+    try:
+        raw = json.loads(CHAOTIC_METRICS_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+    chaotic: Dict[str, Dict[float, float]] = {}
+    for metric, mapping in raw.items():
+        if not isinstance(mapping, dict):
+            continue
+        metric_map = {}
+        for tok, value in mapping.items():
+            try:
+                tokens = float(tok)
+            except Exception:
+                continue
+            val = finite_float(value)
+            if val is None or tokens > max_tokens:
+                continue
+            metric_map[tokens] = val
+        if metric_map:
+            chaotic[metric] = metric_map
+    return chaotic
+
+
+def plot_metric_panel(
+    ax,
+    stats: dict,
+    counts: Counter,
+    metric: str,
+    max_tokens: int,
+    groups: List[str],
+    chaotic_data: Dict[str, Dict[float, float]] | None = None,
+    y_axis_ignore_first_n: int = 50,
+) -> list[float]:
+    xmax_k = max_tokens / 1000.0
+    y_values: list[float] = []
+    plot_natural_overlay(ax, metric, xmax_k, y_values, contribute_to_ylim=True)
+
+    for group in groups:
+        metric_bins = stats.get(group, {}).get(metric, {})
+        if not metric_bins:
+            continue
+        centers = sorted(metric_bins)
+        xs = np.array(centers, dtype=float) / 1000.0
+        means = np.array([metric_bins[c]["mean"] for c in centers], dtype=float)
+        stds = np.array([metric_bins[c]["std"] for c in centers], dtype=float)
+        color = GROUP_COLORS[group]
+        label = f"{GROUP_LABELS[group]} (n={counts[group]})"
+        ax.plot(xs, means, color=color, linewidth=1.8, label=label, zorder=5)
+        ax.fill_between(xs, means - stds, means + stds, color=color, alpha=0.13, zorder=4)
+
+        ylim_means = np.array([metric_bins[c].get("ylim_mean", np.nan) for c in centers], dtype=float)
+        ylim_stds = np.array([metric_bins[c].get("ylim_std", np.nan) for c in centers], dtype=float)
+        y_values.extend(ylim_means[np.isfinite(ylim_means)].tolist())
+        y_values.extend((ylim_means - ylim_stds)[np.isfinite(ylim_means - ylim_stds)].tolist())
+        y_values.extend((ylim_means + ylim_stds)[np.isfinite(ylim_means + ylim_stds)].tolist())
+
+    if chaotic_data and metric in chaotic_data:
+        token_map = chaotic_data[metric]
+        xs = np.array(sorted(token_map), dtype=float) / 1000.0
+        ys = np.array([token_map[t] for t in sorted(token_map)], dtype=float)
+        ax.plot(xs, ys, color="#111827", linestyle=":", linewidth=1.7, alpha=0.9, label="Chaotic run", zorder=6)
+        ymask = np.ones_like(xs, dtype=bool) if metric in LEGACY_METRICS else xs >= float(y_axis_ignore_first_n)
+        y_values.extend(ys[ymask & np.isfinite(ys)].tolist())
+
+    ax.set_ylabel(metric)
+    ax.grid(True, alpha=0.25)
+    ax.set_xlim(0, xmax_k)
+    ax.set_xticks([0, 200, 400, 600, 800, 1000])
+    ax.set_xticklabels(["0", "200k", "400k", "600k", "800k", "1M"])
+    return y_values
+
+
+def plot_two_column_comparison(
+    stats: dict,
+    counts: Counter,
+    out_path: Path,
+    max_tokens: int,
+    metrics: List[str],
+    title: str,
+    chaotic_data: Dict[str, Dict[float, float]] | None = None,
+    y_axis_ignore_first_n: int = 50,
+) -> None:
+    rows = len(metrics)
+    fig, axes = plt.subplots(rows, 2, figsize=(22, 3.7 * rows), sharex=True)
     if rows == 1:
         axes = axes.reshape(1, 2)
 
-    def plot_on_ax(ax, metric):
-        metric_present = any(metric in stats_map for stats_map, _, _ in cohort_specs)
-        if chaotic_data and metric in chaotic_data:
-            metric_present = True
-        if not metric or not metric_present:
-            ax.axis('off')
-            return
+    for row, metric in enumerate(metrics):
+        left_values = plot_metric_panel(
+            axes[row, 0],
+            stats,
+            counts,
+            metric,
+            max_tokens,
+            groups=SUMMARIES_GROUPS,
+            chaotic_data=chaotic_data,
+            y_axis_ignore_first_n=y_axis_ignore_first_n,
+        )
+        right_values = plot_metric_panel(
+            axes[row, 1],
+            stats,
+            counts,
+            metric,
+            max_tokens,
+            groups=CONDITIONING_GROUPS,
+            chaotic_data=None,
+            y_axis_ignore_first_n=y_axis_ignore_first_n,
+        )
+        limits = y_limits_for_metric(metric, left_values + right_values)
+        if limits:
+            axes[row, 0].set_ylim(*limits)
+            axes[row, 1].set_ylim(*limits)
 
-        def plot_stats(stats_map, color, label_prefix):
-            if not stats_map:
-                return
-            sorted_centers = sorted(stats_map.keys())
-            if not sorted_centers:
-                return
-            xs = [c / 1000.0 for c in sorted_centers]
-            means = [stats_map[c]["mean"] for c in sorted_centers]
-            stds = [stats_map[c]["std"] for c in sorted_centers]
-            upper = np.array(means) + np.array(stds)
-            lower = np.array(means) - np.array(stds)
-
-            ax.plot(xs, means, color=color, linestyle="-", linewidth=2.0, label=f"Mean for {label_prefix}", zorder=10)
-            ax.fill_between(xs, lower, upper, color=color, alpha=0.25, label=f"±1 Std Dev ({label_prefix})", zorder=9)
-
-        for stats_map, color, label in cohort_specs:
-            if metric in stats_map:
-                plot_stats(stats_map[metric], color, label)
-
-        if chaotic_data and metric in chaotic_data:
-            c_map = chaotic_data[metric]
-            c_tokens = sorted(c_map.keys())
-            c_xs = []
-            c_vals = []
-            for t in c_tokens:
-                v = c_map[t]
-                if v is not None:
-                    c_xs.append(t / 1000.0)
-                    c_vals.append(v)
-                    
-            if c_xs and c_vals:
-                vals_arr = np.array(c_vals, dtype=np.float64)
-                nan_mask = np.isnan(vals_arr)
-                if np.any(nan_mask):
-                    not_nan_mask = ~nan_mask
-                    if np.any(not_nan_mask):
-                        vals_arr[nan_mask] = np.interp(np.array(c_xs)[nan_mask], np.array(c_xs)[not_nan_mask], vals_arr[not_nan_mask])
-                ax.plot(c_xs, vals_arr, color="gray", linestyle=":", linewidth=2.0, alpha=0.9, label="Chaotic Run (4M tokens)", zorder=8)
-
-        for b in bins_Natural:
-            mstats = b.get("metrics", {}).get(metric)
-            if not mstats:
-                continue
-
-            p25 = mstats.get("p2_5") or mstats.get("p5") or mstats.get("p25")
-            p75 = mstats.get("p97_5") or mstats.get("p95") or mstats.get("p75")
-            mean_nat = mstats.get("mean")
-            lo_tok, hi_tok = b.get("range_tokens", [None, None])
-            if lo_tok is None:
-                continue
-            if hi_tok is None:
-                hi_tok = 10000000
-
-            start_k = max(0, lo_tok / 1000.0)
-            end_k = min(xmax_k, hi_tok / 1000.0)
-            if start_k >= end_k:
-                continue
-
-            is_100k_bin = (abs(lo_tok - 100000) < 1000)
-            label_suffix = ""
-            lo_label_k = int(lo_tok // 1000)
-            if hi_tok > 800000:
-                label_suffix = f" ( >{lo_label_k}k)"
-            else:
-                hi_label_k = int(hi_tok // 1000)
-                label_suffix = f" ( {lo_label_k}-{hi_label_k}k)"
-            
-            color = bin_colors.get(b["name"], "#FF00FF")
-            if hi_tok > 800000 and xmax_k > 1000:
-                color = "#8B0000"
-
-            if p25 is not None and p75 is not None:
-                label = f"Natural p2.5-p97.5{label_suffix}"
-                if is_100k_bin:
-                    sub_start = max(start_k, 100.0)
-                    if sub_start < end_k:
-                        ax.fill_between([sub_start, end_k], [p25, p25], [p75, p75], color=color, alpha=0.05, zorder=1.5, label=label if label not in band_labels_used else None)
-                        band_labels_used.add(label)
-                else:
-                    # Normal bin
-                    ax.fill_between([start_k, end_k], [p25, p25], [p75, p75], color=color, alpha=0.05, zorder=1.5, label=label if label not in band_labels_used else None)
-                    band_labels_used.add(label)
-            
-            if mean_nat is not None:
-                label = f"Natural Mean{label_suffix}"
-                draw_start = start_k
-                if is_100k_bin:
-                    draw_start = max(start_k, 100.0)
-                if draw_start < end_k:
-                    ax.plot([draw_start, end_k], [mean_nat, mean_nat], color=color, linestyle="--", linewidth=2.0, zorder=15, label=label if label not in mean_labels_used else None)
-                    mean_labels_used.add(label)
-
-        ax.set_ylabel(metric)
-        ax.grid(True, alpha=0.3)
-        ax.set_title(metric)
-
-        if xscale == "linear":
-            ax.set_xscale("linear")
-            ax.set_xlim(0, xmax_k)
-            major_ticks = [0, 200, 400, 600, 800, 1000]
-            ax.set_xticks(major_ticks)
-            ax.set_xticklabels(['0', '200k', '400k', '600k', '800k', '1M'])
-        else:
-            ax.set_xscale('symlog', linthresh=1000.0, linscale=5.0)
-            ax.set_xlim(0, xmax_k + 200.0)
-            major_ticks = [0, 200, 400, 600, 800, 1000, 2000, 4000]
-            ax.set_xticks(major_ticks)
-            ax.set_xticklabels(['0', '200k', '400k', '600k', '800k', '1M', '2M', '4M'])
-        ax.tick_params(axis='x', labelsize=9)
-
-    for i in range(rows):
-        metric = structural_metrics[i] if i < len(structural_metrics) else None
-        plot_on_ax(axes[i, 0], metric)
-        if i == rows - 1:
-            axes[i, 0].set_xlabel(xlabel)
-
-    for i in range(rows):
-        metric = informational_metrics[i] if i < len(informational_metrics) else None
-        plot_on_ax(axes[i, 1], metric)
-        if i == rows - 1:
-            axes[i, 1].set_xlabel(xlabel)
+    axes[-1, 0].set_xlabel("Tokens")
+    axes[-1, 1].set_xlabel("Tokens")
 
     handles, labels = [], []
     for ax in axes.flatten():
@@ -331,128 +630,98 @@ def plot_aggregate_generic(
     seen = set()
     dedup = []
     for h, l in zip(handles, labels):
-        if l in seen or not l:
+        if not l or l in seen:
             continue
-        dedup.append((h, l))
         seen.add(l)
+        dedup.append((h, l))
 
-    chaotic_items = []
-    final_dedup = []
-    for h, l in dedup:
-        if "Chaotic Run" in l:
-            chaotic_items.append((h, l))
-        else:
-            final_dedup.append((h, l))
-    final_dedup.extend(chaotic_items)
-    
-    if final_dedup:
+    if dedup:
         fig.legend(
-            [h for h, _ in final_dedup],
-            [l for _, l in final_dedup],
-            loc='lower center',
-            ncol=3 if xscale == "linear" else 4,
+            [h for h, _ in dedup],
+            [l for _, l in dedup],
+            loc="lower center",
+            ncol=4,
             bbox_to_anchor=(0.5, 0.01),
-            fontsize=9,
-            frameon=False
+            fontsize=8,
+            frameon=False,
         )
 
     fig.suptitle(title, fontsize=16)
-    fig.tight_layout(rect=[0, 0.12, 1, 0.96])
+    fig.tight_layout(rect=[0, 0.08, 1, 0.965])
+    out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=200)
-    print(f"Saved aggregated plot → {out_path}")
+    print(f"Saved aggregate plot -> {out_path}")
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Plot text metrics aggregated across all books.")
-    parser.add_argument("--in-data", "-i", default="generated_texts_og/Output/aggregated_metrics.json", help="Path to aggregated metrics JSON")
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--prompts-dir", type=Path, default=DEFAULT_PROMPTS_DIR)
+    parser.add_argument("--out-legacy", type=Path, default=DEFAULT_OUT_LEGACY)
+    parser.add_argument("--out-additional", type=Path, default=DEFAULT_OUT_ADDITIONAL)
+    parser.add_argument("--cache", type=Path, default=DEFAULT_CACHE)
+    parser.add_argument("--refresh-cache", action="store_true", help="Recompute grouped aggregate stats and overwrite cache.")
+    parser.add_argument("--no-cache", action="store_true", help="Do not read or write the aggregate stats cache.")
+    parser.add_argument("--pattern", default=None)
+    parser.add_argument("--bin-size", type=int, default=20_000)
+    parser.add_argument("--max-tokens", type=int, default=1_000_000)
     parser.add_argument(
-        "--out-linear",
-        default="generated_texts_og/Output/_aggregated_metrics_evolution_linear_1m.jpg",
-        help="Output path for the low/high linear 0-1M figure",
-    )
-    parser.add_argument(
-        "--out-chaotic-selfcond",
-        default="generated_texts_og/Output/_aggregated_metrics_evolution_chaotic_selfcond.jpg",
-        help="Output path for the chaotic vs self-conditioned nonlinear figure",
+        "--y-axis-ignore-first-n",
+        type=int,
+        default=50,
+        help="Draw early iterations but exclude first N chunks from y-axis autoscaling.",
     )
     args = parser.parse_args()
 
-    in_path = ROOT / args.in_data
-    if not in_path.exists():
-        print(f"Error: Aggregated metrics file not found: {in_path}")
-        print("Please run coherence/analysis/extract_aggregate_metrics.py first.")
-        return
-        
-    print(f"Loading aggregated metrics from {in_path.name}...")
-    with open(in_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-        
-    binned_stats_high_raw = data.get("high_temp", {})
-    binned_stats_low_raw = data.get("low_temp", {})
-    binned_stats_self_conditioned_high_raw = data.get("self_conditioned_high_temp", {})
-    
-    # JSON dict keys are strings, convert the numeric token keys back to float
-    def cast_keys(binned_stats):
-        result = {}
-        for metric, bins in binned_stats.items():
-            result[metric] = {float(k): v for k, v in bins.items()}
-        return result
-        
-    binned_stats_high = cast_keys(binned_stats_high_raw)
-    binned_stats_low = cast_keys(binned_stats_low_raw)
-    binned_stats_self_conditioned_high = cast_keys(binned_stats_self_conditioned_high_raw)
-    
-    # Load Chaotic Book separately from its dedicated json
-    chaotic_file = ROOT / "generated_texts_og" / "Output" / "chaotic_run_metrics.json"
-    chaotic_data = None
-    if chaotic_file.exists():
-        print(f"Loading chaotic run: {chaotic_file.name}")
-        with open(chaotic_file, "r") as f:
-            raw_chaotic = json.load(f)
-            # JSON keys are currently strings, convert token keys to int
-            chaotic_data = {}
-            for metric, data_dict in raw_chaotic.items():
-                chaotic_data[metric] = {int(k): v for k, v in data_dict.items()}
-    else:
-        print(f"Warning: Chaotic run file not found: {chaotic_file}")
-
-    structural_metrics = ["beta", "alpha", "H_DMA", "H_WT_db4"]
-    informational_metrics = ["entropy_bits", "perplexity", "lz_complexity", "mi_decay_gamma"]
-
-    linear_cohorts = [
-        (binned_stats_low, "steelblue", "Low Temperature runs"),
-        (binned_stats_high, "blue", "High Temperature runs"),
-    ]
-    nonlinear_cohorts = [
-        (
-            binned_stats_self_conditioned_high,
-            "darkorange",
-            "High Temperature + Full Self-Conditioning runs",
-        ),
-    ]
-
-    plot_aggregate_generic(
-        linear_cohorts,
-        args.out_linear,
-        structural_metrics,
-        informational_metrics,
-        title="Mean metric evolution vs Natural Texts: Low vs High Temperature runs",
-        chaotic_data=None,
-        xscale="linear",
-        xmax_k=1000.0,
-        xlabel="token count",
+    settings = cache_settings(
+        args.prompts_dir,
+        args.pattern,
+        args.bin_size,
+        args.max_tokens,
+        args.y_axis_ignore_first_n,
     )
+    cached = None if args.no_cache or args.refresh_cache else load_cached_aggregate(args.cache, settings)
+    if cached is not None:
+        stats, counts = cached
+    else:
+        folders = iter_run_folders(args.prompts_dir, args.pattern)
+        print(f"Found {len(folders)} reconstructable grouped folders.")
+        group_counts = Counter(infer_conditioning_group(folder) for folder in folders)
+        for group in GROUP_ORDER:
+            print(f"  {GROUP_LABELS[group]}: {group_counts[group]}")
 
-    plot_aggregate_generic(
-        nonlinear_cohorts,
-        args.out_chaotic_selfcond,
-        structural_metrics,
-        informational_metrics,
-        title="Mean metric evolution vs Natural Texts: Chaotic run vs Full Self-Conditioning runs",
+        stats, counts = aggregate_groups(
+            folders,
+            bin_size=args.bin_size,
+            max_tokens=args.max_tokens,
+            y_axis_ignore_first_n=args.y_axis_ignore_first_n,
+        )
+        if not args.no_cache:
+            write_cached_aggregate(args.cache, settings, folders, stats, counts)
+
+    if cached is not None:
+        for group in GROUP_ORDER:
+            print(f"  {GROUP_LABELS[group]}: {counts[group]}")
+
+    chaotic_data = load_chaotic_data(args.max_tokens)
+    plot_two_column_comparison(
+        stats,
+        counts,
+        args.out_legacy,
+        max_tokens=args.max_tokens,
+        metrics=LEGACY_METRICS,
+        title="Legacy Descriptor Evolution by Conditioning Group",
         chaotic_data=chaotic_data,
-        xscale="symlog",
-        xmax_k=4000.0,
-        xlabel="nonlinear token count",
+        y_axis_ignore_first_n=args.y_axis_ignore_first_n,
+    )
+    plot_two_column_comparison(
+        stats,
+        counts,
+        args.out_additional,
+        max_tokens=args.max_tokens,
+        metrics=ADDITIONAL_METRICS,
+        title="Additional Descriptor Evolution by Conditioning Group",
+        chaotic_data=chaotic_data,
+        y_axis_ignore_first_n=args.y_axis_ignore_first_n,
     )
 
 

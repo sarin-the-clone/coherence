@@ -11,6 +11,70 @@ import json
 import glob
 from natsort import natsorted
 
+
+def _find_accepted_attempt_file(run_dir, chunk_id, candidate_files):
+    """
+    Infer the accepted attempt.
+
+    New runs write an explicit chunk_XXX_accepted.txt marker. Older runs did
+    not, so we fall back to checking whether the next prompt contains the
+    candidate continuation. That fallback only works for modes that re-inject
+    rolling text; minimal_fixed_conditioning cannot be reconstructed perfectly
+    without accepted markers.
+    """
+    if not candidate_files:
+        return None
+
+    accepted_path = os.path.join(run_dir, f"chunk_{chunk_id:03d}_accepted.txt")
+    if os.path.exists(accepted_path):
+        try:
+            with open(accepted_path, "r", encoding="utf-8") as f:
+                accepted_data = json.load(f)
+            accepted_attempt = accepted_data.get("accepted_attempt")
+            if accepted_attempt is not None:
+                for path in candidate_files:
+                    if _get_attempt(path) == int(accepted_attempt):
+                        return path
+        except Exception:
+            pass
+
+    next_chunk = chunk_id + 1
+    next_prompts = glob.glob(os.path.join(run_dir, f"chunk_{next_chunk:03d}_attempt_*_prompt.txt"))
+    if not next_prompts:
+        return max(candidate_files, key=_get_attempt)
+
+    try:
+        with open(next_prompts[0], "r", encoding="utf-8") as f:
+            next_prompt_content = f.read()
+    except Exception:
+        return max(candidate_files, key=_get_attempt)
+
+    for path in sorted(candidate_files, key=_get_attempt, reverse=True):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                content = f.read()
+            try:
+                data = json.loads(content)
+                text = data.get("new_text") or data.get("full_output") or ""
+            except json.JSONDecodeError:
+                text = content
+        except Exception:
+            continue
+
+        text = text.strip()
+        if not text:
+            continue
+        snippet = text[:64] if len(text) >= 10 else text
+        if snippet and snippet in next_prompt_content:
+            return path
+
+    return max(candidate_files, key=_get_attempt)
+
+
+def _get_attempt(path):
+    m = re.search(r"attempt_(\d+)", os.path.basename(path))
+    return int(m.group(1)) if m else 0
+
 def find_latest_chunk_id(run_dir):
     """
     Finds the highest chunk ID that has a corresponding memory snapshot.
@@ -45,7 +109,9 @@ def load_memory_snapshot(run_dir, chunk_id):
 def reconstruct_text_history(run_dir, last_chunk_id):
     """
     Reconstructs full_text and local_context from chunk files 1 to last_chunk_id.
-    Heuristic: For each chunk ID, pick the file with the highest attempt number.
+    Prefer the accepted attempt by checking which chunk text is carried into the
+    next chunk's saved prompt. Fall back to the highest attempt only when the
+    accepted attempt cannot be inferred.
     Returns:
         full_text (str)
         last_chunk_text (str) - for setting local context
@@ -83,13 +149,7 @@ def reconstruct_text_history(run_dir, last_chunk_id):
             print(f"Warning: No text file found for chunk {i}. Skipping text reconstruction for this chunk.")
             continue
             
-        # Sort by attempt number
-        # Filename format: ...chunk_XXX_attempt_Y.txt
-        def get_attempt(path):
-            m = re.search(r"attempt_(\d+)", os.path.basename(path))
-            return int(m.group(1)) if m else 0
-            
-        best_file = max(files, key=get_attempt)
+        best_file = _find_accepted_attempt_file(run_dir, i, files)
         
         with open(best_file, 'r', encoding='utf-8') as f:
             content = f.read()
@@ -115,4 +175,5 @@ def reconstruct_text_history(run_dir, last_chunk_id):
         full_text_parts.append(text)
         last_chunk_text = text
 
-    return "\n\n".join(full_text_parts), last_chunk_text, full_text_parts
+    full_text = "".join(f"{part}\n\n" for part in full_text_parts)
+    return full_text, last_chunk_text, full_text_parts

@@ -27,9 +27,7 @@ def run_task(args):
 def sort_result_keys(d):
     order = [
         "book_id", "book_title", "author", "genre", "n_tokens",
-        "beta", "alpha", "H_DFA1", "H_DFA2", "H_DFA3", "H_DMA", 
-        "H_WT_Haar", "H_WT_Haar_short", "H_WT_Haar_long",
-        "H_WT_db4", "H_WT_db4_short", "H_WT_db4_long", "delta",
+        "beta", "alpha", "H_DFA1", "H_DMA", "H_WT_db4", "delta",
         "entropy_bits", "perplexity", "lz_complexity", "mi_decay_gamma",
         "mi_tau_max", "mi_n_lags", "tau_to_length_ratio"
     ]
@@ -327,15 +325,8 @@ if __name__ == "__main__":
         f"{'Genre':<14}"
         f"{'Tokens':>10}"
         f"{'DFA1':>7}"
-        f"{'DFA2':>7}"
-        f"{'DFA3':>7}"
         f"{'DMA':>7}"
-        f"{'Haar':>7}"
-        f"{'Hr_sh':>7}"
-        f"{'Hr_lg':>7}"
         f"{'db4':>7}"
-        f"{'db_sh':>7}"
-        f"{'db_lg':>7}"
         f"{'DEA':>7}"
         f"{'ACF(β)':>8}"
         f"{'PSD(α)':>8}"
@@ -353,15 +344,8 @@ if __name__ == "__main__":
         beta = res.get("beta", float('nan'))
         alpha = res.get("alpha", float('nan'))
         H1 = res.get("H_DFA1", float('nan'))
-        H2 = res.get("H_DFA2", float('nan'))
-        H3 = res.get("H_DFA3", float('nan'))
         H_dma = res.get("H_DMA", float('nan'))
-        H_haar = res.get("H_WT_Haar", float('nan'))
-        H_haar_short = res.get("H_WT_Haar_short", float('nan'))
-        H_haar_long = res.get("H_WT_Haar_long", float('nan'))
         H_db4 = res.get("H_WT_db4", float('nan'))
-        H_db4_short = res.get("H_WT_db4_short", float('nan'))
-        H_db4_long = res.get("H_WT_db4_long", float('nan'))
         delta = res.get("delta", float('nan'))
 
         print(
@@ -370,29 +354,17 @@ if __name__ == "__main__":
             f"{genre:<14}"
             f"{n_tokens:>10,.0f}"
             f"{H1:>7.3f}"
-            f"{H2:>7.3f}"
-            f"{H3:>7.3f}"
             f"{H_dma:>7.3f}"
-            f"{H_haar:>7.3f}"
-            f"{H_haar_short:>7.3f}"
-            f"{H_haar_long:>7.3f}"
             f"{H_db4:>7.3f}"
-            f"{H_db4_short:>7.3f}"
-            f"{H_db4_long:>7.3f}"
             f"{delta:>7.3f}"
             f"{beta:>8.3f}"
             f"{alpha:>8.3f}"
         )
 
     print("\nLegend:")
-    print("  DFA1-3   : Detrended Fluctuation Analysis (Order 1, 2, 3)")
+    print("  DFA1     : Detrended Fluctuation Analysis (Order 1)")
     print("  DMA      : Detrending Moving Average (Centered)")
-    print("  Haar     : Wavelet DFA (Haar - Global)")
-    print("  Hr_sh    : Haar - Short-range scaling (< 100 tokens)")
-    print("  Hr_lg    : Haar - Long-range scaling (>= 100 tokens)")
     print("  db4      : Wavelet DFA (Daubechies-4 - Global)")
-    print("  db_sh    : db4 - Short-range scaling (< 100 tokens)")
-    print("  db_lg    : db4 - Long-range scaling (>= 100 tokens)")
     print("  DEA      : Diffusion Entropy Analysis")
     print("  ACF(β)   : Autocorrelation Decay")
     print("  PSD(α)   : Spectral Exponent")

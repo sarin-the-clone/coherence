@@ -3,30 +3,50 @@ Unified Coherence Metrics
 -------------------------
 
 CoherenceMetrics
-├── StructuralScaling
+├── StructuralScaling [overall speed: moderate with GPU, slow on CPU]
 │     ├── autocorrelation_decay (β)
 │     ├── spectral_exponent (α)
-│     ├── hurst_dfa (H)
+│     ├── hurst_dfa1 (H_DFA1)
+│     ├── hurst_dma (H_DMA)
+│     ├── hurst_wdfa_db4 (H_WT_db4)
 │     ├── fractal_dimension (D)
 │     └── holder_exponent (optional)
-└── InformationalStructure
-      ├── shannon_entropy (H₁)
-      ├── perplexity (PP)
-      ├── entropy_rate (optional)
-      ├── lz_complexity (LZC)
-      ├── mutual_information_decay (γ)
-      ├── conditional_entropy (optional)
-      └── cross_entropy / kl_divergence (optional)
+├── InformationalStructure [overall speed: mixed; entropy GPU, LZC CPU, MI GPU/CPU]
+│     ├── shannon_entropy (H₁)
+│     ├── perplexity (PP)
+│     ├── entropy_rate (optional)
+│     ├── lz_complexity (LZC)
+│     ├── mutual_information_decay (γ)
+│     ├── conditional_entropy (optional)
+│     └── cross_entropy / kl_divergence (optional)
+└── TokenPredictability [overall speed: moderate with large GPU, slow on CPU]
+      ├── token entropy H(token_t)
+      ├── conditional entropy H(token_t | token_{t-k:t-1})
+      └── redundancy / predictability gain from token context
+Optional token-only naturalness families:
+      ├── TokenDistributionScaling [overall speed: fast]: Zipf slope, Heaps exponent, type-token ratios
+      ├── TokenRecurrence [overall speed: fast]: repeat-gap burstiness and recurrence distribution
+      └── TokenContextDynamics [overall speed: very_slow]: chunk-local entropy, boundary entropy, drift
 
-Two orthogonal metric families:
+Core metric families:
 
 1. Structural Scaling
    - Quantifies persistence and self-similarity in token correlations.
-   - Core: β (autocorr), α (spectrum), H (DFA), D (fractal dim)
+   - Core: β (autocorr), α (spectrum), H_DFA1/H_DMA/H_WT_db4, D
 
 2. Informational Structure
    - Quantifies information organization, predictability, and coupling.
    - Core: Shannon entropy, Perplexity, LZC, Mutual Information decay
+
+3. TokenPredictability
+   - Language-agnostic token conditional entropy curve inspired by Shannon's
+     finite-context entropy estimates.
+   - Core: H0, H(token_t | previous k tokens), redundancy, entropy gain
+
+Optional retrospective-only TokenNaturalness families:
+   - TokenDistributionScaling (td_*): rank-frequency and vocabulary-growth laws.
+   - TokenRecurrence (tr_*): bursty token reuse via repeat-gap statistics.
+   - TokenContextDynamics (tc_*): F_k curves across chunks, boundaries, and time.
 
 -----------------------------------
 Automatically detects CUDA devices and accelerates the heavy parts:
@@ -45,6 +65,165 @@ from scipy.stats import entropy
 from collections import Counter
 import torch
 from numba import njit
+
+
+METRIC_REFERENCES = {
+    "TokenPredictability": [
+        "Shannon CE. 1951. Prediction and Entropy of Printed English. Bell System Technical Journal 30(1):50-64. https://www.nokia.com/bell-labs/publications-and-media/publications/prediction-and-entropy-of-printed-english/",
+        "Cover TM, Thomas JA. 2006. Elements of Information Theory. Wiley.",
+        "Stanford CS information theory notes, Entropy of English. https://cs.stanford.edu/people/eroberts/courses/soco/projects/1999-00/information-theory/entropy_of_english_9.html",
+    ],
+    "TokenDistributionScaling": [
+        "Zipf GK. 1949. Human Behavior and the Principle of Least Effort. Addison-Wesley. https://commons.wikimedia.org/wiki/File:George_Zipf_-_Human_Behavior_and_the_Principle_of_Least_Effort_(1949).pdf",
+        "Heaps HS. 1978. Information Retrieval: Computational and Theoretical Aspects. Academic Press. https://openlibrary.org/books/OL4716764M/Information_retrieval_computational_and_theoretical_aspects",
+    ],
+    "TokenRecurrence": [
+        "Goh KI, Barabasi AL. 2008. Burstiness and memory in complex systems. EPL 81:48002. https://arxiv.org/abs/physics/0610233",
+        "Altmann EG, Pierrehumbert JB, Motter AE. 2009. Beyond Word Frequency: Bursts, Lulls, and Scaling in the Temporal Distributions of Words. PLoS ONE 4:e7678. https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0007678",
+    ],
+    "TokenContextDynamics": [
+        "Shannon CE. 1951. Prediction and Entropy of Printed English. Bell System Technical Journal 30(1):50-64. https://www.nokia.com/bell-labs/publications-and-media/publications/prediction-and-entropy-of-printed-english/",
+        "Cover TM, Thomas JA. 2006. Elements of Information Theory. Wiley.",
+    ],
+}
+
+
+METRIC_COMPUTE_COST = {
+    # Existing live families
+    "StructuralScaling": {
+        "overall": "moderate_with_gpu_slow_on_cpu",
+    "reason": "Autocorrelation, spectrum, DFA1, DEA, DMA, and db4 WDFA have GPU paths; CPU fallback is slow on long books.",
+    },
+    "InformationalStructure": {
+        "overall": "mixed",
+        "reason": "Shannon entropy and MI have GPU paths; LZC is CPU/sequential.",
+    },
+
+    # Retrospective token-only families
+    "TokenPredictability": {
+        "overall": "moderate_with_large_gpu_slow_on_cpu",
+        "reason": "Conditional entropy uses n-gram row-unique counting; GPU path is practical on large VRAM, CPU path is slow.",
+        "fast": ["tp_entropy_0"],
+        "moderate": ["tp_cond_entropy_1", "tp_redundancy_1", "tp_entropy_gain_1"],
+        "slow": [
+            "tp_cond_entropy_2",
+            "tp_cond_entropy_3",
+            "tp_cond_entropy_4",
+            "tp_redundancy_2",
+            "tp_redundancy_3",
+            "tp_redundancy_4",
+            "tp_entropy_gain_2",
+            "tp_entropy_gain_3",
+            "tp_entropy_gain_4",
+            "tp_entropy_slope",
+            "tp_entropy_drop_4",
+            "tp_context_efficiency_4",
+        ],
+    },
+    "TokenDistributionScaling": {
+        "overall": "fast",
+        "reason": "Mostly one pass plus token count sorting; Heaps profile is one pass over tokens.",
+        "fast": [
+            "td_vocab_size",
+            "td_type_token_ratio",
+            "td_hapax_type_fraction",
+            "td_hapax_token_fraction",
+            "td_top1_token_fraction",
+            "td_top10_token_fraction",
+            "td_zipf_slope",
+            "td_zipf_exponent",
+            "td_zipf_r2",
+            "td_heaps_exponent",
+            "td_heaps_r2",
+        ],
+        "moderate": [],
+        "slow": [],
+    },
+    "TokenRecurrence": {
+        "overall": "fast",
+        "reason": "Single pass over tokens plus simple repeat-gap summaries.",
+        "fast": [
+            "tr_repeat_rate",
+            "tr_repeat_gap_mean",
+            "tr_repeat_gap_mean_log2",
+            "tr_repeat_gap_median_log2",
+            "tr_repeat_gap_cv",
+            "tr_repeat_gap_burstiness",
+            "tr_repeat_gap_logbin_entropy",
+        ],
+        "moderate": [],
+        "slow": [],
+    },
+    "TokenContextDynamics": {
+        "overall": "very_slow",
+        "reason": "Repeats conditional entropy over chunks, boundaries, and cumulative checkpoints.",
+        "fast": ["tc_n_boundaries", "tc_boundary_window"],
+        "moderate": [
+            "tc_cross_boundary_F_0",
+            "tc_cross_boundary_F_1",
+            "tc_chunk_boundary_surprisal_jump",
+        ],
+        "slow": [
+            "tc_F_0",
+            "tc_F_1",
+            "tc_F_2",
+            "tc_F_3",
+            "tc_F_4",
+            "tc_redundancy_1",
+            "tc_redundancy_2",
+            "tc_redundancy_3",
+            "tc_redundancy_4",
+            "tc_context_gain",
+            "tc_long_range_context_gain",
+            "tc_cross_boundary_F_2",
+            "tc_cross_boundary_F_3",
+            "tc_cross_boundary_F_4",
+            "tc_within_chunk_F_k_mean/std",
+            "tc_entropy_rate_change_F_k_slope/r2",
+            "tc_true_context_rank_*",
+        ],
+    },
+}
+
+
+METRIC_FAMILY_COMPUTE_SPEED = {
+    "StructuralScaling": "moderate_with_gpu_slow_on_cpu",
+    "InformationalStructure": "mixed_gpu_cpu",
+    "TokenPredictability": "moderate_with_large_gpu_slow_on_cpu",
+    "TokenDistributionScaling": "fast",
+    "TokenRecurrence": "fast",
+    "TokenContextDynamics": "very_slow",
+}
+
+
+CURATED_TOKEN_NATURALNESS_METRICS = (
+    "tp_entropy_0",
+    "tp_redundancy_1",
+    "tp_entropy_slope",
+    "tp_context_efficiency_4",
+    "td_hapax_token_fraction",
+    "td_zipf_exponent",
+    "td_zipf_r2",
+    "td_heaps_exponent",
+    "td_heaps_r2",
+    "tr_repeat_gap_burstiness",
+    "tr_repeat_gap_cv",
+    "tr_repeat_gap_logbin_entropy",
+)
+
+
+OPTIONAL_CHUNK_CONTEXT_METRICS = (
+    "tc_chunk_boundary_surprisal_jump",
+    "tc_entropy_rate_change_F_1_slope",
+)
+
+
+def filter_token_naturalness_metrics(metrics, include_chunk_context=False):
+    """Keep the current curated retrospective token metrics from a metric dict."""
+    allowed = set(CURATED_TOKEN_NATURALNESS_METRICS)
+    if include_chunk_context:
+        allowed.update(OPTIONAL_CHUNK_CONTEXT_METRICS)
+    return {key: value for key, value in metrics.items() if key in allowed}
 
 
 # ===============================================================
@@ -101,6 +280,22 @@ def mi_should_stop(mi_vals, eps=1e-4, k=5):
     if len(mi_vals) < k: return False
     tail = mi_vals[-k:]
     return all((m <= eps) for m in tail)
+
+def _linear_fit_r2(x, y):
+    x = np.asarray(x, dtype=np.float64)
+    y = np.asarray(y, dtype=np.float64)
+    valid = np.isfinite(x) & np.isfinite(y)
+    x = x[valid]
+    y = y[valid]
+    if x.size < 3:
+        return float("nan"), float("nan"), float("nan")
+
+    slope, intercept = np.polyfit(x, y, 1)
+    y_hat = slope * x + intercept
+    ss_res = float(np.sum((y - y_hat) ** 2))
+    ss_tot = float(np.sum((y - y.mean()) ** 2))
+    r2 = float("nan") if ss_tot <= 0 else float(1.0 - ss_res / ss_tot)
+    return float(slope), float(intercept), r2
 
 # ===============================================================
 #  STRUCTURAL SCALING 
@@ -263,6 +458,600 @@ def shannon_entropy(tokens, device="cpu"):
     H = -(probs * torch.log2(probs)).sum()
     PP = torch.pow(2.0, H)
     return float(H.item()), float(PP.item())
+
+
+def _entropy_bits_from_counts(counts):
+    """Shannon entropy in bits from a vector of event counts."""
+    counts = np.asarray(counts, dtype=np.float64)
+    total = counts.sum()
+    if total <= 0:
+        return float("nan")
+    probs = counts[counts > 0] / total
+    return float(-(probs * np.log2(probs)).sum())
+
+
+def _conditional_token_entropy(tokens, order):
+    """
+    Plug-in estimate of H(token_t | token_{t-order:t-1}) in bits.
+
+    The implementation is exact for the observed token sequence and uses
+    numpy row uniqueness instead of Python tuple counting to keep retrospective
+    full-book computation tractable.
+    """
+    if order < 1:
+        raise ValueError("order must be >= 1")
+
+    arr = np.asarray(tokens, dtype=np.int64)
+    if arr.size <= order:
+        return float("nan")
+
+    windows = np.lib.stride_tricks.sliding_window_view(arr, order + 1)
+    _, joint_counts = np.unique(windows, axis=0, return_counts=True)
+    _, context_counts = np.unique(windows[:, :-1], axis=0, return_counts=True)
+
+    h_joint = _entropy_bits_from_counts(joint_counts)
+    h_context = _entropy_bits_from_counts(context_counts)
+    if not np.isfinite(h_joint) or not np.isfinite(h_context):
+        return float("nan")
+
+    return float(max(0.0, h_joint - h_context))
+
+
+def _entropy_bits_from_torch_counts(counts):
+    counts = counts.to(torch.float64)
+    total = counts.sum()
+    if total.item() <= 0:
+        return float("nan")
+    probs = counts[counts > 0] / total
+    return float((-(probs * torch.log2(probs)).sum()).item())
+
+
+def _conditional_token_entropy_torch(tokens, order, device="cuda"):
+    """
+    GPU plug-in estimate of H(token_t | token_{t-order:t-1}).
+
+    This is intended for large-memory GPUs. torch.unique(dim=0) can allocate
+    sizeable temporary workspaces for long books and high orders.
+    """
+    if order < 1:
+        raise ValueError("order must be >= 1")
+
+    x = torch.as_tensor(tokens, dtype=torch.int64, device=device)
+    if x.numel() <= order:
+        return float("nan")
+
+    windows = x.unfold(0, order + 1, 1).contiguous()
+    _, joint_counts = torch.unique(windows, dim=0, return_counts=True)
+    _, context_counts = torch.unique(windows[:, :-1].contiguous(), dim=0, return_counts=True)
+
+    h_joint = _entropy_bits_from_torch_counts(joint_counts)
+    h_context = _entropy_bits_from_torch_counts(context_counts)
+    if not np.isfinite(h_joint) or not np.isfinite(h_context):
+        return float("nan")
+    return float(max(0.0, h_joint - h_context))
+
+
+def _conditional_token_entropy_at_positions(tokens, positions, order):
+    """Conditional entropy restricted to selected target positions."""
+    arr = np.asarray(tokens, dtype=np.int64)
+    positions = np.asarray(positions, dtype=np.int64)
+    if arr.size == 0 or positions.size == 0:
+        return float("nan")
+
+    positions = positions[(positions >= 0) & (positions < arr.size)]
+    if order == 0:
+        if positions.size == 0:
+            return float("nan")
+        _, counts = np.unique(arr[positions], return_counts=True)
+        return _entropy_bits_from_counts(counts)
+
+    if order < 0:
+        raise ValueError("order must be >= 0")
+
+    positions = positions[positions >= order]
+    if positions.size == 0:
+        return float("nan")
+
+    contexts = np.empty((positions.size, order), dtype=np.int64)
+    for j in range(order):
+        contexts[:, j] = arr[positions - order + j]
+
+    targets = arr[positions].reshape(-1, 1)
+    joints = np.concatenate([contexts, targets], axis=1)
+    _, joint_counts = np.unique(joints, axis=0, return_counts=True)
+    _, context_counts = np.unique(contexts, axis=0, return_counts=True)
+
+    h_joint = _entropy_bits_from_counts(joint_counts)
+    h_context = _entropy_bits_from_counts(context_counts)
+    if not np.isfinite(h_joint) or not np.isfinite(h_context):
+        return float("nan")
+    return float(max(0.0, h_joint - h_context))
+
+
+def token_predictability_metrics(tokens, max_order=4, device="cpu", gpu_fallback=True):
+    """
+    TokenPredictability family.
+
+    Estimates the finite-context entropy curve:
+        H0 = H(token_t)
+        Hk = H(token_t | token_{t-k:t-1})
+
+    From this curve we derive redundancy and entropy gain. These are intended
+    for retrospective analysis, not live gating, because high-order row
+    counting over long books is CPU/RAM intensive compared with the existing
+    live metrics.
+    """
+    use_gpu = str(device).startswith("cuda")
+    arr = np.asarray(tokens, dtype=np.int64)
+    metrics = {}
+
+    if arr.size == 0:
+        metrics["tp_entropy_0"] = float("nan")
+        for k in range(1, max_order + 1):
+            metrics[f"tp_cond_entropy_{k}"] = float("nan")
+            metrics[f"tp_redundancy_{k}"] = float("nan")
+            metrics[f"tp_entropy_gain_{k}"] = float("nan")
+        metrics["tp_entropy_slope"] = float("nan")
+        metrics[f"tp_entropy_drop_{max_order}"] = float("nan")
+        metrics[f"tp_context_efficiency_{max_order}"] = float("nan")
+        return metrics
+
+    if use_gpu:
+        try:
+            h0, _ = shannon_entropy(arr, device=device)
+        except Exception:
+            if not gpu_fallback:
+                raise
+            _, unigram_counts = np.unique(arr, return_counts=True)
+            h0 = _entropy_bits_from_counts(unigram_counts)
+            use_gpu = False
+    else:
+        _, unigram_counts = np.unique(arr, return_counts=True)
+        h0 = _entropy_bits_from_counts(unigram_counts)
+    metrics["tp_entropy_0"] = h0
+
+    entropies = [h0]
+    orders = [0]
+
+    for k in range(1, max_order + 1):
+        if use_gpu:
+            try:
+                hk = _conditional_token_entropy_torch(arr, k, device=device)
+            except torch.cuda.OutOfMemoryError:
+                if not gpu_fallback:
+                    raise
+                torch.cuda.empty_cache()
+                hk = _conditional_token_entropy(arr, k)
+            except Exception:
+                if not gpu_fallback:
+                    raise
+                hk = _conditional_token_entropy(arr, k)
+        else:
+            hk = _conditional_token_entropy(arr, k)
+        metrics[f"tp_cond_entropy_{k}"] = hk
+
+        if np.isfinite(h0) and h0 > 0 and np.isfinite(hk):
+            metrics[f"tp_redundancy_{k}"] = float(1.0 - (hk / h0))
+            metrics[f"tp_entropy_gain_{k}"] = float(h0 - hk)
+            entropies.append(hk)
+            orders.append(k)
+        else:
+            metrics[f"tp_redundancy_{k}"] = float("nan")
+            metrics[f"tp_entropy_gain_{k}"] = float("nan")
+
+    if len(orders) >= 2:
+        metrics["tp_entropy_slope"] = float(np.polyfit(orders, entropies, 1)[0])
+    else:
+        metrics["tp_entropy_slope"] = float("nan")
+
+    hmax = metrics.get(f"tp_cond_entropy_{max_order}", float("nan"))
+    if np.isfinite(h0) and h0 > 0 and np.isfinite(hmax):
+        metrics[f"tp_entropy_drop_{max_order}"] = float(h0 - hmax)
+        metrics[f"tp_context_efficiency_{max_order}"] = float((h0 - hmax) / h0)
+    else:
+        metrics[f"tp_entropy_drop_{max_order}"] = float("nan")
+        metrics[f"tp_context_efficiency_{max_order}"] = float("nan")
+
+    return metrics
+
+
+def _flatten_chunks(chunks):
+    arrays = [np.asarray(chunk, dtype=np.int64) for chunk in chunks if len(chunk) > 0]
+    if not arrays:
+        return np.array([], dtype=np.int64), np.array([], dtype=np.int64)
+
+    lengths = np.asarray([arr.size for arr in arrays], dtype=np.int64)
+    tokens = np.concatenate(arrays)
+    boundaries = np.cumsum(lengths)[:-1]
+    return tokens, boundaries
+
+
+def _resolve_tokens_and_boundaries(tokens=None, chunks=None, boundaries=None):
+    if chunks is not None:
+        return _flatten_chunks(chunks)
+
+    arr = np.asarray(tokens if tokens is not None else [], dtype=np.int64)
+    if boundaries is None:
+        return arr, np.array([], dtype=np.int64)
+
+    boundaries = np.asarray(boundaries, dtype=np.int64)
+    boundaries = boundaries[(boundaries > 0) & (boundaries < arr.size)]
+    boundaries = np.unique(boundaries)
+    return arr, boundaries
+
+
+def _chunk_ranges(n_tokens, boundaries):
+    boundaries = np.asarray(boundaries, dtype=np.int64)
+    starts = np.concatenate([[0], boundaries])
+    ends = np.concatenate([boundaries, [n_tokens]])
+    return list(zip(starts.astype(int), ends.astype(int)))
+
+
+def _fk_curve(tokens, max_order=4):
+    arr = np.asarray(tokens, dtype=np.int64)
+    f_vals = {}
+    if arr.size == 0:
+        for k in range(max_order + 1):
+            f_vals[k] = float("nan")
+        return f_vals
+
+    _, counts = np.unique(arr, return_counts=True)
+    f_vals[0] = _entropy_bits_from_counts(counts)
+    for k in range(1, max_order + 1):
+        f_vals[k] = _conditional_token_entropy(arr, k)
+    return f_vals
+
+
+def token_context_rank_metrics(tokens, order=2):
+    """
+    Empirical true-token rank under an observed n-gram continuation table.
+
+    For each context, continuations are ranked by empirical count. The metric
+    answers whether the actual continuation usually belongs to the high-count
+    continuation set for its local token context.
+    """
+    arr = np.asarray(tokens, dtype=np.int64)
+    metrics = {
+        "tc_true_context_rank_order": int(order),
+        "tc_true_context_rank_mean": float("nan"),
+        "tc_true_context_rank_median": float("nan"),
+        "tc_true_context_mrr": float("nan"),
+        "tc_true_context_top1_rate": float("nan"),
+        "tc_context_branching_mean": float("nan"),
+    }
+
+    if order < 1 or arr.size <= order:
+        return metrics
+
+    windows = np.lib.stride_tricks.sliding_window_view(arr, order + 1)
+    unique_windows, counts = np.unique(windows, axis=0, return_counts=True)
+
+    by_context = {}
+    for row, count in zip(unique_windows, counts):
+        context = tuple(int(x) for x in row[:-1])
+        target = int(row[-1])
+        by_context.setdefault(context, []).append((target, int(count)))
+
+    rank_weights = []
+    rank_sum = 0.0
+    reciprocal_rank_sum = 0.0
+    weighted_top1 = 0
+    total = 0
+    branching = []
+
+    for continuations in by_context.values():
+        counts_for_context = np.asarray([c for _, c in continuations], dtype=np.int64)
+        branching.append(counts_for_context.size)
+        max_count = int(counts_for_context.max())
+
+        for _, count in continuations:
+            rank = 1 + int(np.sum(counts_for_context > count))
+            rank_weights.append((rank, count))
+            rank_sum += rank * count
+            reciprocal_rank_sum += (1.0 / rank) * count
+            if count == max_count:
+                weighted_top1 += count
+            total += count
+
+    if total == 0:
+        return metrics
+
+    rank_weights.sort(key=lambda item: item[0])
+    cumulative = 0
+    median_rank = float("nan")
+    midpoint = total / 2
+    for rank, weight in rank_weights:
+        cumulative += weight
+        if cumulative >= midpoint:
+            median_rank = float(rank)
+            break
+
+    metrics["tc_true_context_rank_mean"] = float(rank_sum / total)
+    metrics["tc_true_context_rank_median"] = median_rank
+    metrics["tc_true_context_mrr"] = float(reciprocal_rank_sum / total)
+    metrics["tc_true_context_top1_rate"] = float(weighted_top1 / total)
+    metrics["tc_context_branching_mean"] = float(np.mean(branching)) if branching else float("nan")
+    return metrics
+
+
+def token_context_dynamics_metrics(
+    tokens=None,
+    chunks=None,
+    boundaries=None,
+    max_order=4,
+    boundary_window=64,
+    n_checkpoints=24,
+    rank_order=2,
+):
+    """
+    TokenContextDynamics family.
+
+    Chunk-aware retrospective metrics:
+      - F_k / redundancy curve on the full sequence.
+      - within_chunk_F_k: mean/std of chunk-local entropy estimates.
+      - cross_boundary_F_k: entropy on tokens immediately after chunk boundaries.
+      - entropy_rate_change_over_run: slope of cumulative F_k over checkpoints.
+      - empirical context rank and boundary surprisal jump.
+
+    `boundaries` are token indices where chunks start, excluding 0.
+    """
+    arr, boundaries = _resolve_tokens_and_boundaries(tokens=tokens, chunks=chunks, boundaries=boundaries)
+    metrics = {}
+
+    f_vals = _fk_curve(arr, max_order=max_order)
+    f0 = f_vals.get(0, float("nan"))
+
+    for k in range(max_order + 1):
+        fk = f_vals.get(k, float("nan"))
+        metrics[f"tc_F_{k}"] = fk
+        metrics[f"tc_redundancy_{k}"] = (
+            float(1.0 - fk / f0)
+            if k > 0 and np.isfinite(f0) and f0 > 0 and np.isfinite(fk)
+            else (0.0 if k == 0 and np.isfinite(f0) else float("nan"))
+        )
+
+    fmax = f_vals.get(max_order, float("nan"))
+    f1 = f_vals.get(1, float("nan"))
+    metrics["tc_context_gain"] = (
+        float(f0 - fmax) if np.isfinite(f0) and np.isfinite(fmax) else float("nan")
+    )
+    metrics["tc_long_range_context_gain"] = (
+        float(f1 - fmax) if np.isfinite(f1) and np.isfinite(fmax) else float("nan")
+    )
+
+    chunk_ranges = _chunk_ranges(arr.size, boundaries) if boundaries.size else []
+    for k in range(max_order + 1):
+        local_vals = []
+        for start, end in chunk_ranges:
+            chunk = arr[start:end]
+            if chunk.size <= k:
+                continue
+            local_vals.append(_fk_curve(chunk, max_order=k)[k])
+
+        if local_vals:
+            local_vals = np.asarray(local_vals, dtype=np.float64)
+            metrics[f"tc_within_chunk_F_{k}_mean"] = float(np.nanmean(local_vals))
+            metrics[f"tc_within_chunk_F_{k}_std"] = float(np.nanstd(local_vals))
+        else:
+            metrics[f"tc_within_chunk_F_{k}_mean"] = float("nan")
+            metrics[f"tc_within_chunk_F_{k}_std"] = float("nan")
+
+    if boundaries.size:
+        boundary_positions = []
+        for boundary in boundaries:
+            end = min(arr.size, int(boundary) + int(boundary_window))
+            boundary_positions.extend(range(int(boundary), end))
+        boundary_positions = np.asarray(boundary_positions, dtype=np.int64)
+    else:
+        boundary_positions = np.array([], dtype=np.int64)
+
+    for k in range(max_order + 1):
+        metrics[f"tc_cross_boundary_F_{k}"] = _conditional_token_entropy_at_positions(
+            arr, boundary_positions, k
+        )
+
+    boundary_fmax = metrics.get(f"tc_cross_boundary_F_{max_order}", float("nan"))
+    within_fmax = metrics.get(f"tc_within_chunk_F_{max_order}_mean", float("nan"))
+    metrics["tc_chunk_boundary_surprisal_jump"] = (
+        float(boundary_fmax - within_fmax)
+        if np.isfinite(boundary_fmax) and np.isfinite(within_fmax)
+        else float("nan")
+    )
+
+    if arr.size:
+        if boundaries.size:
+            checkpoint_pool = np.concatenate([boundaries, [arr.size]])
+        else:
+            checkpoint_pool = np.unique(
+                np.round(np.linspace(max(2, max_order + 1), arr.size, n_checkpoints)).astype(np.int64)
+            )
+        if checkpoint_pool.size > n_checkpoints:
+            idx = np.unique(np.round(np.linspace(0, checkpoint_pool.size - 1, n_checkpoints)).astype(np.int64))
+            checkpoint_pool = checkpoint_pool[idx]
+        checkpoint_pool = checkpoint_pool[checkpoint_pool > max_order + 1]
+    else:
+        checkpoint_pool = np.array([], dtype=np.int64)
+
+    x = checkpoint_pool / arr.size if arr.size and checkpoint_pool.size else np.array([])
+    for k in range(max_order + 1):
+        y = []
+        for checkpoint in checkpoint_pool:
+            y.append(_fk_curve(arr[:int(checkpoint)], max_order=k)[k])
+        if len(y) >= 3:
+            slope, _, r2 = _linear_fit_r2(x, y)
+            metrics[f"tc_entropy_rate_change_F_{k}_slope"] = slope
+            metrics[f"tc_entropy_rate_change_F_{k}_r2"] = r2
+        else:
+            metrics[f"tc_entropy_rate_change_F_{k}_slope"] = float("nan")
+            metrics[f"tc_entropy_rate_change_F_{k}_r2"] = float("nan")
+
+    metrics.update(token_context_rank_metrics(arr, order=rank_order))
+    metrics["tc_boundary_window"] = int(boundary_window)
+    metrics["tc_n_boundaries"] = int(boundaries.size)
+    return metrics
+
+
+def _heaps_profile(tokens, n_points=32, min_tokens=1_000):
+    """Vocabulary size V(N) at log-spaced checkpoints."""
+    arr = np.asarray(tokens, dtype=np.int64)
+    n = arr.size
+    if n == 0:
+        return np.array([], dtype=np.int64), np.array([], dtype=np.int64)
+
+    start = min(min_tokens, n)
+    checkpoints = np.unique(
+        np.round(np.logspace(np.log10(max(1, start)), np.log10(n), n_points)).astype(np.int64)
+    )
+    checkpoints = checkpoints[(checkpoints >= 1) & (checkpoints <= n)]
+    if checkpoints.size == 0 or checkpoints[-1] != n:
+        checkpoints = np.unique(np.append(checkpoints, n))
+
+    seen = set()
+    vocab_sizes = []
+    checkpoint_idx = 0
+    next_checkpoint = int(checkpoints[checkpoint_idx])
+
+    for i, token in enumerate(arr, start=1):
+        seen.add(int(token))
+        while i == next_checkpoint:
+            vocab_sizes.append(len(seen))
+            checkpoint_idx += 1
+            if checkpoint_idx >= checkpoints.size:
+                return checkpoints, np.asarray(vocab_sizes, dtype=np.int64)
+            next_checkpoint = int(checkpoints[checkpoint_idx])
+
+    return checkpoints[:len(vocab_sizes)], np.asarray(vocab_sizes, dtype=np.int64)
+
+
+def token_distribution_scaling_metrics(tokens, heaps_points=32, zipf_min_count=2):
+    """
+    TokenDistributionScaling family.
+
+    Measures rank-frequency and vocabulary-growth structure with token IDs as
+    symbols. These are token analogues of Zipf's law and Heaps' law, so they
+    do not depend on words, English morphology, or semantic labels.
+    """
+    arr = np.asarray(tokens, dtype=np.int64)
+    metrics = {}
+    n = arr.size
+
+    if n == 0:
+        for key in (
+            "td_vocab_size",
+            "td_type_token_ratio",
+            "td_hapax_type_fraction",
+            "td_hapax_token_fraction",
+            "td_top1_token_fraction",
+            "td_top10_token_fraction",
+            "td_zipf_slope",
+            "td_zipf_exponent",
+            "td_zipf_r2",
+            "td_heaps_exponent",
+            "td_heaps_r2",
+        ):
+            metrics[key] = float("nan")
+        return metrics
+
+    _, counts = np.unique(arr, return_counts=True)
+    counts = counts.astype(np.float64)
+    counts_desc = np.sort(counts)[::-1]
+    n_types = counts_desc.size
+
+    metrics["td_vocab_size"] = int(n_types)
+    metrics["td_type_token_ratio"] = float(n_types / n)
+    metrics["td_hapax_type_fraction"] = float(np.sum(counts_desc == 1) / n_types)
+    metrics["td_hapax_token_fraction"] = float(np.sum(counts_desc == 1) / n)
+    metrics["td_top1_token_fraction"] = float(counts_desc[0] / n)
+    metrics["td_top10_token_fraction"] = float(counts_desc[:10].sum() / n)
+
+    ranks = np.arange(1, n_types + 1, dtype=np.float64)
+    zipf_mask = counts_desc >= zipf_min_count
+    if np.sum(zipf_mask) >= 3:
+        slope, _, r2 = _linear_fit_r2(np.log10(ranks[zipf_mask]), np.log10(counts_desc[zipf_mask]))
+        metrics["td_zipf_slope"] = slope
+        metrics["td_zipf_exponent"] = float(-slope) if np.isfinite(slope) else float("nan")
+        metrics["td_zipf_r2"] = r2
+    else:
+        metrics["td_zipf_slope"] = float("nan")
+        metrics["td_zipf_exponent"] = float("nan")
+        metrics["td_zipf_r2"] = float("nan")
+
+    checkpoints, vocab_sizes = _heaps_profile(arr, n_points=heaps_points)
+    heaps_valid = (checkpoints > 1) & (vocab_sizes > 1)
+    if np.sum(heaps_valid) >= 3:
+        slope, _, r2 = _linear_fit_r2(np.log10(checkpoints[heaps_valid]), np.log10(vocab_sizes[heaps_valid]))
+        metrics["td_heaps_exponent"] = slope
+        metrics["td_heaps_r2"] = r2
+    else:
+        metrics["td_heaps_exponent"] = float("nan")
+        metrics["td_heaps_r2"] = float("nan")
+
+    return metrics
+
+
+def token_recurrence_metrics(tokens):
+    """
+    TokenRecurrence family.
+
+    Tracks distances between repeated token IDs. This is a token-level version
+    of inter-event-time burstiness: coherent/natural sequences tend to reuse
+    symbols in clustered, non-Poisson ways, while resets or bag-like generation
+    can alter the repeat-gap distribution.
+    """
+    arr = np.asarray(tokens, dtype=np.int64)
+    metrics = {}
+    n = arr.size
+
+    empty_keys = (
+        "tr_repeat_rate",
+        "tr_repeat_gap_mean",
+        "tr_repeat_gap_mean_log2",
+        "tr_repeat_gap_median_log2",
+        "tr_repeat_gap_cv",
+        "tr_repeat_gap_burstiness",
+        "tr_repeat_gap_logbin_entropy",
+    )
+
+    if n == 0:
+        for key in empty_keys:
+            metrics[key] = float("nan")
+        return metrics
+
+    last_pos = {}
+    gaps = []
+    for i, token in enumerate(arr):
+        token = int(token)
+        previous = last_pos.get(token)
+        if previous is not None:
+            gaps.append(i - previous)
+        last_pos[token] = i
+
+    if not gaps:
+        metrics["tr_repeat_rate"] = 0.0
+        for key in empty_keys[1:]:
+            metrics[key] = float("nan")
+        return metrics
+
+    gaps = np.asarray(gaps, dtype=np.float64)
+    gap_mean = float(gaps.mean())
+    gap_std = float(gaps.std())
+    log_gaps = np.log2(gaps)
+    log_bins = np.floor(log_gaps).astype(np.int64)
+    _, logbin_counts = np.unique(log_bins, return_counts=True)
+
+    metrics["tr_repeat_rate"] = float(gaps.size / n)
+    metrics["tr_repeat_gap_mean"] = gap_mean
+    metrics["tr_repeat_gap_mean_log2"] = float(log_gaps.mean())
+    metrics["tr_repeat_gap_median_log2"] = float(np.median(log_gaps))
+    metrics["tr_repeat_gap_cv"] = float(gap_std / gap_mean) if gap_mean > 0 else float("nan")
+    metrics["tr_repeat_gap_burstiness"] = (
+        float((gap_std - gap_mean) / (gap_std + gap_mean))
+        if (gap_std + gap_mean) > 0
+        else float("nan")
+    )
+    metrics["tr_repeat_gap_logbin_entropy"] = _entropy_bits_from_counts(logbin_counts)
+
+    return metrics
 
 
 @njit(fastmath=True)
@@ -681,6 +1470,13 @@ def _dev_label(device: str) -> str:
 class CoherenceMetrics:
     """Hybrid GPU/CPU Coherence Metrics with per-metric logging."""
 
+    FAMILY_COMPUTE_SPEED = METRIC_FAMILY_COMPUTE_SPEED
+
+    @classmethod
+    def family_compute_speed(cls):
+        """Overall compute speed/cost by metric family."""
+        return dict(cls.FAMILY_COMPUTE_SPEED)
+
     # ------------------------------------------------------------------
     # 3. Wavelet DFA (PyTorch GPU)
     # ------------------------------------------------------------------
@@ -834,11 +1630,12 @@ class CoherenceMetrics:
         slope, _ = np.polyfit(ln_L, ln_F, 1)
         return slope, {"scales": L_vals, "fluctuation": F_vals}
 
-    def __init__(self, tokens, device=None):
+    def __init__(self, tokens, device=None, chunk_boundaries=None):
         """
         Initialize with a list of tokens/integers.
         """
         self.tokens = tokens
+        self.chunk_boundaries = chunk_boundaries
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         self.n = len(tokens)
         self.results = {}
@@ -858,14 +1655,9 @@ class CoherenceMetrics:
         t1 = time.perf_counter()
 
 
-        # 3) H (DFA) - Multi-order
+        # 3) H (DFA1)
         t0 = time.perf_counter()
-        # DFA1 (Linear)
         H1 = hurst_dfa(self.tokens, device=self.device, order=1)
-        # DFA2 (Quadratic)
-        H2 = hurst_dfa(self.tokens, device=self.device, order=2)
-        # DFA3 (Cubic)
-        H3 = hurst_dfa(self.tokens, device=self.device, order=3)
         t1 = time.perf_counter()
 
 
@@ -893,18 +1685,14 @@ class CoherenceMetrics:
         if t1 - t0 > 0.5:
             print(f"   ⏱️  DMA took {t1 - t0:.2f}s on {dev_lbl_dma}")
 
-        # 7) WDFA (Wavelet DFA)
+        # 7) WDFA (Wavelet DFA, db4 only)
         t0 = time.perf_counter()
         try:
-            # Haar (1 vanishing moment, similar to DFA1)
-            H_haar_global, H_haar_short, H_haar_long, _ = self.wavelet_dfa_torch(self.tokens, wavelet_name='haar', device=self.device)
-            # db4 (4 vanishing moments, similar to DFA3/4)
-            H_db4_global, H_db4_short, H_db4_long, _ = self.wavelet_dfa_torch(self.tokens, wavelet_name='db4', device=self.device)
+            H_db4_global, _, _, _ = self.wavelet_dfa_torch(self.tokens, wavelet_name='db4', device=self.device)
             dev_lbl_wdfa = _dev_label(self.device)
         except Exception as e:
             print(f"   ⚠️ WDFA GPU failed: {e}")
-            H_haar_global, H_haar_short, H_haar_long, _ = wavelet_dfa(self.tokens, wavelet_name='haar', device="cpu")
-            H_db4_global, H_db4_short, H_db4_long, _ = wavelet_dfa(self.tokens, wavelet_name='db4', device="cpu")
+            H_db4_global, _, _, _ = wavelet_dfa(self.tokens, wavelet_name='db4', device="cpu")
             dev_lbl_wdfa = "Cpu"
         t1 = time.perf_counter()
         if t1 - t0 > 0.5:
@@ -914,15 +1702,8 @@ class CoherenceMetrics:
             "beta": beta, 
             "alpha": alpha, 
             "H_DFA1": H1, 
-            "H_DFA2": H2, 
-            "H_DFA3": H3, 
             "H_DMA": H_dma,
-            "H_WT_Haar": H_haar_global,
-            "H_WT_Haar_short": H_haar_short,
-            "H_WT_Haar_long": H_haar_long,
             "H_WT_db4": H_db4_global,
-            "H_WT_db4_short": H_db4_short,
-            "H_WT_db4_long": H_db4_long,
             "D": D, 
             "delta": delta
         })
@@ -992,10 +1773,88 @@ class CoherenceMetrics:
         self.results.update({"mi_decay_gamma": gamma, **tau_info})
         return self.results
 
-    # ------------------------- Combined -------------------------
-    def compute_all(self):
-        self.compute_structural_scaling()
-        self.compute_informational_structure()
-        self.results["n_tokens"] = len(self.tokens)
+    # ------------------------- TokenPredictability -------------------------
+    def compute_token_predictability(self, max_order=4, device=None):
+        t0 = time.perf_counter()
+        metrics = token_predictability_metrics(self.tokens, max_order=max_order, device=device or self.device)
+        t1 = time.perf_counter()
+        if t1 - t0 > 0.5:
+            print(f"   ⏱️  TokenPredictability took {t1 - t0:.2f}s on {_dev_label(str(device or self.device))}")
+        self.results.update(metrics)
         return self.results
 
+    # ------------------------- TokenDistributionScaling -------------------------
+    def compute_token_distribution_scaling(self):
+        t0 = time.perf_counter()
+        metrics = token_distribution_scaling_metrics(self.tokens)
+        t1 = time.perf_counter()
+        if t1 - t0 > 0.5:
+            print(f"   ⏱️  TokenDistributionScaling took {t1 - t0:.2f}s on Cpu")
+        self.results.update(metrics)
+        return self.results
+
+    # ------------------------- TokenRecurrence -------------------------
+    def compute_token_recurrence(self):
+        t0 = time.perf_counter()
+        metrics = token_recurrence_metrics(self.tokens)
+        t1 = time.perf_counter()
+        if t1 - t0 > 0.5:
+            print(f"   ⏱️  TokenRecurrence took {t1 - t0:.2f}s on Cpu")
+        self.results.update(metrics)
+        return self.results
+
+    # ------------------------- TokenNaturalness -------------------------
+    def compute_token_naturalness(self, token_predictability_max_order=4):
+        self.compute_token_predictability(max_order=token_predictability_max_order)
+        self.compute_token_distribution_scaling()
+        self.compute_token_recurrence()
+        return self.results
+
+    # ------------------------- TokenContextDynamics -------------------------
+    def compute_token_context_dynamics(
+        self,
+        chunks=None,
+        boundaries=None,
+        max_order=4,
+        boundary_window=64,
+        n_checkpoints=24,
+        rank_order=2,
+    ):
+        t0 = time.perf_counter()
+        metrics = token_context_dynamics_metrics(
+            tokens=self.tokens,
+            chunks=chunks,
+            boundaries=boundaries if boundaries is not None else self.chunk_boundaries,
+            max_order=max_order,
+            boundary_window=boundary_window,
+            n_checkpoints=n_checkpoints,
+            rank_order=rank_order,
+        )
+        t1 = time.perf_counter()
+        if t1 - t0 > 0.5:
+            print(f"   ⏱️  TokenContextDynamics took {t1 - t0:.2f}s on Cpu")
+        self.results.update(metrics)
+        return self.results
+
+    # ------------------------- Combined -------------------------
+    def compute_all(
+        self,
+        include_token_predictability=False,
+        token_predictability_max_order=4,
+        include_token_naturalness=False,
+        include_token_context_dynamics=False,
+        token_context_boundaries=None,
+    ):
+        self.compute_structural_scaling()
+        self.compute_informational_structure()
+        if include_token_naturalness:
+            self.compute_token_naturalness(token_predictability_max_order=token_predictability_max_order)
+        elif include_token_predictability:
+            self.compute_token_predictability(max_order=token_predictability_max_order)
+        if include_token_context_dynamics:
+            self.compute_token_context_dynamics(
+                boundaries=token_context_boundaries,
+                max_order=token_predictability_max_order,
+            )
+        self.results["n_tokens"] = len(self.tokens)
+        return self.results

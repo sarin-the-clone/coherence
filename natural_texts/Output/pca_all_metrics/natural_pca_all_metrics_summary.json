@@ -1,0 +1,126 @@
+{
+  "natural_input_rows": 10068,
+  "natural_clean_rows": 10063,
+  "generated_projected_rows": 2,
+  "metric_count": 24,
+  "dropped_zero_variance_metrics": [
+    "mi_n_lags"
+  ],
+  "metrics": [
+    "beta",
+    "alpha",
+    "H_DFA1",
+    "H_DMA",
+    "H_WT_db4",
+    "D",
+    "delta",
+    "entropy_bits",
+    "perplexity",
+    "lz_complexity",
+    "mi_decay_gamma",
+    "mi_tau_max",
+    "td_hapax_token_fraction",
+    "td_hapax_type_fraction",
+    "td_heaps_exponent",
+    "td_heaps_r2",
+    "td_zipf_exponent",
+    "td_zipf_r2",
+    "tp_context_efficiency_4",
+    "tp_entropy_0",
+    "tp_entropy_slope",
+    "tp_redundancy_1",
+    "tr_repeat_gap_burstiness",
+    "tr_repeat_gap_cv"
+  ],
+  "token_metric_set": "curated",
+  "include_chunk_context_metrics": false,
+  "size_stats": "/home/sarin/pienicolol/src/coherence/natural_texts/Output/analysis/size_binned_metrics.json",
+  "mean_score_trajectory_bins": [
+    {
+      "token_size_bin": "100k-150k",
+      "bin_order": 0,
+      "count": 5100,
+      "mean_n_tokens": 122465.01333333334,
+      "PC1": -1.1463584119896044,
+      "PC2": 0.21714043156542095,
+      "PC3": 1.1194869171717765,
+      "PC4": -0.2599604857682633,
+      "PC1_PC2_loading_x": -0.02203503110728686,
+      "PC1_PC2_loading_y": 0.007217085130477501,
+      "PC3_PC4_loading_x": 0.09934132902946365,
+      "PC3_PC4_loading_y": -0.06505265149708596
+    },
+    {
+      "token_size_bin": "150k-300k",
+      "bin_order": 1,
+      "count": 4035,
+      "mean_n_tokens": 203138.98612143743,
+      "PC1": 0.5735862473355546,
+      "PC2": -0.14562265164095314,
+      "PC3": -0.862208296497293,
+      "PC4": 0.3130508192648894,
+      "PC1_PC2_loading_x": 0.025737720297523782,
+      "PC1_PC2_loading_y": -0.015744367727857207,
+      "PC3_PC4_loading_x": -0.09616054063251969,
+      "PC3_PC4_loading_y": 0.046157811570697045
+    },
+    {
+      "token_size_bin": "300k-500k",
+      "bin_order": 2,
+      "count": 704,
+      "mean_n_tokens": 366491.07386363635,
+      "PC1": 2.901513092893119,
+      "PC2": -0.5149407722785523,
+      "PC3": -2.1964503015336336,
+      "PC4": 0.10682896246584841,
+      "PC1_PC2_loading_x": 0.09039763239320812,
+      "PC1_PC2_loading_y": -0.03912072824887729,
+      "PC3_PC4_loading_x": -0.22778865618072514,
+      "PC3_PC4_loading_y": 0.0061341192144136174
+    },
+    {
+      "token_size_bin": "500k-800k",
+      "bin_order": 3,
+      "count": 145,
+      "mean_n_tokens": 601744.0620689655,
+      "PC1": 5.453453387288269,
+      "PC2": -0.777374867481267,
+      "PC3": -2.6661066484216778,
+      "PC4": -0.02237559691979246,
+      "PC1_PC2_loading_x": 0.16127968584944719,
+      "PC1_PC2_loading_y": -0.05573175727684696,
+      "PC3_PC4_loading_x": -0.27412206470989503,
+      "PC3_PC4_loading_y": -0.018941998400603854
+    },
+    {
+      "token_size_bin": ">800k",
+      "bin_order": 4,
+      "count": 79,
+      "mean_n_tokens": 1429080.6582278481,
+      "PC1": 8.842929551828664,
+      "PC2": -0.564444837259701,
+      "PC3": -3.7656496823881116,
+      "PC4": -0.118034257446502,
+      "PC1_PC2_loading_x": 0.2554249255367825,
+      "PC1_PC2_loading_y": -0.04225413764741283,
+      "PC3_PC4_loading_x": -0.38259622230562756,
+      "PC3_PC4_loading_y": -0.0375075028508236
+    }
+  ],
+  "supplementary_variables": [
+    {
+      "metric": "log10_n_tokens",
+      "group": "Supplementary",
+      "PC1": 0.5315397939521564,
+      "PC2": -0.1309579631875787,
+      "PC3": -0.7021392195031131,
+      "PC4": 0.15036134892098132
+    }
+  ],
+  "explained_variance_ratio": [
+    0.3974832975676757,
+    0.18431107508797143,
+    0.13667546948390485,
+    0.06664785174302061
+  ]
+}

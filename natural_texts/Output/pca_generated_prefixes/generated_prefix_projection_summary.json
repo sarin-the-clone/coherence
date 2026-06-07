@@ -1,0 +1,162 @@
+{
+  "natural_input_rows": 10068,
+  "natural_clean_rows": 10063,
+  "generated_prefix_rows": 15,
+  "landmark_prefix_rows": 41,
+  "landmark_metrics_dir": "/home/sarin/pienicolol/src/coherence/natural_texts/Selected_Books/metrics_with_token_naturalness",
+  "landmark_filter": "outlier",
+  "size_stats": "/home/sarin/pienicolol/src/coherence/natural_texts/Output/analysis/size_binned_metrics.json",
+  "size_bins": [
+    {
+      "name": "0-(100-150k)",
+      "label": "100k-150k",
+      "range_tokens": [
+        100000,
+        150000.0
+      ]
+    },
+    {
+      "name": "1-(150-300k)",
+      "label": "150k-300k",
+      "range_tokens": [
+        150000,
+        300000.0
+      ]
+    },
+    {
+      "name": "2-(300-500k)",
+      "label": "300k-500k",
+      "range_tokens": [
+        300000,
+        500000.0
+      ]
+    },
+    {
+      "name": "3-(500-800k)",
+      "label": "500k-800k",
+      "range_tokens": [
+        500000,
+        800000.0
+      ]
+    },
+    {
+      "name": "4-(>800k)",
+      "label": ">800k",
+      "range_tokens": [
+        800000,
+        7161896.0
+      ]
+    }
+  ],
+  "mean_score_trajectory_bins": [
+    {
+      "token_size_bin": "100k-150k",
+      "bin_order": 0,
+      "count": 5100,
+      "mean_n_tokens": 122465.01333333334,
+      "PC1": -1.1463584119896044,
+      "PC2": 0.21714043156542095,
+      "PC3": 1.1194869171717765,
+      "PC4": -0.2599604857682633
+    },
+    {
+      "token_size_bin": "150k-300k",
+      "bin_order": 1,
+      "count": 4035,
+      "mean_n_tokens": 203138.98612143743,
+      "PC1": 0.5735862473355546,
+      "PC2": -0.14562265164095314,
+      "PC3": -0.862208296497293,
+      "PC4": 0.3130508192648894
+    },
+    {
+      "token_size_bin": "300k-500k",
+      "bin_order": 2,
+      "count": 704,
+      "mean_n_tokens": 366491.07386363635,
+      "PC1": 2.901513092893119,
+      "PC2": -0.5149407722785523,
+      "PC3": -2.1964503015336336,
+      "PC4": 0.10682896246584841
+    },
+    {
+      "token_size_bin": "500k-800k",
+      "bin_order": 3,
+      "count": 145,
+      "mean_n_tokens": 601744.0620689655,
+      "PC1": 5.453453387288269,
+      "PC2": -0.777374867481267,
+      "PC3": -2.6661066484216778,
+      "PC4": -0.02237559691979246
+    },
+    {
+      "token_size_bin": ">800k",
+      "bin_order": 4,
+      "count": 79,
+      "mean_n_tokens": 1429080.6582278481,
+      "PC1": 8.842929551828664,
+      "PC2": -0.564444837259701,
+      "PC3": -3.7656496823881116,
+      "PC4": -0.118034257446502
+    }
+  ],
+  "folders": [
+    "/home/sarin/pienicolol/src/coherence/generated_texts_og/prompts/20260522_043453_preoom_repair_the_inventor_s_dilemma_a_guide_to_robotics_and_the_ethics_of_artificial_life_science_minimal_fixed_conditioning",
+    "/home/sarin/pienicolol/src/coherence/generated_texts_og/prompts/20260601_001605_unveiling_mars_monoliths_mysteries_and_the_new_cosmos_science_basic_conditioning",
+    "/home/sarin/pienicolol/src/coherence/generated_texts_og/prompts/20260521_144550_stellar_exodus_the_final_frontier_space_opera_minimal_rolling_conditioning"
+  ],
+  "prefix_tokens_requested": [
+    100000,
+    200000,
+    400000,
+    600000,
+    1000000
+  ],
+  "generated_prefix_metric_mode": "nearest_sidecar_chunk_to_token_target",
+  "include_seed": true,
+  "tokenizer": "gpt4",
+  "device": "cuda",
+  "max_order": 4,
+  "metric_count": 24,
+  "token_metric_set": "curated",
+  "include_chunk_context_metrics": false,
+  "metrics": [
+    "beta",
+    "alpha",
+    "H_DFA1",
+    "H_DMA",
+    "H_WT_db4",
+    "D",
+    "delta",
+    "entropy_bits",
+    "perplexity",
+    "lz_complexity",
+    "mi_decay_gamma",
+    "mi_tau_max",
+    "td_hapax_token_fraction",
+    "td_hapax_type_fraction",
+    "td_heaps_exponent",
+    "td_heaps_r2",
+    "td_zipf_exponent",
+    "td_zipf_r2",
+    "tp_context_efficiency_4",
+    "tp_entropy_0",
+    "tp_entropy_slope",
+    "tp_redundancy_1",
+    "tr_repeat_gap_burstiness",
+    "tr_repeat_gap_cv"
+  ],
+  "dropped_zero_variance_metrics": [
+    "mi_n_lags"
+  ],
+  "explained_variance_ratio": [
+    0.3974832975676757,
+    0.18431107508797143,
+    0.13667546948390485,
+    0.06664785174302061
+  ],
+  "natural_token_metric_files": [
+    "/home/sarin/pienicolol/src/coherence/natural_texts/Output/gutenberg_benchmark_cache/token_naturalness_metrics.jsonl",
+    "/home/sarin/pienicolol/src/coherence/natural_texts/Output/gutenberg_benchmark_cache/token_predictability_metrics.jsonl"
+  ]
+}

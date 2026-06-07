@@ -33,7 +33,11 @@ from generated_texts_og.utils.coherence_decision import is_chunk_acceptable
 from generated_texts_og.models.model_interface import ModelFactory
 from generated_texts_og.memory.memory_summarizer import MemorySummarizer
 from generated_texts_og.utils.title_and_genre import generate_title_and_genre
-from generated_texts_og.utils.prompt_templates import CHUNK_GENERATION_PROMPT, get_variation_hint
+from generated_texts_og.utils.prompt_templates import (
+    CHUNK_GENERATION_PROMPT,
+    MINIMAL_CHUNK_GENERATION_PROMPT,
+    get_variation_hint,
+)
 from generated_texts_og.utils.story_contract_parser import parse_initial_prompt, format_contract_for_prompt
 from generated_texts_og.utils.prompt_sanitizer import strip_chat_prefixes
 
@@ -69,7 +73,8 @@ class LongBookGenerator:
         entropy_threshold=None,
         ppl_threshold=None,
         disable_gating=False,
-        disable_self_conditioning=False,
+        metric_gating_patience=20,
+        conditioning_mode=None,
         restart_every=None,
         repetition_penalty=1.1, # Default 1.1
     ):
@@ -91,7 +96,24 @@ class LongBookGenerator:
         self.n_attempts = n_attempts
         self.restart_every = restart_every
         self.disable_gating = disable_gating
-        self.disable_self_conditioning = disable_self_conditioning
+        self.metric_gating_patience = metric_gating_patience
+        self.metric_gating_streak = 0
+        self.metric_gating_suspended = False
+        if conditioning_mode is None:
+            conditioning_mode = "extended_conditioning"
+        valid_modes = {
+            "basic_conditioning",
+            "summaries_conditioning",
+            "extended_conditioning",
+            "minimal_fixed_conditioning",
+            "markov_rolling_conditioning",
+            "minimal_rolling_conditioning",
+        }
+        if conditioning_mode not in valid_modes:
+            raise ValueError(f"Unknown conditioning_mode '{conditioning_mode}'. Valid modes: {sorted(valid_modes)}")
+        if conditioning_mode == "minimal_rolling_conditioning":
+            conditioning_mode = "markov_rolling_conditioning"
+        self.conditioning_mode = conditioning_mode
         self.repetition_penalty = repetition_penalty
         
         # Metadata Fix: Update config to reflect runtime overrides
@@ -135,6 +157,46 @@ class LongBookGenerator:
         # LZ State (for incremental complexity calculation)
         self.lz_state = None
         self.retrieval_vectors = []
+
+    def _metric_gates_disabled_for_chunk(self):
+        return self.disable_gating or self.metric_gating_suspended
+
+    def _record_metric_gating_outcome(self, chunk_id, metric_gating_engaged):
+        """
+        Track consecutive chunks where metric gates forced regeneration.
+
+        If a descriptor drifts persistently outside the natural envelope, repeated
+        retries are unlikely to bring it back and only slow the run. In that case,
+        suspend metric gates for the rest of the run while keeping sanity checks.
+        """
+        if self.disable_gating or self.metric_gating_suspended:
+            return
+
+        if metric_gating_engaged:
+            self.metric_gating_streak += 1
+        else:
+            if self.metric_gating_streak:
+                print(f"  ✓ Metric gating streak reset after {self.metric_gating_streak} gated chunks.")
+            self.metric_gating_streak = 0
+            return
+
+        if self.metric_gating_patience and self.metric_gating_streak >= self.metric_gating_patience:
+            self.metric_gating_suspended = True
+            print(
+                f"  ⚠️ Metric gating suspended after {self.metric_gating_streak} "
+                f"consecutive metric-gated chunks (patience={self.metric_gating_patience}). "
+                "Sanity checks remain active."
+            )
+            if self.serializer.debug_root:
+                self.serializer.save_debug_prompt(
+                    f"metric_gating_suspended_chunk_{chunk_id:03d}",
+                    json.dumps({
+                        "chunk_id": chunk_id,
+                        "metric_gating_streak": self.metric_gating_streak,
+                        "metric_gating_patience": self.metric_gating_patience,
+                        "reason": "persistent_metric_gating",
+                    }, indent=2),
+                )
 
     @staticmethod
     def _event_label_from_summary(item, max_chars=96):
@@ -520,6 +582,15 @@ class LongBookGenerator:
         if resume_from_dir and os.path.exists(resume_from_dir):
             print(f"🔄 Resuming from: {resume_from_dir}")
             from generated_texts_og.utils.resume_helper import find_latest_chunk_id, load_memory_snapshot, reconstruct_text_history
+
+            suspension_markers = [
+                name for name in os.listdir(resume_from_dir)
+                if name.startswith("metric_gating_suspended_chunk_")
+            ]
+            if suspension_markers:
+                self.metric_gating_suspended = True
+                self.metric_gating_streak = self.metric_gating_patience or 0
+                print("   ✓ Metric gating suspension restored from prior run state.")
             
             last_id = find_latest_chunk_id(resume_from_dir)
             mem_snap = None
@@ -548,10 +619,10 @@ class LongBookGenerator:
                     self.summary_manager.pending_episode_source = None
                     
                     # Try to load tokens.npy for exact state restoration
-                    tokens_path = os.path.join(resume_from_dir, f"memory_{last_id:03d}", "tokens.npy")
+                    tokens_path = os.path.join(resume_from_dir, f"memory_chunk_{last_id:03d}", "tokens.npy")
                     if os.path.exists(tokens_path):
                         try:
-                            self.full_tokens = list(np.load(tokens_path))
+                            self.full_tokens = np.load(tokens_path).astype(int).tolist()
                             print(f"   ✓ RESTORED EXACT TOKEN STATE from tokens.npy ({len(self.full_tokens)} tokens)")
                             
                             # Restore LZ State (Requires one-time compute)
@@ -612,13 +683,34 @@ class LongBookGenerator:
                     # Optimization: Remove local import that shadows global
                     # from tqdm import tqdm
                     for part in tqdm(text_parts, desc="Tokenizing History"):
-                         tokens = enc.encode(part)
+                         tokens = enc.encode(f"{part}\n\n")
                          self.full_tokens.extend(tokens)
                     print(f"   ✓ Tokenization complete: {len(self.full_tokens)} tokens.")
                 else:
                     print(f"   ✓ Skipping re-tokenization (loaded {len(self.full_tokens)} tokens).")
 
-                self._rebuild_retrieval_index()
+                try:
+                    enc = Tokenizer(kind="gpt4")
+                    reconstructed_tokens = []
+                    for part in text_parts:
+                        reconstructed_tokens.extend(enc.encode(f"{part}\n\n"))
+                    token_delta = len(reconstructed_tokens) - len(self.full_tokens)
+                    if token_delta != 0:
+                        print(
+                            f"   ⚠️ Resume token/text mismatch: "
+                            f"tokenized(reconstructed history)={len(reconstructed_tokens)} vs "
+                            f"restored full_tokens={len(self.full_tokens)} "
+                            f"(delta={token_delta})"
+                        )
+                    else:
+                        print(f"   ✓ Resume token/text alignment verified ({len(self.full_tokens)} tokens).")
+                except Exception as e:
+                    print(f"   ⚠️ Could not verify resume token/text alignment: {e}")
+
+                if self.conditioning_mode == "extended_conditioning":
+                    self._rebuild_retrieval_index()
+                else:
+                    print(f"   ✓ Skipping retrieval index rebuild for {self.conditioning_mode}.")
                 print(f"   ✓ History ready ({len(self.full_tokens)} tokens)")
 
                 # 5. Set pointers
@@ -698,9 +790,10 @@ class LongBookGenerator:
                 "temperature_range": self.temperature_range,
                 "n_attempts": self.n_attempts,
                 "repetition_penalty": self.repetition_penalty,
-                "disable_self_conditioning": self.disable_self_conditioning,
+                "conditioning_mode": self.conditioning_mode,
+                "metric_gating_patience": self.metric_gating_patience,
                 "debug_folder": self.serializer.debug_root,
-                "compression_method": "llm_native_hidden_state"
+                "compression_method": "llm_native_hidden_state_retrieval" if self.conditioning_mode == "extended_conditioning" else "none",
             }
             self.serializer.save_metadata(metadata)
 
@@ -808,7 +901,11 @@ class LongBookGenerator:
         title_slug = slugify(title)
 
         # Phase 3: Rename folder with title and genre
-        final_folder = self.serializer.finalize_book_folder(title_slug, broader)
+        final_folder = self.serializer.finalize_book_folder(
+            title_slug,
+            broader,
+            conditioning_mode=self.conditioning_mode,
+        )
 
         # Resave metadata
         try:
@@ -843,30 +940,34 @@ class LongBookGenerator:
         # 1. Convert memory to natural language summary
         current_semantic_vector_list = None
         current_semantic_tensor = None
-        retrieval_debug = {"mode": "disabled", "reason": "self_conditioning_disabled"} if self.disable_self_conditioning else {"mode": "none"}
+        use_summary_memory = self.conditioning_mode in {"summaries_conditioning", "extended_conditioning"}
+        use_extended_memory = self.conditioning_mode == "extended_conditioning"
+        retrieval_debug = {
+            "mode": "disabled",
+            "reason": f"{self.conditioning_mode}_mode",
+        } if not use_extended_memory else {"mode": "none"}
         memory_summary = ""
         current_context = self.local_context.get_context()
 
-        if not self.disable_self_conditioning:
+        if use_summary_memory:
             memory_data = self.summary_manager.to_serializable()
             memory_data["recent_chunks"] = memory_data.get("recent_chunks", [])
             memory_data["global_summary"] = memory_data.get("global_summary", "")
-            memory_data["graph_memory"] = self.graph_memory.to_serializable()
 
-            # 1.5. Compute current context semantic vector using LLM Native Embedding
-            query_text = self._build_retrieval_query_text(current_context)
-            if query_text and len(query_text) > 100:
+            if use_extended_memory:
+                memory_data["graph_memory"] = self.graph_memory.to_serializable()
 
-                # Get LLM's internal representation (Zero-Shot)
-                # Returns (1, hidden_size) e.g. (1, 4096)
-                vec = self.model.get_embedding(query_text)
+                # Use the model's native hidden state for retrieval ranking and
+                # retrieval-conditioned soft prompting.
+                query_text = self._build_retrieval_query_text(current_context)
+                if query_text and len(query_text) > 100:
+                    vec = self.model.get_embedding(query_text)
+                    current_semantic_tensor = vec
+                    current_semantic_vector_list = vec[0].cpu().tolist()
 
-                current_semantic_tensor = vec # Keep tensor for injection
-                current_semantic_vector_list = vec[0].cpu().tolist() # List for summarizer
-
-            retrieved_chunks, retrieval_debug = self._select_retrieved_chunks(current_semantic_vector_list)
-            if retrieved_chunks:
-                memory_data["retrieved_chunks"] = retrieved_chunks
+                retrieved_chunks, retrieval_debug = self._select_retrieved_chunks(current_semantic_vector_list)
+                if retrieved_chunks:
+                    memory_data["retrieved_chunks"] = retrieved_chunks
 
             memory_summary = MemorySummarizer.summarize_for_generation(
                 memory_data,
@@ -901,17 +1002,60 @@ class LongBookGenerator:
              identity_prompt = "You are a technical writer creating a detailed reference guide."
         elif "biography" in pf:
              identity_prompt = "You are a meticulous biographer recounting a real life."
-             
+
+        include_contract = self.conditioning_mode in {
+            "basic_conditioning",
+            "summaries_conditioning",
+            "extended_conditioning",
+            "minimal_fixed_conditioning",
+        }
+        include_identity = include_contract
+        include_prev_text = self.conditioning_mode in {
+            "basic_conditioning",
+            "summaries_conditioning",
+            "extended_conditioning",
+        }
+
+        if self.conditioning_mode == "markov_rolling_conditioning":
+            include_contract = chunk_id == 1
+            include_identity = chunk_id == 1
+            include_prev_text = chunk_id > 1
+
+        include_directives = self.conditioning_mode in {
+            "basic_conditioning",
+            "summaries_conditioning",
+            "extended_conditioning",
+        }
+
+        header_prompt = identity_prompt if include_identity else ""
+        header_line = f"{header_prompt} Write at least {target_words}-{target_words + 500} words.".strip()
+        story_contract_section = ""
+        if include_contract:
+            story_contract_section = f"STORY CONTRACT (maintain throughout):\n{self.story_contract}\n\n"
+        memory_summary_section = ""
+        if memory_summary:
+            memory_summary_section = f"CONTEXT:\n{memory_summary}\n\n"
+        previous_text_section = ""
+        if include_prev_text:
+            previous_text_section = f"PREVIOUS TEXT (last section):\n{prev_text}\n\n"
+
         length_str = f"{target_words}-{target_words + 500}"
-        
-        base_prompt = CHUNK_GENERATION_PROMPT.format(
-            identity_prompt=identity_prompt,
-            story_contract=self.story_contract,
-            memory_summary=memory_summary,
-            previous_text=prev_text,
-            variation_hint=get_variation_hint(chunk_id),
-            target_length=length_str
-        )
+
+        if include_directives:
+            base_prompt = CHUNK_GENERATION_PROMPT.format(
+                header_line=header_line,
+                story_contract_section=story_contract_section,
+                memory_summary_section=memory_summary_section,
+                previous_text_section=previous_text_section,
+                variation_hint=get_variation_hint(chunk_id),
+                target_length=length_str
+            )
+        else:
+            base_prompt = MINIMAL_CHUNK_GENERATION_PROMPT.format(
+                header_line=header_line,
+                story_contract_section=story_contract_section,
+                previous_text_section=previous_text_section,
+            )
 
         last_output = ""
 
@@ -972,6 +1116,8 @@ class LongBookGenerator:
         
         failed_attempts = []
         accumulated_metrics = None # Initialize to avoid UnboundLocalError
+        metric_gating_rejected_this_chunk = False
+        metric_gating_disabled = self._metric_gates_disabled_for_chunk()
 
         for attempt in range(1, self.n_attempts + 1):
             # Log prompt before execution
@@ -1005,11 +1151,8 @@ class LongBookGenerator:
                 chaos_instruction = "\n[SYSTEM: FAILURE IMMINENT. INCREASE ENTROPY. WRITE UNPREDICTABLY. USE COMPLEX, DISJOINTED IMAGERY. TAKE A SHARP NARRATIVE TURN.]\n"
                 prompt_to_use = base_prompt + chaos_instruction
 
-            # Prepare Soft Prompt (Vector Injection)
             prefix_embeds = None
-            if (not self.disable_self_conditioning) and current_semantic_tensor is not None:
-                # Use the native embedding directly as a prefix
-                # Shape is already (1, hidden_size), need (1, 1, hidden_size)
+            if use_extended_memory and current_semantic_tensor is not None:
                 prefix_embeds = current_semantic_tensor.unsqueeze(1)
 
             # MEMORY DEBUG
@@ -1139,12 +1282,21 @@ class LongBookGenerator:
             acceptance_metrics = accumulated_metrics or chunk_metrics
             
             # Calculate distance score (lower is better)
+            metric_distance_score = calculate_metric_distance(
+                acceptance_metrics,
+                chunk_id=chunk_id,
+                cfg=self.thresholds,
+                verbose=False,
+                text=None,
+                disable_metric_gates=metric_gating_disabled,
+            )
             distance_score = calculate_metric_distance(
                 acceptance_metrics, 
                 chunk_id=chunk_id, 
                 cfg=self.thresholds,
                 verbose=(attempt == 1),
-                text=new_text
+                text=new_text,
+                disable_metric_gates=metric_gating_disabled,
             )
             
             # Store attempt data for potential fallback
@@ -1155,6 +1307,7 @@ class LongBookGenerator:
             failed_attempts.append({
                 "text": new_text, 
                 "chunk_metrics": chunk_metrics,
+                "accumulated_metrics": accumulated_metrics,
                 "distance": distance_score,
                 "attempt": attempt
             })
@@ -1167,8 +1320,26 @@ class LongBookGenerator:
             # We satisfy this by passing acceptance_metrics (accumulated).
             # However, for the 'text' argument which checks for immediate stuttering/n-gram repetition,
             # we MUST use the new_text, otherwise we'd re-scan the whole book for repeats which is wrong.
-            if is_chunk_acceptable(acceptance_metrics, text=new_text, chunk_id=chunk_id, cfg=self.thresholds, disable_gating=self.disable_gating):
-                self._update_memory(new_text, chunk_metrics, chunk_id, accumulated_metrics=accumulated_metrics)
+            if is_chunk_acceptable(acceptance_metrics, text=new_text, chunk_id=chunk_id, cfg=self.thresholds, disable_gating=metric_gating_disabled):
+                accepted_full_tokens = self.full_tokens + toks
+                self.serializer.save_debug_prompt(
+                    f"chunk_{chunk_id:03d}_accepted",
+                    json.dumps({
+                        "chunk_id": chunk_id,
+                        "accepted_attempt": attempt,
+                        "selection_reason": "gate_accept",
+                        "metric_gating_suspended": self.metric_gating_suspended,
+                        "metric_gating_streak": self.metric_gating_streak,
+                        "n_tokens": len(accepted_full_tokens),
+                    }, indent=2),
+                )
+                self._update_memory(
+                    new_text,
+                    chunk_metrics,
+                    chunk_id,
+                    accumulated_metrics=accumulated_metrics,
+                    full_tokens_snapshot=accepted_full_tokens,
+                )
                 
                 # Update LZ State
                 if 'lz_complexity_count' in acceptance_metrics:
@@ -1176,9 +1347,11 @@ class LongBookGenerator:
                     self.lz_state = {
                         'c': acceptance_metrics['lz_complexity_count'],
                         # Use l_ptr if available, else fallback to length (which is incorrect but safe fallback)
-                        'l_ptr': acceptance_metrics.get('lz_complexity_l', len(self.full_tokens))
+                        'l_ptr': acceptance_metrics.get('lz_complexity_l', len(accepted_full_tokens))
                     }
                 
+                self._record_metric_gating_outcome(chunk_id, metric_gating_rejected_this_chunk)
+
                 # Aggressive Memory Cleanup
                 del failed_attempts
                 if 'chunk_metrics' in locals(): del chunk_metrics
@@ -1188,14 +1361,24 @@ class LongBookGenerator:
                 
                 return new_text
             else:
+                 if metric_distance_score > 0:
+                     metric_gating_rejected_this_chunk = True
+
                  m = acceptance_metrics
                  # Format metrics for display with color coding
                  # Use self.thresholds instead of importing _DEFAULT_CFG
-                 from generated_texts_og.utils.coherence_decision import GATED_METRICS
-                 CFG = self.thresholds
+                 from generated_texts_og.utils.coherence_decision import GATED_METRICS, resolve_effective_config
+                 CFG = resolve_effective_config(m, self.thresholds)
                  
                  def color_metric(key, display_name, val, fmt=".3f"):
-                     if key not in GATED_METRICS:
+                     gated_after_start = {"beta", "alpha", "H_DFA1", "lz_complexity", "mi_decay_gamma"}
+                     n_tokens_for_gate = m.get("n_tokens", 0) or 0
+                     if (
+                         self.disable_gating
+                         or self.metric_gating_suspended
+                         or key not in GATED_METRICS
+                         or (key in gated_after_start and n_tokens_for_gate <= 100000)
+                     ):
                          return f"{display_name}: {val:{fmt}}"
                      
                      min_k, max_k = None, None
@@ -1205,7 +1388,7 @@ class LongBookGenerator:
                      elif key == "lz_complexity": min_k, max_k = "lz_min", "lz_max"
                      elif key == "mi_decay_gamma": min_k, max_k = "gamma_min", "gamma_max"
                      elif key == "alpha": min_k, max_k = "alpha_min", "alpha_max"
-                     elif key == "H_DMA": min_k, max_k = "H_DMA_min", "H_DMA_max"
+                     elif key == "H_DFA1": min_k, max_k = "H_min", "H_max"
                      
                      if not min_k: return f"{display_name}: {val:{fmt}}"
                      
@@ -1227,6 +1410,7 @@ class LongBookGenerator:
                  metric_parts.append(color_metric("perplexity", "PPL", m.get('perplexity', 0), ".0f"))
                  metric_parts.append(color_metric("entropy_bits", "Ent", m.get('entropy_bits', 0), ".2f"))
                  metric_parts.append(color_metric("lz_complexity", "Lz", m.get('lz_complexity', 0), ".4f"))
+                 metric_parts.append(color_metric("H_DFA1", "H_DFA1", m.get('H_DFA1', 0), ".2f"))
                  metric_parts.append(color_metric("H_DMA", "H_DMA", m.get('H_DMA', 0), ".2f"))
                  metric_parts.append(color_metric("mi_decay_gamma", "Gam", m.get('mi_decay_gamma', 0), ".4f"))
                  
@@ -1241,26 +1425,35 @@ class LongBookGenerator:
         if failed_attempts:
             best_attempt = min(failed_attempts, key=lambda x: x["distance"])
             print(f"⚠️ All attempts failed. Fallback to attempt {best_attempt['attempt']} (Best Distance: {best_attempt['distance']:.4f})")
-            # Note: best_attempt['metrics'] is local, not accumulated. 
-            # Ideally we'd have the accumulated metrics corresponding to this attempt, but we only calculate it 
-            # during the check. We might need to re-calculate or assume it's close enough.
-            # However, for saving state, we likely want the accumulated metrics of the ACCEPTED chunk.
-            # If we fall back, we accept it. So we should re-calc accumulated here?
-            # Or just pass existing 'accumulated_metrics' if available from last loop?
-            # Issue: 'accumulated_metrics' var is local to loop. 
-            pass
-            # For now, pass None if not available, OR better:
-            # We must ensure accumulated_metrics is available.
-            
-            # If we are here, 'accumulated_metrics' might be strictly from the LAST attempt.
-            # But the BEST attempt might be an earlier one.
-            # So we should ideally recompute or use what we have.
-            # For safety, let's just pass what we have (or {}).
-            # The UnboundLocalError happens because 'accumulated_metrics' wasn't defined if loop didn't run or all failed early?
-            # Actually it IS defined in the loop, but python scoping makes it available. 
-            # BUT if all attempts 'continue'd before assigning it (e.g. generation error), it would be unbound.
-            
-            self._update_memory(best_attempt['text'], best_attempt['chunk_metrics'], chunk_id, accumulated_metrics=accumulated_metrics)
+
+            best_toks = Tokenizer(kind="gpt4").encode(best_attempt['text'] + "\n\n")
+            best_accumulated_metrics = best_attempt.get('accumulated_metrics')
+            self.serializer.save_debug_prompt(
+                f"chunk_{chunk_id:03d}_accepted",
+                json.dumps({
+                    "chunk_id": chunk_id,
+                    "accepted_attempt": best_attempt['attempt'],
+                    "selection_reason": "fallback_best_distance",
+                    "distance": best_attempt["distance"],
+                    "metric_gating_suspended": self.metric_gating_suspended,
+                    "metric_gating_streak": self.metric_gating_streak,
+                    "n_tokens": len(self.full_tokens + best_toks),
+                }, indent=2),
+            )
+            self._update_memory(
+                best_attempt['text'],
+                best_attempt['chunk_metrics'],
+                chunk_id,
+                accumulated_metrics=best_accumulated_metrics,
+                full_tokens_snapshot=self.full_tokens + best_toks,
+            )
+            if best_accumulated_metrics and 'lz_complexity_count' in best_accumulated_metrics:
+                self.lz_state = {
+                    'c': best_accumulated_metrics['lz_complexity_count'],
+                    'l_ptr': best_accumulated_metrics.get('lz_complexity_l', len(self.full_tokens + best_toks))
+                }
+
+            self._record_metric_gating_outcome(chunk_id, metric_gating_rejected_this_chunk)
             
             # Aggressive Memory Cleanup
             del failed_attempts
@@ -1273,7 +1466,31 @@ class LongBookGenerator:
         if not last_output or len(last_output.strip()) == 0:
             raise RuntimeError(f"Chunk {chunk_id}: Generation failed after {self.n_attempts} attempts. Aborting run to prevent data corruption.")
 
-        self._update_memory(last_output, {}, chunk_id, accumulated_metrics=accumulated_metrics)
+        last_output_toks = Tokenizer(kind="gpt4").encode(last_output + "\n\n")
+        self.serializer.save_debug_prompt(
+            f"chunk_{chunk_id:03d}_accepted",
+            json.dumps({
+                "chunk_id": chunk_id,
+                "accepted_attempt": None,
+                "selection_reason": "absolute_last_output_fallback",
+                "metric_gating_suspended": self.metric_gating_suspended,
+                "metric_gating_streak": self.metric_gating_streak,
+                "n_tokens": len(self.full_tokens + last_output_toks),
+            }, indent=2),
+        )
+        self._update_memory(
+            last_output,
+            {},
+            chunk_id,
+            accumulated_metrics=accumulated_metrics,
+            full_tokens_snapshot=self.full_tokens + last_output_toks,
+        )
+        if accumulated_metrics and 'lz_complexity_count' in accumulated_metrics:
+            self.lz_state = {
+                'c': accumulated_metrics['lz_complexity_count'],
+                'l_ptr': accumulated_metrics.get('lz_complexity_l', len(self.full_tokens + last_output_toks))
+            }
+        self._record_metric_gating_outcome(chunk_id, metric_gating_rejected_this_chunk)
         return last_output
 
     # ------------------------------------------------------------
@@ -1337,7 +1554,7 @@ class LongBookGenerator:
     # ------------------------------------------------------------
     # MEMORY UPDATE
     # ------------------------------------------------------------
-    def _update_memory(self, new_text, metrics, chunk_id, accumulated_metrics=None):
+    def _update_memory(self, new_text, metrics, chunk_id, accumulated_metrics=None, full_tokens_snapshot=None):
         """
         Update local, S2 (chunk), E2 (episode), G3 (global) memory.
         And save snapshot for this chunk.
@@ -1460,7 +1677,7 @@ class LongBookGenerator:
         self.serializer.save_memory_snapshot(
             self.summary_manager, 
             f"chunk_{chunk_id:03d}",
-            full_tokens=self.full_tokens,
+            full_tokens=full_tokens_snapshot if full_tokens_snapshot is not None else self.full_tokens,
             accumulated_metrics=accumulated_metrics,
             graph_memory=self.graph_memory.to_serializable(),
         )

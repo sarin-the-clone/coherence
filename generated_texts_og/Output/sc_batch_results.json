@@ -1,0 +1,2716 @@
+{
+  "20260102_030044_awakening_the_heart_aria_mira_s_quest_to_restore_zyrathos_historical_fiction_summaries_conditioning_high_temperature": {
+    "run_id": "20260102_030044_awakening_the_heart_aria_mira_s_quest_to_restore_zyrathos_historical_fiction_summaries_conditioning_high_temperature",
+    "conditioning_mode": "summaries_conditioning",
+    "broader_genre": "Historical Fiction",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000991,
+    "n_chars": 4317166,
+    "W1k": {
+      "n_windows": 8634,
+      "off_diag_mean": 0.3020365834236145,
+      "off_diag_std": 0.1052275151014328,
+      "novelty_mean": 0.30227098008731035,
+      "novelty_std": 0.11422130398053626,
+      "novelty_final": 0.28369140625,
+      "mean_sim_to_past_mean": 0.30191856376472054,
+      "mean_sim_to_past_final": 0.2822158634662628,
+      "sim_lag1_mean": 0.3465318594748847,
+      "sim_lag1_std": 0.11560823762053972
+    },
+    "W2k": {
+      "n_windows": 4215,
+      "off_diag_mean": 0.4517749547958374,
+      "off_diag_std": 0.08880368620157242,
+      "novelty_mean": 0.25815408830683434,
+      "novelty_std": 0.048730837434537266,
+      "novelty_final": 0.158203125,
+      "mean_sim_to_past_mean": 0.45405495399454504,
+      "mean_sim_to_past_final": 0.46047094464302063,
+      "sim_lag1_mean": 0.7334147174040401,
+      "sim_lag1_std": 0.0617798803449334
+    },
+    "W8k": {
+      "n_windows": 1079,
+      "off_diag_mean": 0.7527934908866882,
+      "off_diag_std": 0.04253004491329193,
+      "novelty_mean": 0.16660808499536178,
+      "novelty_std": 0.023151475685504342,
+      "novelty_final": 0.244140625,
+      "mean_sim_to_past_mean": 0.7528733881484158,
+      "mean_sim_to_past_final": 0.6851539611816406,
+      "sim_lag1_mean": 0.7949064746637291,
+      "sim_lag1_std": 0.036605324419511
+    },
+    "W40k": {
+      "n_windows": 215,
+      "off_diag_mean": 0.924635112285614,
+      "off_diag_std": 0.013705918565392494,
+      "novelty_mean": 0.052027051693925234,
+      "novelty_std": 0.0060224274164821165,
+      "novelty_final": 0.060546875,
+      "mean_sim_to_past_mean": 0.9250367350667437,
+      "mean_sim_to_past_final": 0.9119200110435486,
+      "sim_lag1_mean": 0.941853460864486,
+      "sim_lag1_std": 0.01034835074001596
+    }
+  },
+  "20260102_171404_the_sisters_of_twilight_the_keepers_resurrection_epic_historical_drama_summaries_conditioning_high_temperature": {
+    "run_id": "20260102_171404_the_sisters_of_twilight_the_keepers_resurrection_epic_historical_drama_summaries_conditioning_high_temperature",
+    "conditioning_mode": "summaries_conditioning",
+    "broader_genre": "Epic Historical Drama",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000770,
+    "n_chars": 4307040,
+    "W1k": {
+      "n_windows": 8614,
+      "off_diag_mean": 0.2989509105682373,
+      "off_diag_std": 0.10429894924163818,
+      "novelty_mean": 0.2996917161240639,
+      "novelty_std": 0.11396158180148165,
+      "novelty_final": 0.3349609375,
+      "mean_sim_to_past_mean": 0.3009493697186398,
+      "mean_sim_to_past_final": 0.2126334309577942,
+      "sim_lag1_mean": 0.3462104775218284,
+      "sim_lag1_std": 0.11681128104638301
+    },
+    "W2k": {
+      "n_windows": 4206,
+      "off_diag_mean": 0.44834330677986145,
+      "off_diag_std": 0.0867876261472702,
+      "novelty_mean": 0.2604064288235731,
+      "novelty_std": 0.048538947006668956,
+      "novelty_final": 0.3369140625,
+      "mean_sim_to_past_mean": 0.45176669651914864,
+      "mean_sim_to_past_final": 0.349235862493515,
+      "sim_lag1_mean": 0.7307843619946492,
+      "sim_lag1_std": 0.0616304191357362
+    },
+    "W8k": {
+      "n_windows": 1076,
+      "off_diag_mean": 0.7486264109611511,
+      "off_diag_std": 0.0422554649412632,
+      "novelty_mean": 0.16918786337209302,
+      "novelty_std": 0.021769193537487224,
+      "novelty_final": 0.18896484375,
+      "mean_sim_to_past_mean": 0.751244053785191,
+      "mean_sim_to_past_final": 0.7039621472358704,
+      "sim_lag1_mean": 0.788370730377907,
+      "sim_lag1_std": 0.038222044141502556
+    },
+    "W40k": {
+      "n_windows": 215,
+      "off_diag_mean": 0.924013614654541,
+      "off_diag_std": 0.01314191147685051,
+      "novelty_mean": 0.051823981454439255,
+      "novelty_std": 0.005708658192540852,
+      "novelty_final": 0.06689453125,
+      "mean_sim_to_past_mean": 0.92599603673008,
+      "mean_sim_to_past_final": 0.9009770154953003,
+      "sim_lag1_mean": 0.9430924174941588,
+      "sim_lag1_std": 0.008648053261366759
+    }
+  },
+  "20260103_070536_awakening_the_sleeping_goddess_the_battle_for_light_and_dark_epic_historical_drama_summaries_conditioning_high_temperature": {
+    "run_id": "20260103_070536_awakening_the_sleeping_goddess_the_battle_for_light_and_dark_epic_historical_drama_summaries_conditioning_high_temperature",
+    "conditioning_mode": "summaries_conditioning",
+    "broader_genre": "Epic Historical Drama",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000118,
+    "n_chars": 4291437,
+    "W1k": {
+      "n_windows": 8582,
+      "off_diag_mean": 0.2949676811695099,
+      "off_diag_std": 0.10581856220960617,
+      "novelty_mean": 0.30203657835989395,
+      "novelty_std": 0.11552555291720813,
+      "novelty_final": 0.18212890625,
+      "mean_sim_to_past_mean": 0.2962986360464795,
+      "mean_sim_to_past_final": 0.28506478667259216,
+      "sim_lag1_mean": 0.34244032342899877,
+      "sim_lag1_std": 0.11947012758917977
+    },
+    "W2k": {
+      "n_windows": 4190,
+      "off_diag_mean": 0.44572705030441284,
+      "off_diag_std": 0.08970172703266144,
+      "novelty_mean": 0.260530159905407,
+      "novelty_std": 0.049152128962189685,
+      "novelty_final": 0.22314453125,
+      "mean_sim_to_past_mean": 0.446593434112998,
+      "mean_sim_to_past_final": 0.43656983971595764,
+      "sim_lag1_mean": 0.730559260955031,
+      "sim_lag1_std": 0.062806289284018
+    },
+    "W8k": {
+      "n_windows": 1072,
+      "off_diag_mean": 0.7463683485984802,
+      "off_diag_std": 0.04289169982075691,
+      "novelty_mean": 0.17046668927987862,
+      "novelty_std": 0.02281439986253943,
+      "novelty_final": 0.16064453125,
+      "mean_sim_to_past_mean": 0.7453847226976347,
+      "mean_sim_to_past_final": 0.7607184648513794,
+      "sim_lag1_mean": 0.7906349388713819,
+      "sim_lag1_std": 0.03699739974536855
+    },
+    "W40k": {
+      "n_windows": 214,
+      "off_diag_mean": 0.9211477637290955,
+      "off_diag_std": 0.013734088279306889,
+      "novelty_mean": 0.0541166923415493,
+      "novelty_std": 0.005860131012807043,
+      "novelty_final": 0.0576171875,
+      "mean_sim_to_past_mean": 0.9219092460865146,
+      "mean_sim_to_past_final": 0.9036275148391724,
+      "sim_lag1_mean": 0.9397603066314554,
+      "sim_lag1_std": 0.00923057549457507
+    }
+  },
+  "20260103_203957_dancing_amidst_the_stars_a_love_story_of_resilience_and_redemption_romance_summaries_conditioning_high_temperature": {
+    "run_id": "20260103_203957_dancing_amidst_the_stars_a_love_story_of_resilience_and_redemption_romance_summaries_conditioning_high_temperature",
+    "conditioning_mode": "summaries_conditioning",
+    "broader_genre": "Romance",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000748,
+    "n_chars": 4425919,
+    "W1k": {
+      "n_windows": 8851,
+      "off_diag_mean": 0.29631108045578003,
+      "off_diag_std": 0.11019399762153625,
+      "novelty_mean": 0.30692331777454096,
+      "novelty_std": 0.11575618714913793,
+      "novelty_final": 0.3447265625,
+      "mean_sim_to_past_mean": 0.297563929097085,
+      "mean_sim_to_past_final": 0.3283435106277466,
+      "sim_lag1_mean": 0.3426488594012072,
+      "sim_lag1_std": 0.12035356817304742
+    },
+    "W2k": {
+      "n_windows": 4322,
+      "off_diag_mean": 0.4430716931819916,
+      "off_diag_std": 0.09287476539611816,
+      "novelty_mean": 0.26128137611013075,
+      "novelty_std": 0.051856698265172536,
+      "novelty_final": 0.29248046875,
+      "mean_sim_to_past_mean": 0.4454769407384127,
+      "mean_sim_to_past_final": 0.3086913824081421,
+      "sim_lag1_mean": 0.728768156016764,
+      "sim_lag1_std": 0.0657423626951199
+    },
+    "W8k": {
+      "n_windows": 1106,
+      "off_diag_mean": 0.7470546960830688,
+      "off_diag_std": 0.04486043378710747,
+      "novelty_mean": 0.1663262690893665,
+      "novelty_std": 0.023488113514623897,
+      "novelty_final": 0.154296875,
+      "mean_sim_to_past_mean": 0.7469635340962475,
+      "mean_sim_to_past_final": 0.7060467600822449,
+      "sim_lag1_mean": 0.7882573882918552,
+      "sim_lag1_std": 0.03969859807724425
+    },
+    "W40k": {
+      "n_windows": 221,
+      "off_diag_mean": 0.9233386516571045,
+      "off_diag_std": 0.0183594711124897,
+      "novelty_mean": 0.051460404829545454,
+      "novelty_std": 0.006407502875972816,
+      "novelty_final": 0.06005859375,
+      "mean_sim_to_past_mean": 0.9226587173613635,
+      "mean_sim_to_past_final": 0.8902210593223572,
+      "sim_lag1_mean": 0.9418767755681818,
+      "sim_lag1_std": 0.008986576645327572
+    }
+  },
+  "20260104_101044_celestial_storm_rebirth_of_the_golden_era_romance_summaries_conditioning_high_temperature": {
+    "run_id": "20260104_101044_celestial_storm_rebirth_of_the_golden_era_romance_summaries_conditioning_high_temperature",
+    "conditioning_mode": "summaries_conditioning",
+    "broader_genre": "Romance",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000620,
+    "n_chars": 4428242,
+    "W1k": {
+      "n_windows": 8856,
+      "off_diag_mean": 0.2945612072944641,
+      "off_diag_std": 0.11044120788574219,
+      "novelty_mean": 0.3058227883699181,
+      "novelty_std": 0.1166583065971368,
+      "novelty_final": 0.27587890625,
+      "mean_sim_to_past_mean": 0.2949923244621005,
+      "mean_sim_to_past_final": 0.3428006172180176,
+      "sim_lag1_mean": 0.34049820369545986,
+      "sim_lag1_std": 0.12029013603212321
+    },
+    "W2k": {
+      "n_windows": 4324,
+      "off_diag_mean": 0.4455159902572632,
+      "off_diag_std": 0.09221557527780533,
+      "novelty_mean": 0.2595831548729181,
+      "novelty_std": 0.05040220867766296,
+      "novelty_final": 0.23486328125,
+      "mean_sim_to_past_mean": 0.4453069644547325,
+      "mean_sim_to_past_final": 0.4250361919403076,
+      "sim_lag1_mean": 0.7305647571854037,
+      "sim_lag1_std": 0.06355724799374818
+    },
+    "W8k": {
+      "n_windows": 1107,
+      "off_diag_mean": 0.7449782490730286,
+      "off_diag_std": 0.04508741945028305,
+      "novelty_mean": 0.16771048188856238,
+      "novelty_std": 0.023694740764822007,
+      "novelty_final": 0.2861328125,
+      "mean_sim_to_past_mean": 0.7449509066548098,
+      "mean_sim_to_past_final": 0.593799889087677,
+      "sim_lag1_mean": 0.7857443066229657,
+      "sim_lag1_std": 0.03951514621456303
+    },
+    "W40k": {
+      "n_windows": 221,
+      "off_diag_mean": 0.9256540536880493,
+      "off_diag_std": 0.017656683921813965,
+      "novelty_mean": 0.051234019886363634,
+      "novelty_std": 0.0061737644445271755,
+      "novelty_final": 0.06005859375,
+      "mean_sim_to_past_mean": 0.9240951026027853,
+      "mean_sim_to_past_final": 0.9074152112007141,
+      "sim_lag1_mean": 0.941796875,
+      "sim_lag1_std": 0.009688147022644604
+    }
+  },
+  "20260104_235745_reclaiming_the_ivory_note_a_resurgent_opera_romance_summaries_conditioning_high_temperature": {
+    "run_id": "20260104_235745_reclaiming_the_ivory_note_a_resurgent_opera_romance_summaries_conditioning_high_temperature",
+    "conditioning_mode": "summaries_conditioning",
+    "broader_genre": "Romance",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000223,
+    "n_chars": 4437880,
+    "W1k": {
+      "n_windows": 8875,
+      "off_diag_mean": 0.29658395051956177,
+      "off_diag_std": 0.1100023090839386,
+      "novelty_mean": 0.30446795501605817,
+      "novelty_std": 0.11456154599504378,
+      "novelty_final": 0.26318359375,
+      "mean_sim_to_past_mean": 0.29646880810516546,
+      "mean_sim_to_past_final": 0.27187827229499817,
+      "sim_lag1_mean": 0.34497475984103515,
+      "sim_lag1_std": 0.12182295089634652
+    },
+    "W2k": {
+      "n_windows": 4333,
+      "off_diag_mean": 0.44679105281829834,
+      "off_diag_std": 0.0927838683128357,
+      "novelty_mean": 0.2608922674825427,
+      "novelty_std": 0.05194087018478319,
+      "novelty_final": 0.35546875,
+      "mean_sim_to_past_mean": 0.447849473123983,
+      "mean_sim_to_past_final": 0.34547072649002075,
+      "sim_lag1_mean": 0.7287163140040686,
+      "sim_lag1_std": 0.06463839969305034
+    },
+    "W8k": {
+      "n_windows": 1109,
+      "off_diag_mean": 0.7502217888832092,
+      "off_diag_std": 0.043753284960985184,
+      "novelty_mean": 0.1679630210683664,
+      "novelty_std": 0.02412823810004389,
+      "novelty_final": 0.16650390625,
+      "mean_sim_to_past_mean": 0.7493747357642178,
+      "mean_sim_to_past_final": 0.6897972822189331,
+      "sim_lag1_mean": 0.7885195735559567,
+      "sim_lag1_std": 0.03917563164546839
+    },
+    "W40k": {
+      "n_windows": 221,
+      "off_diag_mean": 0.9270725846290588,
+      "off_diag_std": 0.013901982456445694,
+      "novelty_mean": 0.05138716264204545,
+      "novelty_std": 0.006834846058156511,
+      "novelty_final": 0.052734375,
+      "mean_sim_to_past_mean": 0.9273728804154829,
+      "mean_sim_to_past_final": 0.9052112698554993,
+      "sim_lag1_mean": 0.940365323153409,
+      "sim_lag1_std": 0.010862234038513307
+    }
+  },
+  "20260105_130607_shadows_rising_redemption_s_dawn_neo_tokyo_rising_thriller_summaries_conditioning_high_temperature": {
+    "run_id": "20260105_130607_shadows_rising_redemption_s_dawn_neo_tokyo_rising_thriller_summaries_conditioning_high_temperature",
+    "conditioning_mode": "summaries_conditioning",
+    "broader_genre": "Thriller",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000257,
+    "n_chars": 4217389,
+    "W1k": {
+      "n_windows": 8434,
+      "off_diag_mean": 0.2929860055446625,
+      "off_diag_std": 0.11100407689809799,
+      "novelty_mean": 0.30105069347170343,
+      "novelty_std": 0.11615741404594475,
+      "novelty_final": 0.27880859375,
+      "mean_sim_to_past_mean": 0.29607717538636574,
+      "mean_sim_to_past_final": 0.2607984244823456,
+      "sim_lag1_mean": 0.34124086455321745,
+      "sim_lag1_std": 0.12245360654451429
+    },
+    "W2k": {
+      "n_windows": 4118,
+      "off_diag_mean": 0.4410521686077118,
+      "off_diag_std": 0.09363836795091629,
+      "novelty_mean": 0.25816978619519676,
+      "novelty_std": 0.05287784706285505,
+      "novelty_final": 0.2763671875,
+      "mean_sim_to_past_mean": 0.4426368303345424,
+      "mean_sim_to_past_final": 0.45515191555023193,
+      "sim_lag1_mean": 0.7314631026839932,
+      "sim_lag1_std": 0.06652614224577466
+    },
+    "W8k": {
+      "n_windows": 1054,
+      "off_diag_mean": 0.7381464242935181,
+      "off_diag_std": 0.04872753098607063,
+      "novelty_mean": 0.1701300784959639,
+      "novelty_std": 0.024605174920024207,
+      "novelty_final": 0.2412109375,
+      "mean_sim_to_past_mean": 0.7397496137071086,
+      "mean_sim_to_past_final": 0.6000056266784668,
+      "sim_lag1_mean": 0.7871603825379867,
+      "sim_lag1_std": 0.04239276866931236
+    },
+    "W40k": {
+      "n_windows": 210,
+      "off_diag_mean": 0.9163193702697754,
+      "off_diag_std": 0.021030372008681297,
+      "novelty_mean": 0.05360346889952153,
+      "novelty_std": 0.007167003778300273,
+      "novelty_final": 0.0654296875,
+      "mean_sim_to_past_mean": 0.916023185093437,
+      "mean_sim_to_past_final": 0.8904964923858643,
+      "sim_lag1_mean": 0.9409623579545454,
+      "sim_lag1_std": 0.010386125333050621
+    }
+  },
+  "20260106_133831_the_phantom_of_xiang_neo_tokyo_s_last_stand_thriller_summaries_conditioning_high_temperature": {
+    "run_id": "20260106_133831_the_phantom_of_xiang_neo_tokyo_s_last_stand_thriller_summaries_conditioning_high_temperature",
+    "conditioning_mode": "summaries_conditioning",
+    "broader_genre": "Thriller",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000590,
+    "n_chars": 4207913,
+    "W1k": {
+      "n_windows": 8415,
+      "off_diag_mean": 0.29125404357910156,
+      "off_diag_std": 0.10917709022760391,
+      "novelty_mean": 0.3050252172253833,
+      "novelty_std": 0.11711832709308564,
+      "novelty_final": 0.35888671875,
+      "mean_sim_to_past_mean": 0.2935305497685896,
+      "mean_sim_to_past_final": 0.3019346296787262,
+      "sim_lag1_mean": 0.3375134741237052,
+      "sim_lag1_std": 0.12134974870823168
+    },
+    "W2k": {
+      "n_windows": 4109,
+      "off_diag_mean": 0.4368590712547302,
+      "off_diag_std": 0.09362812340259552,
+      "novelty_mean": 0.2611879759196994,
+      "novelty_std": 0.05041385411511787,
+      "novelty_final": 0.26904296875,
+      "mean_sim_to_past_mean": 0.4399712847685396,
+      "mean_sim_to_past_final": 0.32716092467308044,
+      "sim_lag1_mean": 0.7276630345895204,
+      "sim_lag1_std": 0.06585580489976588
+    },
+    "W8k": {
+      "n_windows": 1051,
+      "off_diag_mean": 0.7403547167778015,
+      "off_diag_std": 0.04496406391263008,
+      "novelty_mean": 0.17211030505952382,
+      "novelty_std": 0.02434091607574812,
+      "novelty_final": 0.18359375,
+      "mean_sim_to_past_mean": 0.7421838028090341,
+      "mean_sim_to_past_final": 0.7184179425239563,
+      "sim_lag1_mean": 0.7844275483630953,
+      "sim_lag1_std": 0.039913092044201334
+    },
+    "W40k": {
+      "n_windows": 210,
+      "off_diag_mean": 0.9201250672340393,
+      "off_diag_std": 0.01459022331982851,
+      "novelty_mean": 0.054049697218899524,
+      "novelty_std": 0.005658759285080789,
+      "novelty_final": 0.0595703125,
+      "mean_sim_to_past_mean": 0.9211164327899805,
+      "mean_sim_to_past_final": 0.9010143876075745,
+      "sim_lag1_mean": 0.9408455442583732,
+      "sim_lag1_std": 0.009007033799836462
+    }
+  },
+  "20260107_031518_the_guardian_s_awakening_unraveling_the_secrets_of_the_lost_sentinels_thriller_summaries_conditioning_high_temperature": {
+    "run_id": "20260107_031518_the_guardian_s_awakening_unraveling_the_secrets_of_the_lost_sentinels_thriller_summaries_conditioning_high_temperature",
+    "conditioning_mode": "summaries_conditioning",
+    "broader_genre": "Thriller",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1001813,
+    "n_chars": 4225684,
+    "W1k": {
+      "n_windows": 8451,
+      "off_diag_mean": 0.2928200662136078,
+      "off_diag_std": 0.11207067221403122,
+      "novelty_mean": 0.2998623711399778,
+      "novelty_std": 0.11959851751166649,
+      "novelty_final": 0.2080078125,
+      "mean_sim_to_past_mean": 0.29322704570180563,
+      "mean_sim_to_past_final": 0.24217519164085388,
+      "sim_lag1_mean": 0.34016087458683897,
+      "sim_lag1_std": 0.1252313929118491
+    },
+    "W2k": {
+      "n_windows": 4126,
+      "off_diag_mean": 0.4425993859767914,
+      "off_diag_std": 0.0926867350935936,
+      "novelty_mean": 0.25813239820075756,
+      "novelty_std": 0.052802423697833674,
+      "novelty_final": 0.259765625,
+      "mean_sim_to_past_mean": 0.4456628742904374,
+      "mean_sim_to_past_final": 0.4677552282810211,
+      "sim_lag1_mean": 0.7312648555871212,
+      "sim_lag1_std": 0.067847532227162
+    },
+    "W8k": {
+      "n_windows": 1056,
+      "off_diag_mean": 0.740862250328064,
+      "off_diag_std": 0.046502720564603806,
+      "novelty_mean": 0.16983810352488152,
+      "novelty_std": 0.024984459530151167,
+      "novelty_final": 0.24560546875,
+      "mean_sim_to_past_mean": 0.7416861726774424,
+      "mean_sim_to_past_final": 0.6506208777427673,
+      "sim_lag1_mean": 0.7867631812796209,
+      "sim_lag1_std": 0.0403352918114942
+    },
+    "W40k": {
+      "n_windows": 211,
+      "off_diag_mean": 0.9205463528633118,
+      "off_diag_std": 0.016903309151530266,
+      "novelty_mean": 0.053201729910714285,
+      "novelty_std": 0.005994290000664287,
+      "novelty_final": 0.0625,
+      "mean_sim_to_past_mean": 0.9199962261177245,
+      "mean_sim_to_past_final": 0.9093703627586365,
+      "sim_lag1_mean": 0.9408389136904762,
+      "sim_lag1_std": 0.009376579953111136
+    }
+  },
+  "20260204_155340_the_moonlit_conquest_shadows_of_the_city_science_summaries_conditioning_high_temperature": {
+    "run_id": "20260204_155340_the_moonlit_conquest_shadows_of_the_city_science_summaries_conditioning_high_temperature",
+    "conditioning_mode": "summaries_conditioning",
+    "broader_genre": "Science",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000816,
+    "n_chars": 4391408,
+    "W1k": {
+      "n_windows": 8782,
+      "off_diag_mean": 0.3064419627189636,
+      "off_diag_std": 0.10468527674674988,
+      "novelty_mean": 0.3092650463580814,
+      "novelty_std": 0.10906425799018502,
+      "novelty_final": 0.31689453125,
+      "mean_sim_to_past_mean": 0.3087393502289994,
+      "mean_sim_to_past_final": 0.34172162413597107,
+      "sim_lag1_mean": 0.364527282784352,
+      "sim_lag1_std": 0.11800806889663035
+    },
+    "W2k": {
+      "n_windows": 4288,
+      "off_diag_mean": 0.4532403349876404,
+      "off_diag_std": 0.08914653956890106,
+      "novelty_mean": 0.2509726899638442,
+      "novelty_std": 0.05010097961722975,
+      "novelty_final": 0.158203125,
+      "mean_sim_to_past_mean": 0.4561317606019006,
+      "mean_sim_to_past_final": 0.3119235932826996,
+      "sim_lag1_mean": 0.7419511898709034,
+      "sim_lag1_std": 0.06310872249979736
+    },
+    "W8k": {
+      "n_windows": 1097,
+      "off_diag_mean": 0.7394172549247742,
+      "off_diag_std": 0.04525983706116676,
+      "novelty_mean": 0.16863568159785583,
+      "novelty_std": 0.02309512123818742,
+      "novelty_final": 0.1826171875,
+      "mean_sim_to_past_mean": 0.7416374381006199,
+      "mean_sim_to_past_final": 0.6945462226867676,
+      "sim_lag1_mean": 0.8010325188184306,
+      "sim_lag1_std": 0.0361035767844169
+    },
+    "W40k": {
+      "n_windows": 219,
+      "off_diag_mean": 0.9052029252052307,
+      "off_diag_std": 0.0249114241451025,
+      "novelty_mean": 0.05223265481651376,
+      "novelty_std": 0.0066360577215403265,
+      "novelty_final": 0.05517578125,
+      "mean_sim_to_past_mean": 0.9076383534921418,
+      "mean_sim_to_past_final": 0.8886808156967163,
+      "sim_lag1_mean": 0.9456126361811926,
+      "sim_lag1_std": 0.008051421711770994
+    }
+  },
+  "20260205_055422_the_interconnected_web_a_cosmic_journey_science_summaries_conditioning_high_temperature": {
+    "run_id": "20260205_055422_the_interconnected_web_a_cosmic_journey_science_summaries_conditioning_high_temperature",
+    "conditioning_mode": "summaries_conditioning",
+    "broader_genre": "Science",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000180,
+    "n_chars": 4373800,
+    "W1k": {
+      "n_windows": 8747,
+      "off_diag_mean": 0.29854264855384827,
+      "off_diag_std": 0.10645594447851181,
+      "novelty_mean": 0.3026207488378616,
+      "novelty_std": 0.11141115971435842,
+      "novelty_final": 0.25,
+      "mean_sim_to_past_mean": 0.299499216296755,
+      "mean_sim_to_past_final": 0.2858104407787323,
+      "sim_lag1_mean": 0.35163563087824523,
+      "sim_lag1_std": 0.11917534896645557
+    },
+    "W2k": {
+      "n_windows": 4271,
+      "off_diag_mean": 0.4444790482521057,
+      "off_diag_std": 0.0886518657207489,
+      "novelty_mean": 0.2580279955540105,
+      "novelty_std": 0.04923000562464022,
+      "novelty_final": 0.25439453125,
+      "mean_sim_to_past_mean": 0.4471750133734118,
+      "mean_sim_to_past_final": 0.4206879734992981,
+      "sim_lag1_mean": 0.7337593310889929,
+      "sim_lag1_std": 0.06202052651359559
+    },
+    "W8k": {
+      "n_windows": 1093,
+      "off_diag_mean": 0.7403799295425415,
+      "off_diag_std": 0.0446806438267231,
+      "novelty_mean": 0.16949664105425824,
+      "novelty_std": 0.02220185327897866,
+      "novelty_final": 0.169921875,
+      "mean_sim_to_past_mean": 0.7421848724285761,
+      "mean_sim_to_past_final": 0.719720721244812,
+      "sim_lag1_mean": 0.7937069847470238,
+      "sim_lag1_std": 0.03820145464871547
+    },
+    "W40k": {
+      "n_windows": 218,
+      "off_diag_mean": 0.9138954281806946,
+      "off_diag_std": 0.019310344010591507,
+      "novelty_mean": 0.05415196572580645,
+      "novelty_std": 0.00650376324450661,
+      "novelty_final": 0.06005859375,
+      "mean_sim_to_past_mean": 0.9153493782891656,
+      "mean_sim_to_past_final": 0.8791965246200562,
+      "sim_lag1_mean": 0.9412284886232719,
+      "sim_lag1_std": 0.009509590972623844
+    }
+  },
+  "20260205_194018_echoes_of_the_forgotten_constellation_science_summaries_conditioning_high_temperature": {
+    "run_id": "20260205_194018_echoes_of_the_forgotten_constellation_science_summaries_conditioning_high_temperature",
+    "conditioning_mode": "summaries_conditioning",
+    "broader_genre": "Science",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1001115,
+    "n_chars": 4351815,
+    "W1k": {
+      "n_windows": 8703,
+      "off_diag_mean": 0.29914528131484985,
+      "off_diag_std": 0.1080668568611145,
+      "novelty_mean": 0.30854486295804845,
+      "novelty_std": 0.11246716195249702,
+      "novelty_final": 0.28955078125,
+      "mean_sim_to_past_mean": 0.30037247059578676,
+      "mean_sim_to_past_final": 0.2896612286567688,
+      "sim_lag1_mean": 0.35434654689991346,
+      "sim_lag1_std": 0.12047893616171332
+    },
+    "W2k": {
+      "n_windows": 4249,
+      "off_diag_mean": 0.45107245445251465,
+      "off_diag_std": 0.0907166600227356,
+      "novelty_mean": 0.2541147005760064,
+      "novelty_std": 0.05028291744752916,
+      "novelty_final": 0.23974609375,
+      "mean_sim_to_past_mean": 0.45200937566138705,
+      "mean_sim_to_past_final": 0.4545343518257141,
+      "sim_lag1_mean": 0.7385505920525101,
+      "sim_lag1_std": 0.06311978825249996
+    },
+    "W8k": {
+      "n_windows": 1087,
+      "off_diag_mean": 0.7388591766357422,
+      "off_diag_std": 0.04405640810728073,
+      "novelty_mean": 0.17094834469958564,
+      "novelty_std": 0.02291834512961679,
+      "novelty_final": 0.15234375,
+      "mean_sim_to_past_mean": 0.7410452446555564,
+      "mean_sim_to_past_final": 0.7453528046607971,
+      "sim_lag1_mean": 0.7968732015423573,
+      "sim_lag1_std": 0.03617262392940057
+    },
+    "W40k": {
+      "n_windows": 217,
+      "off_diag_mean": 0.909660816192627,
+      "off_diag_std": 0.020944010466337204,
+      "novelty_mean": 0.055483217592592594,
+      "novelty_std": 0.006461777330261844,
+      "novelty_final": 0.0615234375,
+      "mean_sim_to_past_mean": 0.9104722666519659,
+      "mean_sim_to_past_final": 0.8888979554176331,
+      "sim_lag1_mean": 0.9417227285879629,
+      "sim_lag1_std": 0.008635846135070787
+    }
+  },
+  "20260206_113034_lady_byron_s_gothic_library_ada_s_enlightened_obsession_biography_summaries_conditioning_high_temperature": {
+    "run_id": "20260206_113034_lady_byron_s_gothic_library_ada_s_enlightened_obsession_biography_summaries_conditioning_high_temperature",
+    "conditioning_mode": "summaries_conditioning",
+    "broader_genre": "Biography",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1001692,
+    "n_chars": 4358140,
+    "W1k": {
+      "n_windows": 8716,
+      "off_diag_mean": 0.2805493474006653,
+      "off_diag_std": 0.10969662666320801,
+      "novelty_mean": 0.31551279055955966,
+      "novelty_std": 0.1143906359814831,
+      "novelty_final": 0.2861328125,
+      "mean_sim_to_past_mean": 0.2818790244679135,
+      "mean_sim_to_past_final": 0.30347228050231934,
+      "sim_lag1_mean": 0.33443645568531405,
+      "sim_lag1_std": 0.12112879117546343
+    },
+    "W2k": {
+      "n_windows": 4255,
+      "off_diag_mean": 0.42644256353378296,
+      "off_diag_std": 0.09416468441486359,
+      "novelty_mean": 0.2667943957157969,
+      "novelty_std": 0.05295886952119595,
+      "novelty_final": 0.3134765625,
+      "mean_sim_to_past_mean": 0.42936793484623914,
+      "mean_sim_to_past_final": 0.21985316276550293,
+      "sim_lag1_mean": 0.7246869674130231,
+      "sim_lag1_std": 0.06579316926121141
+    },
+    "W8k": {
+      "n_windows": 1089,
+      "off_diag_mean": 0.7266082167625427,
+      "off_diag_std": 0.047812316566705704,
+      "novelty_mean": 0.18079600614659927,
+      "novelty_std": 0.02668998673205453,
+      "novelty_final": 0.236328125,
+      "mean_sim_to_past_mean": 0.7278689573902417,
+      "mean_sim_to_past_final": 0.642859935760498,
+      "sim_lag1_mean": 0.7826363058651195,
+      "sim_lag1_std": 0.04053339612775296
+    },
+    "W40k": {
+      "n_windows": 217,
+      "off_diag_mean": 0.9073320031166077,
+      "off_diag_std": 0.018214378505945206,
+      "novelty_mean": 0.057562934027777776,
+      "novelty_std": 0.007075971546787918,
+      "novelty_final": 0.0673828125,
+      "mean_sim_to_past_mean": 0.9088784872933671,
+      "mean_sim_to_past_final": 0.8966946005821228,
+      "sim_lag1_mean": 0.9380877459490741,
+      "sim_lag1_std": 0.010361261151501086
+    }
+  },
+  "20260207_012035_a_journey_beyond_the_stars_memoirs_of_a_celestial_pioneer_biography_summaries_conditioning_high_temperature": {
+    "run_id": "20260207_012035_a_journey_beyond_the_stars_memoirs_of_a_celestial_pioneer_biography_summaries_conditioning_high_temperature",
+    "conditioning_mode": "summaries_conditioning",
+    "broader_genre": "Biography",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1001052,
+    "n_chars": 4347056,
+    "W1k": {
+      "n_windows": 8694,
+      "off_diag_mean": 0.29077237844467163,
+      "off_diag_std": 0.10510197281837463,
+      "novelty_mean": 0.31608537485036453,
+      "novelty_std": 0.1128916228001531,
+      "novelty_final": 0.466796875,
+      "mean_sim_to_past_mean": 0.2908896382267711,
+      "mean_sim_to_past_final": 0.276131808757782,
+      "sim_lag1_mean": 0.3431793554295718,
+      "sim_lag1_std": 0.11687575429065812
+    },
+    "W2k": {
+      "n_windows": 4245,
+      "off_diag_mean": 0.43614357709884644,
+      "off_diag_std": 0.08919356018304825,
+      "novelty_mean": 0.26289487042368637,
+      "novelty_std": 0.05015705562702842,
+      "novelty_final": 0.25146484375,
+      "mean_sim_to_past_mean": 0.4363039646659338,
+      "mean_sim_to_past_final": 0.3584510087966919,
+      "sim_lag1_mean": 0.7295525323434555,
+      "sim_lag1_std": 0.06306279761208024
+    },
+    "W8k": {
+      "n_windows": 1086,
+      "off_diag_mean": 0.7330728769302368,
+      "off_diag_std": 0.048424120992422104,
+      "novelty_mean": 0.17711603542626728,
+      "novelty_std": 0.026708261900836545,
+      "novelty_final": 0.201171875,
+      "mean_sim_to_past_mean": 0.7312802254878981,
+      "mean_sim_to_past_final": 0.7329798936843872,
+      "sim_lag1_mean": 0.7879306775633641,
+      "sim_lag1_std": 0.0387325213861866
+    },
+    "W40k": {
+      "n_windows": 217,
+      "off_diag_mean": 0.9105574488639832,
+      "off_diag_std": 0.021642068400979042,
+      "novelty_mean": 0.056844075520833336,
+      "novelty_std": 0.00762303518239242,
+      "novelty_final": 0.091796875,
+      "mean_sim_to_past_mean": 0.9097728864462288,
+      "mean_sim_to_past_final": 0.8604939579963684,
+      "sim_lag1_mean": 0.9387613932291666,
+      "sim_lag1_std": 0.010450757719789313
+    }
+  },
+  "20260207_150809_ada_s_odyssey_a_life_unraveled_biography_summaries_conditioning_high_temperature": {
+    "run_id": "20260207_150809_ada_s_odyssey_a_life_unraveled_biography_summaries_conditioning_high_temperature",
+    "conditioning_mode": "summaries_conditioning",
+    "broader_genre": "Biography",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000443,
+    "n_chars": 4350702,
+    "W1k": {
+      "n_windows": 8701,
+      "off_diag_mean": 0.29003286361694336,
+      "off_diag_std": 0.10486319661140442,
+      "novelty_mean": 0.3144562679597701,
+      "novelty_std": 0.11348967899838268,
+      "novelty_final": 0.310546875,
+      "mean_sim_to_past_mean": 0.29069228844738554,
+      "mean_sim_to_past_final": 0.20845815539360046,
+      "sim_lag1_mean": 0.3395016970579652,
+      "sim_lag1_std": 0.11500150773058802
+    },
+    "W2k": {
+      "n_windows": 4248,
+      "off_diag_mean": 0.44177308678627014,
+      "off_diag_std": 0.08811777085065842,
+      "novelty_mean": 0.2620857944762479,
+      "novelty_std": 0.049475768973591676,
+      "novelty_final": 0.2666015625,
+      "mean_sim_to_past_mean": 0.44397866578383643,
+      "mean_sim_to_past_final": 0.4241715371608734,
+      "sim_lag1_mean": 0.7298934932930599,
+      "sim_lag1_std": 0.06302863490421261
+    },
+    "W8k": {
+      "n_windows": 1087,
+      "off_diag_mean": 0.7400676012039185,
+      "off_diag_std": 0.04340653494000435,
+      "novelty_mean": 0.17384071420349909,
+      "novelty_std": 0.023632111676763375,
+      "novelty_final": 0.173828125,
+      "mean_sim_to_past_mean": 0.74116921068116,
+      "mean_sim_to_past_final": 0.7238904237747192,
+      "sim_lag1_mean": 0.7896762236705801,
+      "sim_lag1_std": 0.037973169013077235
+    },
+    "W40k": {
+      "n_windows": 217,
+      "off_diag_mean": 0.9138914942741394,
+      "off_diag_std": 0.01711258292198181,
+      "novelty_mean": 0.055695710358796294,
+      "novelty_std": 0.007355730445881737,
+      "novelty_final": 0.078125,
+      "mean_sim_to_past_mean": 0.9148643886049589,
+      "mean_sim_to_past_final": 0.8859207630157471,
+      "sim_lag1_mean": 0.9394983362268519,
+      "sim_lag1_std": 0.010976987943284305
+    }
+  },
+  "20260208_044319_the_enigmatic_pursuit_the_quest_for_the_leader_s_identity_thriller_summaries_conditioning_high_temperature": {
+    "run_id": "20260208_044319_the_enigmatic_pursuit_the_quest_for_the_leader_s_identity_thriller_summaries_conditioning_high_temperature",
+    "conditioning_mode": "summaries_conditioning",
+    "broader_genre": "Thriller",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000778,
+    "n_chars": 4318885,
+    "W1k": {
+      "n_windows": 8637,
+      "off_diag_mean": 0.2873483896255493,
+      "off_diag_std": 0.10289307683706284,
+      "novelty_mean": 0.3235420626366011,
+      "novelty_std": 0.11161850012755253,
+      "novelty_final": 0.27392578125,
+      "mean_sim_to_past_mean": 0.28915483294047967,
+      "mean_sim_to_past_final": 0.3014258146286011,
+      "sim_lag1_mean": 0.3433703819653015,
+      "sim_lag1_std": 0.11459903109590072
+    },
+    "W2k": {
+      "n_windows": 4217,
+      "off_diag_mean": 0.43242016434669495,
+      "off_diag_std": 0.08737080544233322,
+      "novelty_mean": 0.26221612282450785,
+      "novelty_std": 0.04941104154277483,
+      "novelty_final": 0.28466796875,
+      "mean_sim_to_past_mean": 0.4340945881892144,
+      "mean_sim_to_past_final": 0.3882056176662445,
+      "sim_lag1_mean": 0.7312399703139825,
+      "sim_lag1_std": 0.06192946105779842
+    },
+    "W8k": {
+      "n_windows": 1079,
+      "off_diag_mean": 0.7238501906394958,
+      "off_diag_std": 0.04982495307922363,
+      "novelty_mean": 0.18034744970431354,
+      "novelty_std": 0.0247628783724655,
+      "novelty_final": 0.2001953125,
+      "mean_sim_to_past_mean": 0.7237211362992678,
+      "mean_sim_to_past_final": 0.6777278184890747,
+      "sim_lag1_mean": 0.7825431752956865,
+      "sim_lag1_std": 0.03884330711700578
+    },
+    "W40k": {
+      "n_windows": 215,
+      "off_diag_mean": 0.9062900543212891,
+      "off_diag_std": 0.023406241089105606,
+      "novelty_mean": 0.05767194801401869,
+      "novelty_std": 0.007699690909166812,
+      "novelty_final": 0.060546875,
+      "mean_sim_to_past_mean": 0.9060859777660013,
+      "mean_sim_to_past_final": 0.9139575362205505,
+      "sim_lag1_mean": 0.9386933228679907,
+      "sim_lag1_std": 0.010443960327062041
+    }
+  },
+  "20260208_183637_a_lighthouse_of_longing_a_quest_for_family_forgiveness_and_redemption_adventure_summaries_conditioning_high_temperature": {
+    "run_id": "20260208_183637_a_lighthouse_of_longing_a_quest_for_family_forgiveness_and_redemption_adventure_summaries_conditioning_high_temperature",
+    "conditioning_mode": "summaries_conditioning",
+    "broader_genre": "Adventure",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000046,
+    "n_chars": 4316606,
+    "W1k": {
+      "n_windows": 8633,
+      "off_diag_mean": 0.2926437258720398,
+      "off_diag_std": 0.10141199827194214,
+      "novelty_mean": 0.3191758969848746,
+      "novelty_std": 0.11362037614505534,
+      "novelty_final": 0.2607421875,
+      "mean_sim_to_past_mean": 0.2931996035170366,
+      "mean_sim_to_past_final": 0.3312123715877533,
+      "sim_lag1_mean": 0.3448370826586846,
+      "sim_lag1_std": 0.11391113836764599
+    },
+    "W2k": {
+      "n_windows": 4215,
+      "off_diag_mean": 0.43931111693382263,
+      "off_diag_std": 0.08620499819517136,
+      "novelty_mean": 0.2616095993266493,
+      "novelty_std": 0.04915342821131913,
+      "novelty_final": 0.27490234375,
+      "mean_sim_to_past_mean": 0.43976649354858655,
+      "mean_sim_to_past_final": 0.4191409647464752,
+      "sim_lag1_mean": 0.7321923341465947,
+      "sim_lag1_std": 0.06104451867022284
+    },
+    "W8k": {
+      "n_windows": 1079,
+      "off_diag_mean": 0.7368153929710388,
+      "off_diag_std": 0.04221014305949211,
+      "novelty_mean": 0.17601406684833024,
+      "novelty_std": 0.02382773794749039,
+      "novelty_final": 0.22509765625,
+      "mean_sim_to_past_mean": 0.736106764794723,
+      "mean_sim_to_past_final": 0.6727111339569092,
+      "sim_lag1_mean": 0.7913145727040817,
+      "sim_lag1_std": 0.035102363887907675
+    },
+    "W40k": {
+      "n_windows": 215,
+      "off_diag_mean": 0.9135481715202332,
+      "off_diag_std": 0.01576770283281803,
+      "novelty_mean": 0.055502062646028034,
+      "novelty_std": 0.006162368122870995,
+      "novelty_final": 0.0673828125,
+      "mean_sim_to_past_mean": 0.9138788026626979,
+      "mean_sim_to_past_final": 0.901321530342102,
+      "sim_lag1_mean": 0.9412328417056075,
+      "sim_lag1_std": 0.008566376014834998
+    }
+  },
+  "20260209_081036_the_enigmatic_shadow_a_quest_to_unravel_clara_s_mysterious_lineage_fantasy_summaries_conditioning_high_temperature": {
+    "run_id": "20260209_081036_the_enigmatic_shadow_a_quest_to_unravel_clara_s_mysterious_lineage_fantasy_summaries_conditioning_high_temperature",
+    "conditioning_mode": "summaries_conditioning",
+    "broader_genre": "Fantasy",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000785,
+    "n_chars": 4308576,
+    "W1k": {
+      "n_windows": 8617,
+      "off_diag_mean": 0.28703373670578003,
+      "off_diag_std": 0.10316389054059982,
+      "novelty_mean": 0.32137609568589687,
+      "novelty_std": 0.11051764697184824,
+      "novelty_final": 0.40771484375,
+      "mean_sim_to_past_mean": 0.28963160723968373,
+      "mean_sim_to_past_final": 0.2743155062198639,
+      "sim_lag1_mean": 0.34236466674308813,
+      "sim_lag1_std": 0.11499934877625206
+    },
+    "W2k": {
+      "n_windows": 4207,
+      "off_diag_mean": 0.43518534302711487,
+      "off_diag_std": 0.08590874075889587,
+      "novelty_mean": 0.26214985613929503,
+      "novelty_std": 0.04987641265804761,
+      "novelty_final": 0.16015625,
+      "mean_sim_to_past_mean": 0.4385969062582459,
+      "mean_sim_to_past_final": 0.4759596884250641,
+      "sim_lag1_mean": 0.7317722264324774,
+      "sim_lag1_std": 0.06107410979292392
+    },
+    "W8k": {
+      "n_windows": 1077,
+      "off_diag_mean": 0.7271382808685303,
+      "off_diag_std": 0.04493860900402069,
+      "novelty_mean": 0.1810429796410316,
+      "novelty_std": 0.023690387489856666,
+      "novelty_final": 0.1484375,
+      "mean_sim_to_past_mean": 0.7297759797271742,
+      "mean_sim_to_past_final": 0.6650522351264954,
+      "sim_lag1_mean": 0.7870036412348977,
+      "sim_lag1_std": 0.03802838024362056
+    },
+    "W40k": {
+      "n_windows": 215,
+      "off_diag_mean": 0.9037476778030396,
+      "off_diag_std": 0.01899028569459915,
+      "novelty_mean": 0.05809634199766355,
+      "novelty_std": 0.007434875632963878,
+      "novelty_final": 0.0517578125,
+      "mean_sim_to_past_mean": 0.9066324540387805,
+      "mean_sim_to_past_final": 0.8563221096992493,
+      "sim_lag1_mean": 0.9394097729264018,
+      "sim_lag1_std": 0.009722939042980962
+    }
+  },
+  "20260515_083256_the_artifact_s_shadow_a_tale_from_neo_tokyo_s_crypts_thriller_extended_conditioning_small_retrieval": {
+    "run_id": "20260515_083256_the_artifact_s_shadow_a_tale_from_neo_tokyo_s_crypts_thriller_extended_conditioning_small_retrieval",
+    "conditioning_mode": "extended_conditioning",
+    "broader_genre": "Thriller",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000324,
+    "n_chars": 4186487,
+    "W1k": {
+      "n_windows": 8372,
+      "off_diag_mean": 0.2967645525932312,
+      "off_diag_std": 0.11118931323289871,
+      "novelty_mean": 0.2961749221643173,
+      "novelty_std": 0.11922869502899625,
+      "novelty_final": 0.3671875,
+      "mean_sim_to_past_mean": 0.29660110896814396,
+      "mean_sim_to_past_final": 0.22637121379375458,
+      "sim_lag1_mean": 0.34110302094019895,
+      "sim_lag1_std": 0.1239926998756291
+    },
+    "W2k": {
+      "n_windows": 4088,
+      "off_diag_mean": 0.4464751183986664,
+      "off_diag_std": 0.09253906458616257,
+      "novelty_mean": 0.25551039786977,
+      "novelty_std": 0.050991335854718794,
+      "novelty_final": 0.19140625,
+      "mean_sim_to_past_mean": 0.44567677338913186,
+      "mean_sim_to_past_final": 0.3803400993347168,
+      "sim_lag1_mean": 0.7336392926504771,
+      "sim_lag1_std": 0.06537225032289315
+    },
+    "W8k": {
+      "n_windows": 1046,
+      "off_diag_mean": 0.7440406084060669,
+      "off_diag_std": 0.04646709933876991,
+      "novelty_mean": 0.16798276764354067,
+      "novelty_std": 0.024498485625455813,
+      "novelty_final": 0.1484375,
+      "mean_sim_to_past_mean": 0.7438498980120609,
+      "mean_sim_to_past_final": 0.7005733251571655,
+      "sim_lag1_mean": 0.7878850179425837,
+      "sim_lag1_std": 0.04112445406399717
+    },
+    "W40k": {
+      "n_windows": 209,
+      "off_diag_mean": 0.9206863641738892,
+      "off_diag_std": 0.017484743148088455,
+      "novelty_mean": 0.05263108473557692,
+      "novelty_std": 0.00623015888508711,
+      "novelty_final": 0.05126953125,
+      "mean_sim_to_past_mean": 0.9208842885608857,
+      "mean_sim_to_past_final": 0.9064448475837708,
+      "sim_lag1_mean": 0.9421175443209134,
+      "sim_lag1_std": 0.00999163393307434
+    }
+  },
+  "20260516_070327_chronicles_of_the_wind_seekers_of_zephyr_adventure_extended_conditioning_small_retrieval": {
+    "run_id": "20260516_070327_chronicles_of_the_wind_seekers_of_zephyr_adventure_extended_conditioning_small_retrieval",
+    "conditioning_mode": "extended_conditioning",
+    "broader_genre": "Adventure",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000108,
+    "n_chars": 4289574,
+    "W1k": {
+      "n_windows": 8579,
+      "off_diag_mean": 0.30133506655693054,
+      "off_diag_std": 0.10730846226215363,
+      "novelty_mean": 0.301636837945726,
+      "novelty_std": 0.11482907503280217,
+      "novelty_final": 0.2470703125,
+      "mean_sim_to_past_mean": 0.3026348095149233,
+      "mean_sim_to_past_final": 0.21431797742843628,
+      "sim_lag1_mean": 0.3489829508344953,
+      "sim_lag1_std": 0.12043216607549188
+    },
+    "W2k": {
+      "n_windows": 4189,
+      "off_diag_mean": 0.45377621054649353,
+      "off_diag_std": 0.08931232243776321,
+      "novelty_mean": 0.2558078419740926,
+      "novelty_std": 0.04993547660035891,
+      "novelty_final": 0.376953125,
+      "mean_sim_to_past_mean": 0.45555666527055283,
+      "mean_sim_to_past_final": 0.3612308204174042,
+      "sim_lag1_mean": 0.7345358949677651,
+      "sim_lag1_std": 0.06507344096591794
+    },
+    "W8k": {
+      "n_windows": 1072,
+      "off_diag_mean": 0.7479148507118225,
+      "off_diag_std": 0.044016458094120026,
+      "novelty_mean": 0.16703641091853408,
+      "novelty_std": 0.023923823610253508,
+      "novelty_final": 0.24169921875,
+      "mean_sim_to_past_mean": 0.7481176163636002,
+      "mean_sim_to_past_final": 0.6154324412345886,
+      "sim_lag1_mean": 0.7909631951739029,
+      "sim_lag1_std": 0.03750272353239867
+    },
+    "W40k": {
+      "n_windows": 214,
+      "off_diag_mean": 0.9237847328186035,
+      "off_diag_std": 0.01510799303650856,
+      "novelty_mean": 0.052241508949530516,
+      "novelty_std": 0.007006395712588599,
+      "novelty_final": 0.06005859375,
+      "mean_sim_to_past_mean": 0.9241160386604882,
+      "mean_sim_to_past_final": 0.89992755651474,
+      "sim_lag1_mean": 0.9423896897007042,
+      "sim_lag1_std": 0.010406146279692437
+    }
+  },
+  "20260516_070327_the_cosmic_journey_of_ramesh_and_nirali_seeking_ancient_wisdom_in_the_stars_science_extended_conditioning_small_retrieval": {
+    "run_id": "20260516_070327_the_cosmic_journey_of_ramesh_and_nirali_seeking_ancient_wisdom_in_the_stars_science_extended_conditioning_small_retrieval",
+    "conditioning_mode": "extended_conditioning",
+    "broader_genre": "Science",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000461,
+    "n_chars": 4375167,
+    "W1k": {
+      "n_windows": 8750,
+      "off_diag_mean": 0.3105284869670868,
+      "off_diag_std": 0.1145099326968193,
+      "novelty_mean": 0.28674890899919814,
+      "novelty_std": 0.11367942293815507,
+      "novelty_final": 0.2841796875,
+      "mean_sim_to_past_mean": 0.3099987060557602,
+      "mean_sim_to_past_final": 0.3515166938304901,
+      "sim_lag1_mean": 0.3588802072985238,
+      "sim_lag1_std": 0.12715278256105414
+    },
+    "W2k": {
+      "n_windows": 4272,
+      "off_diag_mean": 0.46339908242225647,
+      "off_diag_std": 0.09571484476327896,
+      "novelty_mean": 0.24824328501814563,
+      "novelty_std": 0.051388144818559724,
+      "novelty_final": 0.396484375,
+      "mean_sim_to_past_mean": 0.4622087765478943,
+      "mean_sim_to_past_final": 0.3570026457309723,
+      "sim_lag1_mean": 0.7402694155532955,
+      "sim_lag1_std": 0.06590117282731156
+    },
+    "W8k": {
+      "n_windows": 1093,
+      "off_diag_mean": 0.754758358001709,
+      "off_diag_std": 0.044244226068258286,
+      "novelty_mean": 0.16044063358516483,
+      "novelty_std": 0.023598476009122835,
+      "novelty_final": 0.166015625,
+      "mean_sim_to_past_mean": 0.7551218634232496,
+      "mean_sim_to_past_final": 0.7137987613677979,
+      "sim_lag1_mean": 0.8004418677026099,
+      "sim_lag1_std": 0.03785449494186191
+    },
+    "W40k": {
+      "n_windows": 218,
+      "off_diag_mean": 0.9235575199127197,
+      "off_diag_std": 0.016186848282814026,
+      "novelty_mean": 0.05040772609447004,
+      "novelty_std": 0.006037341427368195,
+      "novelty_final": 0.05029296875,
+      "mean_sim_to_past_mean": 0.9233240248970173,
+      "mean_sim_to_past_final": 0.9043778777122498,
+      "sim_lag1_mean": 0.9446734591013825,
+      "sim_lag1_std": 0.008384102403551476
+    }
+  },
+  "20260517_042419_a_life_unscripted_finding_myself_amid_the_glitz_and_glamour_biography_extended_conditioning_small_retrieval": {
+    "run_id": "20260517_042419_a_life_unscripted_finding_myself_amid_the_glitz_and_glamour_biography_extended_conditioning_small_retrieval",
+    "conditioning_mode": "extended_conditioning",
+    "broader_genre": "Biography",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1003751,
+    "n_chars": 4382232,
+    "W1k": {
+      "n_windows": 8764,
+      "off_diag_mean": 0.3016788065433502,
+      "off_diag_std": 0.11058060824871063,
+      "novelty_mean": 0.3005595787820595,
+      "novelty_std": 0.11552263661666415,
+      "novelty_final": 0.29931640625,
+      "mean_sim_to_past_mean": 0.30101357713536414,
+      "mean_sim_to_past_final": 0.32613229751586914,
+      "sim_lag1_mean": 0.351762475372109,
+      "sim_lag1_std": 0.12151597019406807
+    },
+    "W2k": {
+      "n_windows": 4279,
+      "off_diag_mean": 0.44922229647636414,
+      "off_diag_std": 0.09418626129627228,
+      "novelty_mean": 0.25499797747925435,
+      "novelty_std": 0.051883281397788444,
+      "novelty_final": 0.208984375,
+      "mean_sim_to_past_mean": 0.447859819238294,
+      "mean_sim_to_past_final": 0.4641243517398834,
+      "sim_lag1_mean": 0.7356646993885869,
+      "sim_lag1_std": 0.06564606889534817
+    },
+    "W8k": {
+      "n_windows": 1095,
+      "off_diag_mean": 0.7439731955528259,
+      "off_diag_std": 0.045515190809965134,
+      "novelty_mean": 0.1674760054844607,
+      "novelty_std": 0.026343893464147106,
+      "novelty_final": 0.1533203125,
+      "mean_sim_to_past_mean": 0.7436478512814537,
+      "mean_sim_to_past_final": 0.7140872478485107,
+      "sim_lag1_mean": 0.7966540683558044,
+      "sim_lag1_std": 0.03993599995380226
+    },
+    "W40k": {
+      "n_windows": 219,
+      "off_diag_mean": 0.9148414134979248,
+      "off_diag_std": 0.017281949520111084,
+      "novelty_mean": 0.05359446674311927,
+      "novelty_std": 0.007108528211403741,
+      "novelty_final": 0.0654296875,
+      "mean_sim_to_past_mean": 0.9158233590082291,
+      "mean_sim_to_past_final": 0.8656980395317078,
+      "sim_lag1_mean": 0.9415339198681193,
+      "sim_lag1_std": 0.010882989295501943
+    }
+  },
+  "20260517_184348_the_forgotten_god_s_reckoning_fantasy_extended_conditioning_small_retrieval": {
+    "run_id": "20260517_184348_the_forgotten_god_s_reckoning_fantasy_extended_conditioning_small_retrieval",
+    "conditioning_mode": "extended_conditioning",
+    "broader_genre": "Fantasy",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000579,
+    "n_chars": 4187977,
+    "W1k": {
+      "n_windows": 8375,
+      "off_diag_mean": 0.318238765001297,
+      "off_diag_std": 0.1089087575674057,
+      "novelty_mean": 0.2901332099938239,
+      "novelty_std": 0.11099259117490447,
+      "novelty_final": 0.1552734375,
+      "mean_sim_to_past_mean": 0.3178788947748033,
+      "mean_sim_to_past_final": 0.3489941954612732,
+      "sim_lag1_mean": 0.3600001003738232,
+      "sim_lag1_std": 0.11974338617935487
+    },
+    "W2k": {
+      "n_windows": 4089,
+      "off_diag_mean": 0.47264596819877625,
+      "off_diag_std": 0.09079054743051529,
+      "novelty_mean": 0.2461269550360812,
+      "novelty_std": 0.04966778889049789,
+      "novelty_final": 0.19384765625,
+      "mean_sim_to_past_mean": 0.4722479982465622,
+      "mean_sim_to_past_final": 0.5140865445137024,
+      "sim_lag1_mean": 0.7435345136489421,
+      "sim_lag1_std": 0.06233773082539937
+    },
+    "W8k": {
+      "n_windows": 1046,
+      "off_diag_mean": 0.7665315270423889,
+      "off_diag_std": 0.042107682675123215,
+      "novelty_mean": 0.15552762410287083,
+      "novelty_std": 0.020754039492244726,
+      "novelty_final": 0.14111328125,
+      "mean_sim_to_past_mean": 0.7649364371619156,
+      "mean_sim_to_past_final": 0.7621967792510986,
+      "sim_lag1_mean": 0.8010158119019138,
+      "sim_lag1_std": 0.03532199061227971
+    },
+    "W40k": {
+      "n_windows": 209,
+      "off_diag_mean": 0.9334919452667236,
+      "off_diag_std": 0.014732114039361477,
+      "novelty_mean": 0.046536959134615384,
+      "novelty_std": 0.005670112969555057,
+      "novelty_final": 0.06103515625,
+      "mean_sim_to_past_mean": 0.9326640490729076,
+      "mean_sim_to_past_final": 0.903580904006958,
+      "sim_lag1_mean": 0.9462444598858173,
+      "sim_lag1_std": 0.009867054226966748
+    }
+  },
+  "20260518_102401_dune_karikon_s_hidden_secrets_the_aria_chronicles_adventure_extended_conditioning_large_retrieval": {
+    "run_id": "20260518_102401_dune_karikon_s_hidden_secrets_the_aria_chronicles_adventure_extended_conditioning_large_retrieval",
+    "conditioning_mode": "extended_conditioning",
+    "broader_genre": "Adventure",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000054,
+    "n_chars": 4348675,
+    "W1k": {
+      "n_windows": 8697,
+      "off_diag_mean": 0.3148285746574402,
+      "off_diag_std": 0.11170966923236847,
+      "novelty_mean": 0.2799298620706539,
+      "novelty_std": 0.11852363664151934,
+      "novelty_final": 0.35400390625,
+      "mean_sim_to_past_mean": 0.3145711544533573,
+      "mean_sim_to_past_final": 0.35082951188087463,
+      "sim_lag1_mean": 0.35561088432164617,
+      "sim_lag1_std": 0.12041077959864997
+    },
+    "W2k": {
+      "n_windows": 4246,
+      "off_diag_mean": 0.47049906849861145,
+      "off_diag_std": 0.09455880522727966,
+      "novelty_mean": 0.24690916243374558,
+      "novelty_std": 0.05094250163002768,
+      "novelty_final": 0.22412109375,
+      "mean_sim_to_past_mean": 0.4716754317494247,
+      "mean_sim_to_past_final": 0.4470371603965759,
+      "sim_lag1_mean": 0.7410270124779152,
+      "sim_lag1_std": 0.06449927411865174
+    },
+    "W8k": {
+      "n_windows": 1087,
+      "off_diag_mean": 0.764596164226532,
+      "off_diag_std": 0.04575388878583908,
+      "novelty_mean": 0.1542505647156998,
+      "novelty_std": 0.024012679945165795,
+      "novelty_final": 0.26708984375,
+      "mean_sim_to_past_mean": 0.765992138267222,
+      "mean_sim_to_past_final": 0.592086672782898,
+      "sim_lag1_mean": 0.8008594829074586,
+      "sim_lag1_std": 0.03805130179167454
+    },
+    "W40k": {
+      "n_windows": 217,
+      "off_diag_mean": 0.9323263168334961,
+      "off_diag_std": 0.013873963616788387,
+      "novelty_mean": 0.047098795572916664,
+      "novelty_std": 0.006000065959903413,
+      "novelty_final": 0.05712890625,
+      "mean_sim_to_past_mean": 0.9327595148373533,
+      "mean_sim_to_past_final": 0.9133436679840088,
+      "sim_lag1_mean": 0.9466869212962963,
+      "sim_lag1_std": 0.009100196782761872
+    }
+  },
+  "20260519_003451_the_protectors_of_kush_descent_into_darkness_adventure_extended_conditioning_large_retrieval": {
+    "run_id": "20260519_003451_the_protectors_of_kush_descent_into_darkness_adventure_extended_conditioning_large_retrieval",
+    "conditioning_mode": "extended_conditioning",
+    "broader_genre": "Adventure",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1001144,
+    "n_chars": 4256500,
+    "W1k": {
+      "n_windows": 8512,
+      "off_diag_mean": 0.3162800073623657,
+      "off_diag_std": 0.1175665333867073,
+      "novelty_mean": 0.28523714255816,
+      "novelty_std": 0.11774292742779588,
+      "novelty_final": 0.05322265625,
+      "mean_sim_to_past_mean": 0.3156293562418978,
+      "mean_sim_to_past_final": 0.30408579111099243,
+      "sim_lag1_mean": 0.35979100907399364,
+      "sim_lag1_std": 0.12702021237117628
+    },
+    "W2k": {
+      "n_windows": 4156,
+      "off_diag_mean": 0.4724538028240204,
+      "off_diag_std": 0.09794886410236359,
+      "novelty_mean": 0.24410913056558364,
+      "novelty_std": 0.05320128185102781,
+      "novelty_final": 0.19287109375,
+      "mean_sim_to_past_mean": 0.4728820961538061,
+      "mean_sim_to_past_final": 0.5388512015342712,
+      "sim_lag1_mean": 0.7426766626240975,
+      "sim_lag1_std": 0.06865637686311915
+    },
+    "W8k": {
+      "n_windows": 1064,
+      "off_diag_mean": 0.7660933136940002,
+      "off_diag_std": 0.04903753474354744,
+      "novelty_mean": 0.15284075876058326,
+      "novelty_std": 0.02471662465808424,
+      "novelty_final": 0.1982421875,
+      "mean_sim_to_past_mean": 0.7660172800353867,
+      "mean_sim_to_past_final": 0.7116219401359558,
+      "sim_lag1_mean": 0.802470252969191,
+      "sim_lag1_std": 0.03993144841928024
+    },
+    "W40k": {
+      "n_windows": 212,
+      "off_diag_mean": 0.9313454627990723,
+      "off_diag_std": 0.02133037894964218,
+      "novelty_mean": 0.046215473193127965,
+      "novelty_std": 0.007210016876752639,
+      "novelty_final": 0.05126953125,
+      "mean_sim_to_past_mean": 0.9316434637065182,
+      "mean_sim_to_past_final": 0.910403847694397,
+      "sim_lag1_mean": 0.9461964973341233,
+      "sim_lag1_std": 0.009767268880403666
+    }
+  },
+  "20260519_154639_the_lighthouse_enigma_mystery_extended_conditioning_large_retrieval": {
+    "run_id": "20260519_154639_the_lighthouse_enigma_mystery_extended_conditioning_large_retrieval",
+    "conditioning_mode": "extended_conditioning",
+    "broader_genre": "**Mystery**",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1001728,
+    "n_chars": 4331117,
+    "W1k": {
+      "n_windows": 8662,
+      "off_diag_mean": 0.3019605875015259,
+      "off_diag_std": 0.10669445246458054,
+      "novelty_mean": 0.29609595434093927,
+      "novelty_std": 0.11399732077117454,
+      "novelty_final": 0.23046875,
+      "mean_sim_to_past_mean": 0.3000554017165168,
+      "mean_sim_to_past_final": 0.3499249815940857,
+      "sim_lag1_mean": 0.34910538394488855,
+      "sim_lag1_std": 0.11798942645808848
+    },
+    "W2k": {
+      "n_windows": 4229,
+      "off_diag_mean": 0.45125138759613037,
+      "off_diag_std": 0.09010617434978485,
+      "novelty_mean": 0.2563500237442349,
+      "novelty_std": 0.049327426159308775,
+      "novelty_final": 0.15234375,
+      "mean_sim_to_past_mean": 0.4518193592341192,
+      "mean_sim_to_past_final": 0.49039480090141296,
+      "sim_lag1_mean": 0.7345367402768744,
+      "sim_lag1_std": 0.06153339421314223
+    },
+    "W8k": {
+      "n_windows": 1082,
+      "off_diag_mean": 0.7495080828666687,
+      "off_diag_std": 0.0432748943567276,
+      "novelty_mean": 0.16712363046369103,
+      "novelty_std": 0.022584268134064618,
+      "novelty_final": 0.13916015625,
+      "mean_sim_to_past_mean": 0.7487562234814138,
+      "mean_sim_to_past_final": 0.7338853478431702,
+      "sim_lag1_mean": 0.7901479207620259,
+      "sim_lag1_std": 0.03861064659996301
+    },
+    "W40k": {
+      "n_windows": 216,
+      "off_diag_mean": 0.9275655746459961,
+      "off_diag_std": 0.01333861704915762,
+      "novelty_mean": 0.049850109011627904,
+      "novelty_std": 0.005939090617011615,
+      "novelty_final": 0.064453125,
+      "mean_sim_to_past_mean": 0.9278263286102649,
+      "mean_sim_to_past_final": 0.9031159281730652,
+      "sim_lag1_mean": 0.9435910247093023,
+      "sim_lag1_std": 0.009606004337069075
+    }
+  },
+  "20260520_060929_the_unity_of_light_a_philosophical_quest_to_confront_the_darkness_of_ai_philosophy_extended_conditioning_large_retrieval": {
+    "run_id": "20260520_060929_the_unity_of_light_a_philosophical_quest_to_confront_the_darkness_of_ai_philosophy_extended_conditioning_large_retrieval",
+    "conditioning_mode": "extended_conditioning",
+    "broader_genre": "Philosophy",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000242,
+    "n_chars": 4433443,
+    "W1k": {
+      "n_windows": 8866,
+      "off_diag_mean": 0.31559234857559204,
+      "off_diag_std": 0.1106194481253624,
+      "novelty_mean": 0.28524176118337563,
+      "novelty_std": 0.1141469453784013,
+      "novelty_final": 0.20361328125,
+      "mean_sim_to_past_mean": 0.31594552738698134,
+      "mean_sim_to_past_final": 0.36878952383995056,
+      "sim_lag1_mean": 0.3629737415087808,
+      "sim_lag1_std": 0.12158221060769762
+    },
+    "W2k": {
+      "n_windows": 4329,
+      "off_diag_mean": 0.46643921732902527,
+      "off_diag_std": 0.09288978576660156,
+      "novelty_mean": 0.24701401574774723,
+      "novelty_std": 0.050855857311905776,
+      "novelty_final": 0.22802734375,
+      "mean_sim_to_past_mean": 0.4687753212113147,
+      "mean_sim_to_past_final": 0.4475437104701996,
+      "sim_lag1_mean": 0.7429669110479725,
+      "sim_lag1_std": 0.06263855850409578
+    },
+    "W8k": {
+      "n_windows": 1108,
+      "off_diag_mean": 0.7630186080932617,
+      "off_diag_std": 0.042689379304647446,
+      "novelty_mean": 0.1542364463358175,
+      "novelty_std": 0.022350972575216316,
+      "novelty_final": 0.1806640625,
+      "mean_sim_to_past_mean": 0.7636147938338937,
+      "mean_sim_to_past_final": 0.7339436411857605,
+      "sim_lag1_mean": 0.8087141662432249,
+      "sim_lag1_std": 0.03577515725158869
+    },
+    "W40k": {
+      "n_windows": 221,
+      "off_diag_mean": 0.9227926135063171,
+      "off_diag_std": 0.019805677235126495,
+      "novelty_mean": 0.04776944247159091,
+      "novelty_std": 0.006605574143391845,
+      "novelty_final": 0.056640625,
+      "mean_sim_to_past_mean": 0.9235343445431102,
+      "mean_sim_to_past_final": 0.9072198867797852,
+      "sim_lag1_mean": 0.9455255681818182,
+      "sim_lag1_std": 0.009503091134178621
+    }
+  },
+  "20260521_005834_love_s_whirlwind_a_tale_of_resilience_and_redemption_romance_basic_conditioning": {
+    "run_id": "20260521_005834_love_s_whirlwind_a_tale_of_resilience_and_redemption_romance_basic_conditioning",
+    "conditioning_mode": "basic_conditioning",
+    "broader_genre": "Romance",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000499,
+    "n_chars": 4454670,
+    "W1k": {
+      "n_windows": 8909,
+      "off_diag_mean": 0.27825477719306946,
+      "off_diag_std": 0.10516330599784851,
+      "novelty_mean": 0.3197264994641404,
+      "novelty_std": 0.11633833962934353,
+      "novelty_final": 0.32666015625,
+      "mean_sim_to_past_mean": 0.27828629235525837,
+      "mean_sim_to_past_final": 0.33275455236434937,
+      "sim_lag1_mean": 0.3286274187116276,
+      "sim_lag1_std": 0.11571453485332031
+    },
+    "W2k": {
+      "n_windows": 4350,
+      "off_diag_mean": 0.4238194525241852,
+      "off_diag_std": 0.09021615236997604,
+      "novelty_mean": 0.2743016758522074,
+      "novelty_std": 0.05054726069894878,
+      "novelty_final": 0.271484375,
+      "mean_sim_to_past_mean": 0.42458419569965666,
+      "mean_sim_to_past_final": 0.41955751180648804,
+      "sim_lag1_mean": 0.7170013266339963,
+      "sim_lag1_std": 0.06331360450360082
+    },
+    "W8k": {
+      "n_windows": 1113,
+      "off_diag_mean": 0.7347007393836975,
+      "off_diag_std": 0.0463913269340992,
+      "novelty_mean": 0.17805448024392986,
+      "novelty_std": 0.024555147011063008,
+      "novelty_final": 0.19189453125,
+      "mean_sim_to_past_mean": 0.735165264323461,
+      "mean_sim_to_past_final": 0.7157996892929077,
+      "sim_lag1_mean": 0.7714242180474371,
+      "sim_lag1_std": 0.040844342054987395
+    },
+    "W40k": {
+      "n_windows": 222,
+      "off_diag_mean": 0.9290950298309326,
+      "off_diag_std": 0.011594266630709171,
+      "novelty_mean": 0.05217318297511312,
+      "novelty_std": 0.00667173677918255,
+      "novelty_final": 0.0537109375,
+      "mean_sim_to_past_mean": 0.9293707579509165,
+      "mean_sim_to_past_final": 0.9173744320869446,
+      "sim_lag1_mean": 0.9368791537047512,
+      "sim_lag1_std": 0.009708549717130567
+    }
+  },
+  "20260521_144550_stellar_exodus_the_final_frontier_space_opera_markov_rolling_conditioning": {
+    "run_id": "20260521_144550_stellar_exodus_the_final_frontier_space_opera_markov_rolling_conditioning",
+    "conditioning_mode": "markov_rolling_conditioning",
+    "broader_genre": "Space Opera",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000568,
+    "n_chars": 162498,
+    "W1k": {
+      "n_windows": 324,
+      "off_diag_mean": 0.2719685137271881,
+      "off_diag_std": 0.09674353152513504,
+      "novelty_mean": 0.4611079449255031,
+      "novelty_std": 0.1108624969056804,
+      "novelty_final": 0.353515625,
+      "mean_sim_to_past_mean": 0.2770645256520425,
+      "mean_sim_to_past_final": 0.2645477056503296,
+      "sim_lag1_mean": 0.3671544314168924,
+      "sim_lag1_std": 0.11049014646118516
+    },
+    "W2k": {
+      "n_windows": 158,
+      "off_diag_mean": 0.39081907272338867,
+      "off_diag_std": 0.10636169463396072,
+      "novelty_mean": 0.2658893560907643,
+      "novelty_std": 0.05869120832402973,
+      "novelty_final": 0.255859375,
+      "mean_sim_to_past_mean": 0.40572518584834544,
+      "mean_sim_to_past_final": 0.279562383890152,
+      "sim_lag1_mean": 0.732484076433121,
+      "sim_lag1_std": 0.06418951926105962
+    },
+    "W8k": {
+      "n_windows": 40,
+      "off_diag_mean": 0.6833978295326233,
+      "off_diag_std": 0.07193408161401749,
+      "novelty_mean": 0.20957281650641027,
+      "novelty_std": 0.02836564611131763,
+      "novelty_final": 0.21337890625,
+      "mean_sim_to_past_mean": 0.6971915471248138,
+      "mean_sim_to_past_final": 0.5334159731864929,
+      "sim_lag1_mean": 0.7813626802884616,
+      "sim_lag1_std": 0.03317871329381998
+    },
+    "W40k": {
+      "n_windows": 8,
+      "off_diag_mean": 0.8843470811843872,
+      "off_diag_std": 0.0360855832695961,
+      "novelty_mean": 0.07400948660714286,
+      "novelty_std": 0.0066993343769771035,
+      "novelty_final": 0.0732421875,
+      "mean_sim_to_past_mean": 0.8939971242632184,
+      "mean_sim_to_past_final": 0.8516322374343872,
+      "sim_lag1_mean": 0.9220842633928571,
+      "sim_lag1_std": 0.007613149358059293
+    }
+  },
+  "20260522_043453_preoom_repair_the_inventor_s_dilemma_a_guide_to_robotics_and_the_ethics_of_artificial_life_science_minimal_fixed_conditioning": {
+    "run_id": "20260522_043453_preoom_repair_the_inventor_s_dilemma_a_guide_to_robotics_and_the_ethics_of_artificial_life_science_minimal_fixed_conditioning",
+    "conditioning_mode": "minimal_fixed_conditioning",
+    "broader_genre": "Science",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000043,
+    "n_chars": 4665769,
+    "W1k": {
+      "n_windows": 9331,
+      "off_diag_mean": 0.24608802795410156,
+      "off_diag_std": 0.10350394248962402,
+      "novelty_mean": 0.3360358954753651,
+      "novelty_std": 0.12011762630162441,
+      "novelty_final": 0.146484375,
+      "mean_sim_to_past_mean": 0.24680548331242091,
+      "mean_sim_to_past_final": 0.2692001760005951,
+      "sim_lag1_mean": 0.29879124656495304,
+      "sim_lag1_std": 0.1153828342731778
+    },
+    "W2k": {
+      "n_windows": 4556,
+      "off_diag_mean": 0.3817707598209381,
+      "off_diag_std": 0.09056438505649567,
+      "novelty_mean": 0.2933498880865807,
+      "novelty_std": 0.05065513097163143,
+      "novelty_final": 0.27197265625,
+      "mean_sim_to_past_mean": 0.38312361271465123,
+      "mean_sim_to_past_final": 0.4145727753639221,
+      "sim_lag1_mean": 0.6981892590988611,
+      "sim_lag1_std": 0.06443263540305115
+    },
+    "W8k": {
+      "n_windows": 1166,
+      "off_diag_mean": 0.7020107507705688,
+      "off_diag_std": 0.05091234669089317,
+      "novelty_mean": 0.20189905780579398,
+      "novelty_std": 0.027553567245248777,
+      "novelty_final": 0.20947265625,
+      "mean_sim_to_past_mean": 0.7043626556069043,
+      "mean_sim_to_past_final": 0.6522067189216614,
+      "sim_lag1_mean": 0.7448502045332618,
+      "sim_lag1_std": 0.042748537019151836
+    },
+    "W40k": {
+      "n_windows": 233,
+      "off_diag_mean": 0.9121268391609192,
+      "off_diag_std": 0.01975730061531067,
+      "novelty_mean": 0.060990958378232756,
+      "novelty_std": 0.007552258509830843,
+      "novelty_final": 0.0693359375,
+      "mean_sim_to_past_mean": 0.9150624272638354,
+      "mean_sim_to_past_final": 0.8661519885063171,
+      "sim_lag1_mean": 0.9272103145204741,
+      "sim_lag1_std": 0.012571249930039807
+    }
+  },
+  "20260523_063752_last_star_s_rebellion_space_opera_minimal_fixed_conditioning": {
+    "run_id": "20260523_063752_last_star_s_rebellion_space_opera_minimal_fixed_conditioning",
+    "conditioning_mode": "minimal_fixed_conditioning",
+    "broader_genre": "Space Opera",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000421,
+    "n_chars": 4370059,
+    "W1k": {
+      "n_windows": 8740,
+      "off_diag_mean": 0.25662508606910706,
+      "off_diag_std": 0.09789025038480759,
+      "novelty_mean": 0.3455222335310819,
+      "novelty_std": 0.11489522078967646,
+      "novelty_final": 0.267578125,
+      "mean_sim_to_past_mean": 0.25735161406551693,
+      "mean_sim_to_past_final": 0.3069866895675659,
+      "sim_lag1_mean": 0.31170677759511234,
+      "sim_lag1_std": 0.11187172689193375
+    },
+    "W2k": {
+      "n_windows": 4267,
+      "off_diag_mean": 0.4012669026851654,
+      "off_diag_std": 0.08525335788726807,
+      "novelty_mean": 0.28474488506504925,
+      "novelty_std": 0.04984316369852664,
+      "novelty_final": 0.279296875,
+      "mean_sim_to_past_mean": 0.4027715158005639,
+      "mean_sim_to_past_final": 0.4385535418987274,
+      "sim_lag1_mean": 0.7080659003420945,
+      "sim_lag1_std": 0.06297292720398692
+    },
+    "W8k": {
+      "n_windows": 1092,
+      "off_diag_mean": 0.7145662307739258,
+      "off_diag_std": 0.04746009409427643,
+      "novelty_mean": 0.1942952100996792,
+      "novelty_std": 0.02502022077439853,
+      "novelty_final": 0.19921875,
+      "mean_sim_to_past_mean": 0.715930767446128,
+      "mean_sim_to_past_final": 0.6969773769378662,
+      "sim_lag1_mean": 0.7533110033799266,
+      "sim_lag1_std": 0.04117683952574886
+    },
+    "W40k": {
+      "n_windows": 218,
+      "off_diag_mean": 0.9225968718528748,
+      "off_diag_std": 0.01265005860477686,
+      "novelty_mean": 0.0571154053859447,
+      "novelty_std": 0.0058211699551479895,
+      "novelty_final": 0.07275390625,
+      "mean_sim_to_past_mean": 0.9231390538303533,
+      "mean_sim_to_past_final": 0.9047941565513611,
+      "sim_lag1_mean": 0.9313098538306451,
+      "sim_lag1_std": 0.010751563407445843
+    }
+  },
+  "20260523_193133_mastering_the_matrix_a_guide_to_modern_computer_programming_science_minimal_fixed_conditioning": {
+    "run_id": "20260523_193133_mastering_the_matrix_a_guide_to_modern_computer_programming_science_minimal_fixed_conditioning",
+    "conditioning_mode": "minimal_fixed_conditioning",
+    "broader_genre": "Science",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000060,
+    "n_chars": 4657194,
+    "W1k": {
+      "n_windows": 9314,
+      "off_diag_mean": 0.24345146119594574,
+      "off_diag_std": 0.10232620686292648,
+      "novelty_mean": 0.33515786484618276,
+      "novelty_std": 0.12102362904697553,
+      "novelty_final": 0.169921875,
+      "mean_sim_to_past_mean": 0.24492628235659128,
+      "mean_sim_to_past_final": 0.17086417973041534,
+      "sim_lag1_mean": 0.29856953328551555,
+      "sim_lag1_std": 0.11506240658043199
+    },
+    "W2k": {
+      "n_windows": 4548,
+      "off_diag_mean": 0.38348716497421265,
+      "off_diag_std": 0.08978869765996933,
+      "novelty_mean": 0.2942033058369529,
+      "novelty_std": 0.050412235083884094,
+      "novelty_final": 0.31689453125,
+      "mean_sim_to_past_mean": 0.3859725516721236,
+      "mean_sim_to_past_final": 0.17991997301578522,
+      "sim_lag1_mean": 0.6972773300046734,
+      "sim_lag1_std": 0.0652895573194049
+    },
+    "W8k": {
+      "n_windows": 1164,
+      "off_diag_mean": 0.7003744840621948,
+      "off_diag_std": 0.051442891359329224,
+      "novelty_mean": 0.20247045961414445,
+      "novelty_std": 0.02757798497893549,
+      "novelty_final": 0.19970703125,
+      "mean_sim_to_past_mean": 0.7021583860943467,
+      "mean_sim_to_past_final": 0.6515201926231384,
+      "sim_lag1_mean": 0.7438507211280094,
+      "sim_lag1_std": 0.044461765927502166
+    },
+    "W40k": {
+      "n_windows": 232,
+      "off_diag_mean": 0.91147381067276,
+      "off_diag_std": 0.020626623183488846,
+      "novelty_mean": 0.06269023944805195,
+      "novelty_std": 0.00730120837721347,
+      "novelty_final": 0.06982421875,
+      "mean_sim_to_past_mean": 0.9143845446698078,
+      "mean_sim_to_past_final": 0.8957593441009521,
+      "sim_lag1_mean": 0.9259313277867965,
+      "sim_lag1_std": 0.012184273356457793
+    }
+  },
+  "20260524_090540_heart_of_darkness_space_opera_crusade_adventure_markov_rolling_conditioning": {
+    "run_id": "20260524_090540_heart_of_darkness_space_opera_crusade_adventure_markov_rolling_conditioning",
+    "conditioning_mode": "markov_rolling_conditioning",
+    "broader_genre": "Adventure",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000578,
+    "n_chars": 4311071,
+    "W1k": {
+      "n_windows": 8622,
+      "off_diag_mean": 0.23371531069278717,
+      "off_diag_std": 0.11504536867141724,
+      "novelty_mean": 0.3463215475610065,
+      "novelty_std": 0.13117689390073764,
+      "novelty_final": 0.28369140625,
+      "mean_sim_to_past_mean": 0.24424970545677369,
+      "mean_sim_to_past_final": 0.3241669535636902,
+      "sim_lag1_mean": 0.3696868927679846,
+      "sim_lag1_std": 0.1354957274562392
+    },
+    "W2k": {
+      "n_windows": 4210,
+      "off_diag_mean": 0.3471434414386749,
+      "off_diag_std": 0.13233554363250732,
+      "novelty_mean": 0.2528401286677358,
+      "novelty_std": 0.06259735909763427,
+      "novelty_final": 0.34814453125,
+      "mean_sim_to_past_mean": 0.3646530343881399,
+      "mean_sim_to_past_final": 0.35181957483291626,
+      "sim_lag1_mean": 0.7405821695325493,
+      "sim_lag1_std": 0.06739857065931594
+    },
+    "W8k": {
+      "n_windows": 1077,
+      "off_diag_mean": 0.5779433846473694,
+      "off_diag_std": 0.1751316636800766,
+      "novelty_mean": 0.18993482625174257,
+      "novelty_std": 0.04705665223072721,
+      "novelty_final": 0.14697265625,
+      "mean_sim_to_past_mean": 0.6057994282807891,
+      "mean_sim_to_past_final": 0.6545187830924988,
+      "sim_lag1_mean": 0.7923009936251162,
+      "sim_lag1_std": 0.05274314944564955
+    },
+    "W40k": {
+      "n_windows": 215,
+      "off_diag_mean": 0.7343824505805969,
+      "off_diag_std": 0.19470913708209991,
+      "novelty_mean": 0.08327933338200935,
+      "novelty_std": 0.04416372088681008,
+      "novelty_final": 0.05908203125,
+      "mean_sim_to_past_mean": 0.767854819091681,
+      "mean_sim_to_past_final": 0.7885633707046509,
+      "sim_lag1_mean": 0.9105099116530374,
+      "sim_lag1_std": 0.051100895031029846
+    }
+  },
+  "20260525_005409_the_labyrinth_s_last_guardian_awakening_of_the_light_fantasy_markov_rolling_conditioning": {
+    "run_id": "20260525_005409_the_labyrinth_s_last_guardian_awakening_of_the_light_fantasy_markov_rolling_conditioning",
+    "conditioning_mode": "markov_rolling_conditioning",
+    "broader_genre": "Fantasy",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000352,
+    "n_chars": 4345932,
+    "W1k": {
+      "n_windows": 8691,
+      "off_diag_mean": 0.2468418926000595,
+      "off_diag_std": 0.11298807710409164,
+      "novelty_mean": 0.340147226068038,
+      "novelty_std": 0.12979026214643505,
+      "novelty_final": 0.25732421875,
+      "mean_sim_to_past_mean": 0.25263867554150354,
+      "mean_sim_to_past_final": 0.3224571645259857,
+      "sim_lag1_mean": 0.37197763423239266,
+      "sim_lag1_std": 0.12501838171285082
+    },
+    "W2k": {
+      "n_windows": 4244,
+      "off_diag_mean": 0.36129194498062134,
+      "off_diag_std": 0.12521079182624817,
+      "novelty_mean": 0.25130338756481263,
+      "novelty_std": 0.06238929712722286,
+      "novelty_final": 0.21533203125,
+      "mean_sim_to_past_mean": 0.37331390719772556,
+      "mean_sim_to_past_final": 0.39634713530540466,
+      "sim_lag1_mean": 0.7419892184553971,
+      "sim_lag1_std": 0.06804441106142084
+    },
+    "W8k": {
+      "n_windows": 1086,
+      "off_diag_mean": 0.5957996249198914,
+      "off_diag_std": 0.16262491047382355,
+      "novelty_mean": 0.18603740639400923,
+      "novelty_std": 0.04407464292293541,
+      "novelty_final": 0.1953125,
+      "mean_sim_to_past_mean": 0.6164752042616293,
+      "mean_sim_to_past_final": 0.6218211054801941,
+      "sim_lag1_mean": 0.7961086009504609,
+      "sim_lag1_std": 0.05126620306393482
+    },
+    "W40k": {
+      "n_windows": 217,
+      "off_diag_mean": 0.7602563500404358,
+      "off_diag_std": 0.17998690903186798,
+      "novelty_mean": 0.07212320963541667,
+      "novelty_std": 0.027870723903393842,
+      "novelty_final": 0.05712890625,
+      "mean_sim_to_past_mean": 0.7861965616682062,
+      "mean_sim_to_past_final": 0.8116443753242493,
+      "sim_lag1_mean": 0.9249674479166666,
+      "sim_lag1_std": 0.033495412279386114
+    }
+  },
+  "20260525_153827_the_intricate_loom_of_time_ada_lovelace_unravels_the_mysteries_of_reality_biography_or_nonfiction_basic_conditioning": {
+    "run_id": "20260525_153827_the_intricate_loom_of_time_ada_lovelace_unravels_the_mysteries_of_reality_biography_or_nonfiction_basic_conditioning",
+    "conditioning_mode": "basic_conditioning",
+    "broader_genre": "Biography (or Nonfiction)",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1001637,
+    "n_chars": 4365354,
+    "W1k": {
+      "n_windows": 8730,
+      "off_diag_mean": 0.26413586735725403,
+      "off_diag_std": 0.1040228009223938,
+      "novelty_mean": 0.33527830073426224,
+      "novelty_std": 0.11677045960529447,
+      "novelty_final": 0.44287109375,
+      "mean_sim_to_past_mean": 0.26582752232047613,
+      "mean_sim_to_past_final": 0.2142566591501236,
+      "sim_lag1_mean": 0.32377133001807573,
+      "sim_lag1_std": 0.11849368378410104
+    },
+    "W2k": {
+      "n_windows": 4263,
+      "off_diag_mean": 0.4079113006591797,
+      "off_diag_std": 0.0904504805803299,
+      "novelty_mean": 0.27618296501055845,
+      "novelty_std": 0.05009393533439965,
+      "novelty_final": 0.380859375,
+      "mean_sim_to_past_mean": 0.4095621815712616,
+      "mean_sim_to_past_final": 0.28987833857536316,
+      "sim_lag1_mean": 0.7169357865475422,
+      "sim_lag1_std": 0.0626119878650501
+    },
+    "W8k": {
+      "n_windows": 1091,
+      "off_diag_mean": 0.7085959315299988,
+      "off_diag_std": 0.05159661918878555,
+      "novelty_mean": 0.1932227458428899,
+      "novelty_std": 0.02815580112819464,
+      "novelty_final": 0.2392578125,
+      "mean_sim_to_past_mean": 0.7088134651884026,
+      "mean_sim_to_past_final": 0.6227256655693054,
+      "sim_lag1_mean": 0.764496129587156,
+      "sim_lag1_std": 0.04289314024090664
+    },
+    "W40k": {
+      "n_windows": 218,
+      "off_diag_mean": 0.9094060063362122,
+      "off_diag_std": 0.02002015709877014,
+      "novelty_mean": 0.061314174107142856,
+      "novelty_std": 0.0088006270609232,
+      "novelty_final": 0.0908203125,
+      "mean_sim_to_past_mean": 0.9103960894769237,
+      "mean_sim_to_past_final": 0.8473502397537231,
+      "sim_lag1_mean": 0.9300070204493087,
+      "sim_lag1_std": 0.012021472655464407
+    }
+  },
+  "20260526_050132_the_color_of_courage_a_journey_through_the_shadows_biography_basic_conditioning": {
+    "run_id": "20260526_050132_the_color_of_courage_a_journey_through_the_shadows_biography_basic_conditioning",
+    "conditioning_mode": "basic_conditioning",
+    "broader_genre": "Biography",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000025,
+    "n_chars": 4351392,
+    "W1k": {
+      "n_windows": 8702,
+      "off_diag_mean": 0.2617422938346863,
+      "off_diag_std": 0.10285216569900513,
+      "novelty_mean": 0.33910086214946555,
+      "novelty_std": 0.11720135037782743,
+      "novelty_final": 0.2060546875,
+      "mean_sim_to_past_mean": 0.2636631219273733,
+      "mean_sim_to_past_final": 0.2981643080711365,
+      "sim_lag1_mean": 0.32222366727586316,
+      "sim_lag1_std": 0.11624218733417896
+    },
+    "W2k": {
+      "n_windows": 4249,
+      "off_diag_mean": 0.40168479084968567,
+      "off_diag_std": 0.09160524606704712,
+      "novelty_mean": 0.2782995651446269,
+      "novelty_std": 0.05248341834292332,
+      "novelty_final": 0.23486328125,
+      "mean_sim_to_past_mean": 0.4033934596343678,
+      "mean_sim_to_past_final": 0.40013226866722107,
+      "sim_lag1_mean": 0.715459848752354,
+      "sim_lag1_std": 0.06387406297096976
+    },
+    "W8k": {
+      "n_windows": 1087,
+      "off_diag_mean": 0.7054775357246399,
+      "off_diag_std": 0.05956548452377319,
+      "novelty_mean": 0.19568612957527623,
+      "novelty_std": 0.030857683508175426,
+      "novelty_final": 0.1826171875,
+      "mean_sim_to_past_mean": 0.7089915806307538,
+      "mean_sim_to_past_final": 0.7249173521995544,
+      "sim_lag1_mean": 0.7638000151070442,
+      "sim_lag1_std": 0.04477403653258198
+    },
+    "W40k": {
+      "n_windows": 217,
+      "off_diag_mean": 0.9058611392974854,
+      "off_diag_std": 0.028623461723327637,
+      "novelty_mean": 0.06270118995949074,
+      "novelty_std": 0.01051214377060676,
+      "novelty_final": 0.064453125,
+      "mean_sim_to_past_mean": 0.9089379583795866,
+      "mean_sim_to_past_final": 0.8658108115196228,
+      "sim_lag1_mean": 0.9292489510995371,
+      "sim_lag1_std": 0.01648251467465459
+    }
+  },
+  "20260526_183333_grid_runner_s_vengeance_cyberpunk_basic_conditioning": {
+    "run_id": "20260526_183333_grid_runner_s_vengeance_cyberpunk_basic_conditioning",
+    "conditioning_mode": "basic_conditioning",
+    "broader_genre": "Cyberpunk",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000535,
+    "n_chars": 4298707,
+    "W1k": {
+      "n_windows": 8597,
+      "off_diag_mean": 0.26675182580947876,
+      "off_diag_std": 0.10174958407878876,
+      "novelty_mean": 0.33636937556348884,
+      "novelty_std": 0.11814248321319103,
+      "novelty_final": 0.2568359375,
+      "mean_sim_to_past_mean": 0.2666949038281118,
+      "mean_sim_to_past_final": 0.3447040021419525,
+      "sim_lag1_mean": 0.32506875073205266,
+      "sim_lag1_std": 0.1162408551081655
+    },
+    "W2k": {
+      "n_windows": 4197,
+      "off_diag_mean": 0.41035154461860657,
+      "off_diag_std": 0.08891580998897552,
+      "novelty_mean": 0.2757928519162595,
+      "novelty_std": 0.05029042605097509,
+      "novelty_final": 0.1943359375,
+      "mean_sim_to_past_mean": 0.41072064694603133,
+      "mean_sim_to_past_final": 0.42398250102996826,
+      "sim_lag1_mean": 0.7169529830307138,
+      "sim_lag1_std": 0.06280871617075147
+    },
+    "W8k": {
+      "n_windows": 1074,
+      "off_diag_mean": 0.7133510708808899,
+      "off_diag_std": 0.04905964061617851,
+      "novelty_mean": 0.19228133373136067,
+      "novelty_std": 0.02630389441679365,
+      "novelty_final": 0.15576171875,
+      "mean_sim_to_past_mean": 0.7136510622245845,
+      "mean_sim_to_past_final": 0.6965543627738953,
+      "sim_lag1_mean": 0.7649009967672413,
+      "sim_lag1_std": 0.04324199881091506
+    },
+    "W40k": {
+      "n_windows": 214,
+      "off_diag_mean": 0.914417564868927,
+      "off_diag_std": 0.01639421097934246,
+      "novelty_mean": 0.059407552083333336,
+      "novelty_std": 0.00700730245603584,
+      "novelty_final": 0.06103515625,
+      "mean_sim_to_past_mean": 0.9152786202833686,
+      "mean_sim_to_past_final": 0.8985223174095154,
+      "sim_lag1_mean": 0.9308382849178404,
+      "sim_lag1_std": 0.011968018543600365
+    }
+  },
+  "20260527_072914_shadows_in_neon_rebellion_s_dawn_thriller_basic_conditioning": {
+    "run_id": "20260527_072914_shadows_in_neon_rebellion_s_dawn_thriller_basic_conditioning",
+    "conditioning_mode": "basic_conditioning",
+    "broader_genre": "Thriller",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000576,
+    "n_chars": 4296456,
+    "W1k": {
+      "n_windows": 8592,
+      "off_diag_mean": 0.2666087746620178,
+      "off_diag_std": 0.10274842381477356,
+      "novelty_mean": 0.3324332394320728,
+      "novelty_std": 0.11745257618122235,
+      "novelty_final": 0.33642578125,
+      "mean_sim_to_past_mean": 0.2668360715632027,
+      "mean_sim_to_past_final": 0.27792438864707947,
+      "sim_lag1_mean": 0.32431206821410125,
+      "sim_lag1_std": 0.1172784911812526
+    },
+    "W2k": {
+      "n_windows": 4195,
+      "off_diag_mean": 0.4071979522705078,
+      "off_diag_std": 0.08901594579219818,
+      "novelty_mean": 0.2761399865320994,
+      "novelty_std": 0.050990915151200356,
+      "novelty_final": 0.28662109375,
+      "mean_sim_to_past_mean": 0.40944553026996117,
+      "mean_sim_to_past_final": 0.359133243560791,
+      "sim_lag1_mean": 0.7160758626534931,
+      "sim_lag1_std": 0.06348784618800256
+    },
+    "W8k": {
+      "n_windows": 1074,
+      "off_diag_mean": 0.7143732309341431,
+      "off_diag_std": 0.047515515238046646,
+      "novelty_mean": 0.19009521711905872,
+      "novelty_std": 0.02518570960988653,
+      "novelty_final": 0.20703125,
+      "mean_sim_to_past_mean": 0.7150044052931935,
+      "mean_sim_to_past_final": 0.6602367758750916,
+      "sim_lag1_mean": 0.7648864347914726,
+      "sim_lag1_std": 0.03942006104758918
+    },
+    "W40k": {
+      "n_windows": 214,
+      "off_diag_mean": 0.9144032597541809,
+      "off_diag_std": 0.01640409603714943,
+      "novelty_mean": 0.05892614803403756,
+      "novelty_std": 0.0067123647536514695,
+      "novelty_final": 0.064453125,
+      "mean_sim_to_past_mean": 0.9161489370843054,
+      "mean_sim_to_past_final": 0.8886856436729431,
+      "sim_lag1_mean": 0.9316520870011737,
+      "sim_lag1_std": 0.011019575320164047
+    }
+  },
+  "20260527_200746_whispers_from_the_desert_a_journey_to_the_library_of_echoes_adventure_basic_conditioning": {
+    "run_id": "20260527_200746_whispers_from_the_desert_a_journey_to_the_library_of_echoes_adventure_basic_conditioning",
+    "conditioning_mode": "basic_conditioning",
+    "broader_genre": "Adventure",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1001191,
+    "n_chars": 4355717,
+    "W1k": {
+      "n_windows": 8711,
+      "off_diag_mean": 0.2841079831123352,
+      "off_diag_std": 0.09980719536542892,
+      "novelty_mean": 0.3225925239711897,
+      "novelty_std": 0.11630856766513308,
+      "novelty_final": 0.33935546875,
+      "mean_sim_to_past_mean": 0.2844296593458555,
+      "mean_sim_to_past_final": 0.2514481842517853,
+      "sim_lag1_mean": 0.33701103354978507,
+      "sim_lag1_std": 0.11288394835601157
+    },
+    "W2k": {
+      "n_windows": 4253,
+      "off_diag_mean": 0.4321760833263397,
+      "off_diag_std": 0.08662150800228119,
+      "novelty_mean": 0.2665871506239711,
+      "novelty_std": 0.049091927462761906,
+      "novelty_final": 0.224609375,
+      "mean_sim_to_past_mean": 0.4343459565973966,
+      "mean_sim_to_past_final": 0.41551685333251953,
+      "sim_lag1_mean": 0.7263103208784102,
+      "sim_lag1_std": 0.06139442167863813
+    },
+    "W8k": {
+      "n_windows": 1088,
+      "off_diag_mean": 0.7349579334259033,
+      "off_diag_std": 0.04483946040272713,
+      "novelty_mean": 0.17862693695377185,
+      "novelty_std": 0.023505869847360913,
+      "novelty_final": 0.1767578125,
+      "mean_sim_to_past_mean": 0.7365572392776019,
+      "mean_sim_to_past_final": 0.7228143811225891,
+      "sim_lag1_mean": 0.7791746923873045,
+      "sim_lag1_std": 0.03724923824840452
+    },
+    "W40k": {
+      "n_windows": 217,
+      "off_diag_mean": 0.9236648082733154,
+      "off_diag_std": 0.015317684970796108,
+      "novelty_mean": 0.054253472222222224,
+      "novelty_std": 0.005990649633660901,
+      "novelty_final": 0.05322265625,
+      "mean_sim_to_past_mean": 0.9247860555295591,
+      "mean_sim_to_past_final": 0.9201999306678772,
+      "sim_lag1_mean": 0.9381555627893519,
+      "sim_lag1_std": 0.009360884892861054
+    }
+  },
+  "20260528_091145_the_heart_s_quest_ariana_s_chronicles_of_time_adventure_basic_conditioning": {
+    "run_id": "20260528_091145_the_heart_s_quest_ariana_s_chronicles_of_time_adventure_basic_conditioning",
+    "conditioning_mode": "basic_conditioning",
+    "broader_genre": "Adventure",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000639,
+    "n_chars": 4345711,
+    "W1k": {
+      "n_windows": 8691,
+      "off_diag_mean": 0.2872180640697479,
+      "off_diag_std": 0.09990184754133224,
+      "novelty_mean": 0.3223303826686565,
+      "novelty_std": 0.11329668581327339,
+      "novelty_final": 0.33740234375,
+      "mean_sim_to_past_mean": 0.28712321600059026,
+      "mean_sim_to_past_final": 0.2564358711242676,
+      "sim_lag1_mean": 0.34045565246301085,
+      "sim_lag1_std": 0.11172088498411592
+    },
+    "W2k": {
+      "n_windows": 4243,
+      "off_diag_mean": 0.43083706498146057,
+      "off_diag_std": 0.08695024996995926,
+      "novelty_mean": 0.26741127830696015,
+      "novelty_std": 0.047948253975911244,
+      "novelty_final": 0.2783203125,
+      "mean_sim_to_past_mean": 0.43191290510496066,
+      "mean_sim_to_past_final": 0.38035574555397034,
+      "sim_lag1_mean": 0.7255440963320663,
+      "sim_lag1_std": 0.06024140746136304
+    },
+    "W8k": {
+      "n_windows": 1086,
+      "off_diag_mean": 0.7376784682273865,
+      "off_diag_std": 0.045995403081178665,
+      "novelty_mean": 0.1773405997983871,
+      "novelty_std": 0.024506195659551533,
+      "novelty_final": 0.16796875,
+      "mean_sim_to_past_mean": 0.7384524584915232,
+      "mean_sim_to_past_final": 0.7305792570114136,
+      "sim_lag1_mean": 0.7801636304723503,
+      "sim_lag1_std": 0.03799969143419136
+    },
+    "W40k": {
+      "n_windows": 217,
+      "off_diag_mean": 0.9246135354042053,
+      "off_diag_std": 0.014178800396621227,
+      "novelty_mean": 0.054065845630787035,
+      "novelty_std": 0.006632602163551864,
+      "novelty_final": 0.05615234375,
+      "mean_sim_to_past_mean": 0.9247261528615598,
+      "mean_sim_to_past_final": 0.8899016380310059,
+      "sim_lag1_mean": 0.9381668655960648,
+      "sim_lag1_std": 0.009809162799960754
+    }
+  },
+  "20260529_074724_seabrook_s_redemption_soulbound_by_the_sea_queen_fantasy_basic_conditioning": {
+    "run_id": "20260529_074724_seabrook_s_redemption_soulbound_by_the_sea_queen_fantasy_basic_conditioning",
+    "conditioning_mode": "basic_conditioning",
+    "broader_genre": "Fantasy",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000076,
+    "n_chars": 4297083,
+    "W1k": {
+      "n_windows": 8594,
+      "off_diag_mean": 0.27213212847709656,
+      "off_diag_std": 0.09785881638526917,
+      "novelty_mean": 0.3376538997948912,
+      "novelty_std": 0.11530230295246337,
+      "novelty_final": 0.17333984375,
+      "mean_sim_to_past_mean": 0.2730885625070241,
+      "mean_sim_to_past_final": 0.31120938062667847,
+      "sim_lag1_mean": 0.33127794739643185,
+      "sim_lag1_std": 0.11031745638729891
+    },
+    "W2k": {
+      "n_windows": 4196,
+      "off_diag_mean": 0.4134693741798401,
+      "off_diag_std": 0.08676327019929886,
+      "novelty_mean": 0.2730483299500894,
+      "novelty_std": 0.050093207088895274,
+      "novelty_final": 0.2431640625,
+      "mean_sim_to_past_mean": 0.4158221025716988,
+      "mean_sim_to_past_final": 0.3969693183898926,
+      "sim_lag1_mean": 0.7211444404611144,
+      "sim_lag1_std": 0.06174037489135004
+    },
+    "W8k": {
+      "n_windows": 1074,
+      "off_diag_mean": 0.7165738344192505,
+      "off_diag_std": 0.04741063341498375,
+      "novelty_mean": 0.1905557396027493,
+      "novelty_std": 0.02440788876657463,
+      "novelty_final": 0.16845703125,
+      "mean_sim_to_past_mean": 0.7207485663479772,
+      "mean_sim_to_past_final": 0.5970357656478882,
+      "sim_lag1_mean": 0.7727057607176142,
+      "sim_lag1_std": 0.03731257331507886
+    },
+    "W40k": {
+      "n_windows": 214,
+      "off_diag_mean": 0.9114610552787781,
+      "off_diag_std": 0.019675472751259804,
+      "novelty_mean": 0.05970785651408451,
+      "novelty_std": 0.007538413784554178,
+      "novelty_final": 0.06640625,
+      "mean_sim_to_past_mean": 0.9148129826420349,
+      "mean_sim_to_past_final": 0.8913493752479553,
+      "sim_lag1_mean": 0.932981679137324,
+      "sim_lag1_std": 0.011132631009754843
+    }
+  },
+  "20260529_204415_the_keeper_of_whispers_and_shadows_the_lighthouse_enigma_fantasy_basic_conditioning": {
+    "run_id": "20260529_204415_the_keeper_of_whispers_and_shadows_the_lighthouse_enigma_fantasy_basic_conditioning",
+    "conditioning_mode": "basic_conditioning",
+    "broader_genre": "Fantasy",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1001169,
+    "n_chars": 4314774,
+    "W1k": {
+      "n_windows": 8629,
+      "off_diag_mean": 0.27673810720443726,
+      "off_diag_std": 0.09866051375865936,
+      "novelty_mean": 0.33484580685929893,
+      "novelty_std": 0.11481581328592076,
+      "novelty_final": 0.27490234375,
+      "mean_sim_to_past_mean": 0.27723858769016757,
+      "mean_sim_to_past_final": 0.3270624577999115,
+      "sim_lag1_mean": 0.33752573868385,
+      "sim_lag1_std": 0.11290373307909593
+    },
+    "W2k": {
+      "n_windows": 4213,
+      "off_diag_mean": 0.4204138517379761,
+      "off_diag_std": 0.08573537319898605,
+      "novelty_mean": 0.27074859126454176,
+      "novelty_std": 0.04853133804537097,
+      "novelty_final": 0.306640625,
+      "mean_sim_to_past_mean": 0.41863658495693123,
+      "mean_sim_to_past_final": 0.45175012946128845,
+      "sim_lag1_mean": 0.7228097363188509,
+      "sim_lag1_std": 0.06052892706053838
+    },
+    "W8k": {
+      "n_windows": 1078,
+      "off_diag_mean": 0.7202382683753967,
+      "off_diag_std": 0.04645129293203354,
+      "novelty_mean": 0.18902151520427113,
+      "novelty_std": 0.02427137977305005,
+      "novelty_final": 0.19384765625,
+      "mean_sim_to_past_mean": 0.7206047755097944,
+      "mean_sim_to_past_final": 0.7145817279815674,
+      "sim_lag1_mean": 0.7741139304781801,
+      "sim_lag1_std": 0.038938570039732216
+    },
+    "W40k": {
+      "n_windows": 215,
+      "off_diag_mean": 0.9120527505874634,
+      "off_diag_std": 0.01967563107609749,
+      "novelty_mean": 0.05930563668224299,
+      "novelty_std": 0.0077787093853973165,
+      "novelty_final": 0.0615234375,
+      "mean_sim_to_past_mean": 0.9106129572213253,
+      "mean_sim_to_past_final": 0.8983234167098999,
+      "sim_lag1_mean": 0.933208144713785,
+      "sim_lag1_std": 0.010543372522817717
+    }
+  },
+  "20260530_090616_veiled_affection_a_tale_of_love_and_mystery_romance_basic_conditioning": {
+    "run_id": "20260530_090616_veiled_affection_a_tale_of_love_and_mystery_romance_basic_conditioning",
+    "conditioning_mode": "basic_conditioning",
+    "broader_genre": "Romance",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1001154,
+    "n_chars": 4451554,
+    "W1k": {
+      "n_windows": 8903,
+      "off_diag_mean": 0.27411890029907227,
+      "off_diag_std": 0.10468070954084396,
+      "novelty_mean": 0.3249223958077363,
+      "novelty_std": 0.1169018832430098,
+      "novelty_final": 0.20556640625,
+      "mean_sim_to_past_mean": 0.2734455275268762,
+      "mean_sim_to_past_final": 0.3236740231513977,
+      "sim_lag1_mean": 0.32553980940246924,
+      "sim_lag1_std": 0.11517811066190767
+    },
+    "W2k": {
+      "n_windows": 4347,
+      "off_diag_mean": 0.42219123244285583,
+      "off_diag_std": 0.0903162881731987,
+      "novelty_mean": 0.2739665088047918,
+      "novelty_std": 0.050487814158425785,
+      "novelty_final": 0.30419921875,
+      "mean_sim_to_past_mean": 0.4219139271098186,
+      "mean_sim_to_past_final": 0.37473276257514954,
+      "sim_lag1_mean": 0.7169746999306115,
+      "sim_lag1_std": 0.06431795019187313
+    },
+    "W8k": {
+      "n_windows": 1112,
+      "off_diag_mean": 0.72967928647995,
+      "off_diag_std": 0.045513324439525604,
+      "novelty_mean": 0.1811584967090459,
+      "novelty_std": 0.024932232398215893,
+      "novelty_final": 0.1396484375,
+      "mean_sim_to_past_mean": 0.7287069632597167,
+      "mean_sim_to_past_final": 0.7500549554824829,
+      "sim_lag1_mean": 0.7675108819475698,
+      "sim_lag1_std": 0.03929153698532042
+    },
+    "W40k": {
+      "n_windows": 222,
+      "off_diag_mean": 0.9256100058555603,
+      "off_diag_std": 0.012384303845465183,
+      "novelty_mean": 0.05384129312782805,
+      "novelty_std": 0.005113257367135456,
+      "novelty_final": 0.05810546875,
+      "mean_sim_to_past_mean": 0.926035223503458,
+      "mean_sim_to_past_final": 0.905951738357544,
+      "sim_lag1_mean": 0.9358849158653846,
+      "sim_lag1_std": 0.009869089483121991
+    }
+  },
+  "20260530_211457_renewed_light_a_love_story_in_restoration_romance_basic_conditioning": {
+    "run_id": "20260530_211457_renewed_light_a_love_story_in_restoration_romance_basic_conditioning",
+    "conditioning_mode": "basic_conditioning",
+    "broader_genre": "Romance",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000422,
+    "n_chars": 4455179,
+    "W1k": {
+      "n_windows": 8910,
+      "off_diag_mean": 0.2742176353931427,
+      "off_diag_std": 0.10441617667675018,
+      "novelty_mean": 0.32720005259340973,
+      "novelty_std": 0.1181619605418195,
+      "novelty_final": 0.18505859375,
+      "mean_sim_to_past_mean": 0.27436601572079095,
+      "mean_sim_to_past_final": 0.31599098443984985,
+      "sim_lag1_mean": 0.32623836522900385,
+      "sim_lag1_std": 0.11599786654162057
+    },
+    "W2k": {
+      "n_windows": 4350,
+      "off_diag_mean": 0.42375391721725464,
+      "off_diag_std": 0.09022399038076401,
+      "novelty_mean": 0.2741986641145953,
+      "novelty_std": 0.0495488449998792,
+      "novelty_final": 0.2333984375,
+      "mean_sim_to_past_mean": 0.42394151864284263,
+      "mean_sim_to_past_final": 0.32696765661239624,
+      "sim_lag1_mean": 0.7172675291733732,
+      "sim_lag1_std": 0.06188243323457467
+    },
+    "W8k": {
+      "n_windows": 1113,
+      "off_diag_mean": 0.7308264374732971,
+      "off_diag_std": 0.046126220375299454,
+      "novelty_mean": 0.18037952450539568,
+      "novelty_std": 0.025799956222653585,
+      "novelty_final": 0.1826171875,
+      "mean_sim_to_past_mean": 0.7305525704789505,
+      "mean_sim_to_past_final": 0.703847348690033,
+      "sim_lag1_mean": 0.7691755775067446,
+      "sim_lag1_std": 0.042064322009882235
+    },
+    "W40k": {
+      "n_windows": 222,
+      "off_diag_mean": 0.9255351424217224,
+      "off_diag_std": 0.013122755102813244,
+      "novelty_mean": 0.05338173430429864,
+      "novelty_std": 0.005761578598809381,
+      "novelty_final": 0.05224609375,
+      "mean_sim_to_past_mean": 0.925642764136802,
+      "mean_sim_to_past_final": 0.9140028357505798,
+      "sim_lag1_mean": 0.9359887584841629,
+      "sim_lag1_std": 0.010592053115272818
+    }
+  },
+  "20260531_105558_the_elysian_enigma_a_symphony_of_the_universe_science_basic_conditioning": {
+    "run_id": "20260531_105558_the_elysian_enigma_a_symphony_of_the_universe_science_basic_conditioning",
+    "conditioning_mode": "basic_conditioning",
+    "broader_genre": "Science",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000233,
+    "n_chars": 4585276,
+    "W1k": {
+      "n_windows": 9170,
+      "off_diag_mean": 0.2879217863082886,
+      "off_diag_std": 0.10481751710176468,
+      "novelty_mean": 0.3244986636569214,
+      "novelty_std": 0.1135800208692226,
+      "novelty_final": 0.2314453125,
+      "mean_sim_to_past_mean": 0.29001034629353556,
+      "mean_sim_to_past_final": 0.32638639211654663,
+      "sim_lag1_mean": 0.35677671500102087,
+      "sim_lag1_std": 0.11807183693098722
+    },
+    "W2k": {
+      "n_windows": 4477,
+      "off_diag_mean": 0.42874786257743835,
+      "off_diag_std": 0.09062594175338745,
+      "novelty_mean": 0.26161249755641197,
+      "novelty_std": 0.0511272782977202,
+      "novelty_final": 0.2919921875,
+      "mean_sim_to_past_mean": 0.43011726207625023,
+      "mean_sim_to_past_final": 0.4452824592590332,
+      "sim_lag1_mean": 0.7324571106666108,
+      "sim_lag1_std": 0.0624435767939557
+    },
+    "W8k": {
+      "n_windows": 1146,
+      "off_diag_mean": 0.7186306118965149,
+      "off_diag_std": 0.0551312156021595,
+      "novelty_mean": 0.17778938659934498,
+      "novelty_std": 0.026780244713636672,
+      "novelty_final": 0.171875,
+      "mean_sim_to_past_mean": 0.7208901642191358,
+      "mean_sim_to_past_final": 0.6867362260818481,
+      "sim_lag1_mean": 0.7917657444050218,
+      "sim_lag1_std": 0.036970617951430765
+    },
+    "W40k": {
+      "n_windows": 229,
+      "off_diag_mean": 0.8988388776779175,
+      "off_diag_std": 0.03003636747598648,
+      "novelty_mean": 0.05836888363486842,
+      "novelty_std": 0.00934509978834242,
+      "novelty_final": 0.07470703125,
+      "mean_sim_to_past_mean": 0.9017487505548879,
+      "mean_sim_to_past_final": 0.8870014548301697,
+      "sim_lag1_mean": 0.9363756681743421,
+      "sim_lag1_std": 0.011426716481046982
+    }
+  },
+  "20260601_001605_unveiling_mars_monoliths_mysteries_and_the_new_cosmos_science_basic_conditioning": {
+    "run_id": "20260601_001605_unveiling_mars_monoliths_mysteries_and_the_new_cosmos_science_basic_conditioning",
+    "conditioning_mode": "basic_conditioning",
+    "broader_genre": "Science",
+    "temperature_range": [
+      1.0,
+      1.4
+    ],
+    "total_tokens": 1000657,
+    "n_chars": 166988,
+    "W1k": {
+      "n_windows": 333,
+      "off_diag_mean": 0.28420257568359375,
+      "off_diag_std": 0.09810227155685425,
+      "novelty_mean": 0.4623538097703313,
+      "novelty_std": 0.10495838917883454,
+      "novelty_final": 0.40087890625,
+      "mean_sim_to_past_mean": 0.2906261983002166,
+      "mean_sim_to_past_final": 0.27538806200027466,
+      "sim_lag1_mean": 0.35343951489551956,
+      "sim_lag1_std": 0.10657622953510869
+    },
+    "W2k": {
+      "n_windows": 163,
+      "off_diag_mean": 0.40981999039649963,
+      "off_diag_std": 0.09731105715036392,
+      "novelty_mean": 0.2794988184799383,
+      "novelty_std": 0.060260605371997934,
+      "novelty_final": 0.36865234375,
+      "mean_sim_to_past_mean": 0.4235420712718257,
+      "mean_sim_to_past_final": 0.2966323792934418,
+      "sim_lag1_mean": 0.7197898582175926,
+      "sim_lag1_std": 0.06280711479921172
+    },
+    "W8k": {
+      "n_windows": 41,
+      "off_diag_mean": 0.7253245115280151,
+      "off_diag_std": 0.04718176648020744,
+      "novelty_mean": 0.20679931640625,
+      "novelty_std": 0.030706638494293826,
+      "novelty_final": 0.205078125,
+      "mean_sim_to_past_mean": 0.7347805842757225,
+      "mean_sim_to_past_final": 0.6851562261581421,
+      "sim_lag1_mean": 0.76937255859375,
+      "sim_lag1_std": 0.03772670051769069
+    },
+    "W40k": {
+      "n_windows": 8,
+      "off_diag_mean": 0.9156668782234192,
+      "off_diag_std": 0.02181742899119854,
+      "novelty_mean": 0.06696428571428571,
+      "novelty_std": 0.008341420719239257,
+      "novelty_final": 0.08349609375,
+      "mean_sim_to_past_mean": 0.9206926652363369,
+      "mean_sim_to_past_final": 0.884765625,
+      "sim_lag1_mean": 0.9305245535714286,
+      "sim_lag1_std": 0.009673513294285556
+    }
+  }
+}

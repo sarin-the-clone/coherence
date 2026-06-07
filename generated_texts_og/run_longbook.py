@@ -244,8 +244,34 @@ def main():
     )
 
     parser.add_argument(
-        "--disable_self_conditioning", action="store_true",
-        help="Disable long-range self-conditioning injections (summaries, graph, retrieval, semantic prefix)."
+        "--metric_gating_patience", type=int, default=20,
+        help=(
+            "Suspend metric-based gating after this many consecutive chunks "
+            "require metric-gated retries. Sanity checks remain active. "
+            "Use 0 to disable this circuit breaker."
+        )
+    )
+
+    parser.add_argument(
+        "--conditioning_mode",
+        choices=[
+            "basic_conditioning",
+            "summaries_conditioning",
+            "extended_conditioning",
+            "minimal_fixed_conditioning",
+            "markov_rolling_conditioning",
+            "minimal_rolling_conditioning",
+        ],
+        default="extended_conditioning",
+        help=(
+            "Prompt conditioning mode: "
+            "basic_conditioning (C + I + D_n + L_n), "
+            "summaries_conditioning (basic + M_n), "
+            "extended_conditioning (summaries + G_n + R_n), "
+            "minimal_fixed_conditioning (C + I), or "
+            "markov_rolling_conditioning (first chunk: C + I, then only L_n). "
+            "minimal_rolling_conditioning is accepted as a legacy alias."
+        ),
     )
 
     parser.add_argument(
@@ -321,7 +347,8 @@ def main():
         entropy_threshold=args.entropy_min,
         ppl_threshold=args.ppl_min,
         disable_gating=args.disable_gating,
-        disable_self_conditioning=args.disable_self_conditioning,
+        metric_gating_patience=args.metric_gating_patience,
+        conditioning_mode=args.conditioning_mode,
         restart_every=args.restart_every,
         
         repetition_penalty=args.repetition_penalty,

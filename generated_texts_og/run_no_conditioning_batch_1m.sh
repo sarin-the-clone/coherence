@@ -55,7 +55,7 @@ for idx in "${!RUN_IDS[@]}"; do
         "0.95" \
         "5" \
         "200" \
-        --disable_self_conditioning > "${run_log}" 2>&1 &
+        --conditioning_mode basic_conditioning > "${run_log}" 2>&1 &
 
     child_pid=$!
     wait "${child_pid}"

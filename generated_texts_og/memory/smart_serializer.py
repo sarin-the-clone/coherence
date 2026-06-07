@@ -79,9 +79,9 @@ class SmartSerializer:
     # -----------------------------------------------------------
     # PHASE 2 — rename after title_slug is known
     # -----------------------------------------------------------
-    def finalize_book_folder(self, title_slug, genre=None):
+    def finalize_book_folder(self, title_slug, genre=None, conditioning_mode=None):
         """
-        Renames prompts/{timestamp}/ -> prompts/{timestamp}_{title_slug}_{genre}/
+        Renames prompts/{timestamp}/ -> prompts/{timestamp}_{title_slug}_{genre}_{conditioning_mode}/
         and sets that as the active debug_root.
         """
         if self._pending_timestamp is None:
@@ -89,10 +89,14 @@ class SmartSerializer:
 
         # Build final folder name
         genre_slug = sanitize_filename(genre) if genre else ""
+        mode_slug = sanitize_filename(conditioning_mode) if conditioning_mode else ""
+
+        name_parts = [self._pending_timestamp, sanitize_filename(title_slug)]
         if genre_slug:
-            final_name = f"{self._pending_timestamp}_{sanitize_filename(title_slug)}_{genre_slug}"
-        else:
-            final_name = f"{self._pending_timestamp}_{sanitize_filename(title_slug)}"
+            name_parts.append(genre_slug)
+        if mode_slug:
+            name_parts.append(mode_slug)
+        final_name = "_".join(name_parts)
         
         final_path = os.path.join(self.prompts_dir, final_name)
 
