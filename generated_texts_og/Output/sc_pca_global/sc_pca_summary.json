@@ -1,0 +1,57 @@
+{
+  "features": [
+    "W2k_off_diag_mean",
+    "W2k_novelty_mean",
+    "W2k_sim_lag1_mean",
+    "W8k_off_diag_mean",
+    "W8k_novelty_mean",
+    "W8k_sim_lag1_mean",
+    "W40k_off_diag_mean",
+    "W40k_novelty_mean",
+    "W40k_sim_lag1_mean"
+  ],
+  "windows": [
+    "W2k",
+    "W8k",
+    "W40k"
+  ],
+  "metrics": [
+    "off_diag_mean",
+    "novelty_mean",
+    "sim_lag1_mean"
+  ],
+  "n_natural_rows": 1064,
+  "n_generated_rows": 224,
+  "natural_rows_by_bin": {
+    "0": 283,
+    "1": 284,
+    "2": 284,
+    "3": 145,
+    "4": 68
+  },
+  "standardization_mode": "global",
+  "pca_bin_balanced": true,
+  "pca_bin_balance_method": "weighted covariance with each token-size bin contributing equal total weight",
+  "n_components": 4,
+  "explained_variance_ratio": [
+    0.6668653974101947,
+    0.212463658090477,
+    0.07247817334590988,
+    0.021911977074878984
+  ],
+  "natural_files": [
+    "/tmp/natural_books_sc_median.json",
+    "/tmp/natural_sc_extra_a.json",
+    "/tmp/natural_sc_extra_b.json",
+    "/tmp/natural_sc_extra_c.json",
+    "/tmp/natural_sc_extra_d.json",
+    "/tmp/natural_sc_extra_e.json",
+    "/tmp/natural_sc_extra_f.json",
+    "/tmp/natural_sc_extra_g.json",
+    "/tmp/natural_sc_extra_h.json",
+    "/tmp/natural_sc_extra_i.json"
+  ],
+  "natural_extra_glob": "/tmp/natural_sc_extra_*.json",
+  "generated_file": "/home/sarin/pienicolol/src/coherence/generated_texts_og/Output/sc_prefix_bins.json",
+  "standardization": "global robust z = (x - natural global median) / natural global IQR; std fallback if IQR is zero"
+}

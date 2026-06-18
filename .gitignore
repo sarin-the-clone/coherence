@@ -1,3 +1,9 @@
+# Exclude local Claude Code settings
+.claude/
+
+# Exclude metric-file backups
+*.pre_*_backup.json
+
 # Exclude large generation artifacts
 
 # generated_texts_og/ # Un-ignored to allow code/templates

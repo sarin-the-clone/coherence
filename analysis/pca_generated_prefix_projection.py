@@ -615,7 +615,6 @@ def plot_prefix_scores(
     ax.set_ylabel(f"{y_col} ({pca.explained_variance_ratio_[pc_y - 1] * 100:.1f}%)")
     ax.set_title(
         "Generated-prefix projections on natural-book PCA score density\n"
-        "Metric subset: original stat/info + curated token-naturalness metrics\n"
         "Display axes use natural-score 0.5-99.5% quantiles to reduce outlier compression"
     )
     ax.grid(True, alpha=0.25)
@@ -660,6 +659,12 @@ def main() -> None:
         action="store_true",
         help="Recompute all generated metrics on exact token prefixes instead of using nearest sidecar chunks.",
     )
+    parser.add_argument(
+        "--token-metric-set",
+        choices=["curated", "all"],
+        default="curated",
+        help="'curated' uses the hand-picked subset; 'all' uses every td_/tr_/tp_ metric available.",
+    )
     args = parser.parse_args()
 
     folders = args.folder or DEFAULT_FOLDERS
@@ -667,7 +672,9 @@ def main() -> None:
     size_bins = load_size_bins(args.size_stats)
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
-    natural_raw, metric_cols_all = build_natural_dataframe(args.batch_results, args.natural_token_metrics)
+    natural_raw, metric_cols_all = build_natural_dataframe(
+        args.batch_results, args.natural_token_metrics, token_metric_set=args.token_metric_set
+    )
     natural = finite_metric_frame(natural_raw, metric_cols_all)
     metric_cols, dropped_metrics = nonconstant_metric_cols(natural, metric_cols_all)
     coords, pca, scaler = fit_pca(natural, metric_cols, args.components)
@@ -761,7 +768,7 @@ def main() -> None:
         "device": args.device,
         "max_order": args.max_order,
         "metric_count": len(metric_cols),
-        "token_metric_set": "curated",
+        "token_metric_set": args.token_metric_set,
         "include_chunk_context_metrics": False,
         "metrics": metric_cols,
         "dropped_zero_variance_metrics": dropped_metrics,

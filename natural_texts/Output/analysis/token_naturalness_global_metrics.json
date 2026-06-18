@@ -17,7 +17,8 @@
     "tp_entropy_slope",
     "tp_redundancy_1",
     "tr_repeat_gap_burstiness",
-    "tr_repeat_gap_cv"
+    "tr_repeat_gap_cv",
+    "tr_repeat_gap_logbin_entropy"
   ],
   "token_metric_set": "curated",
   "include_chunk_context_metrics": false,
@@ -203,6 +204,20 @@
       "p95": 4.068597426290876,
       "min": 1.0891142052313347,
       "max": 9.407451736859931
+    },
+    "tr_repeat_gap_logbin_entropy": {
+      "count": 10068,
+      "mean": 3.8159263053123977,
+      "median": 3.814324631664796,
+      "std": 0.06975718945806102,
+      "p25": 3.774702146906914,
+      "p75": 3.8565958410227394,
+      "p2_5": 3.6953390446858525,
+      "p97_5": 3.9501322458394266,
+      "p5": 3.716879314474392,
+      "p95": 3.9272534929722216,
+      "min": 2.7274250068787294,
+      "max": 4.105013440910242
     }
   }
 }

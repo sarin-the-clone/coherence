@@ -105,6 +105,7 @@ class LongBookGenerator:
             "basic_conditioning",
             "summaries_conditioning",
             "extended_conditioning",
+            "extended_no_fixed_conditioning",
             "minimal_fixed_conditioning",
             "markov_rolling_conditioning",
             "minimal_rolling_conditioning",
@@ -157,6 +158,19 @@ class LongBookGenerator:
         # LZ State (for incremental complexity calculation)
         self.lz_state = None
         self.retrieval_vectors = []
+
+    def _uses_summary_memory(self):
+        return self.conditioning_mode in {
+            "summaries_conditioning",
+            "extended_conditioning",
+            "extended_no_fixed_conditioning",
+        }
+
+    def _uses_extended_memory(self):
+        return self.conditioning_mode in {
+            "extended_conditioning",
+            "extended_no_fixed_conditioning",
+        }
 
     def _metric_gates_disabled_for_chunk(self):
         return self.disable_gating or self.metric_gating_suspended
@@ -707,7 +721,7 @@ class LongBookGenerator:
                 except Exception as e:
                     print(f"   ⚠️ Could not verify resume token/text alignment: {e}")
 
-                if self.conditioning_mode == "extended_conditioning":
+                if self._uses_extended_memory():
                     self._rebuild_retrieval_index()
                 else:
                     print(f"   ✓ Skipping retrieval index rebuild for {self.conditioning_mode}.")
@@ -793,7 +807,7 @@ class LongBookGenerator:
                 "conditioning_mode": self.conditioning_mode,
                 "metric_gating_patience": self.metric_gating_patience,
                 "debug_folder": self.serializer.debug_root,
-                "compression_method": "llm_native_hidden_state_retrieval" if self.conditioning_mode == "extended_conditioning" else "none",
+                "compression_method": "llm_native_hidden_state_retrieval" if self._uses_extended_memory() else "none",
             }
             self.serializer.save_metadata(metadata)
 
@@ -940,8 +954,8 @@ class LongBookGenerator:
         # 1. Convert memory to natural language summary
         current_semantic_vector_list = None
         current_semantic_tensor = None
-        use_summary_memory = self.conditioning_mode in {"summaries_conditioning", "extended_conditioning"}
-        use_extended_memory = self.conditioning_mode == "extended_conditioning"
+        use_summary_memory = self._uses_summary_memory()
+        use_extended_memory = self._uses_extended_memory()
         retrieval_debug = {
             "mode": "disabled",
             "reason": f"{self.conditioning_mode}_mode",
@@ -1007,6 +1021,7 @@ class LongBookGenerator:
             "basic_conditioning",
             "summaries_conditioning",
             "extended_conditioning",
+            "extended_no_fixed_conditioning",
             "minimal_fixed_conditioning",
         }
         include_identity = include_contract
@@ -1014,9 +1029,13 @@ class LongBookGenerator:
             "basic_conditioning",
             "summaries_conditioning",
             "extended_conditioning",
+            "extended_no_fixed_conditioning",
         }
 
-        if self.conditioning_mode == "markov_rolling_conditioning":
+        if self.conditioning_mode == "extended_no_fixed_conditioning":
+            include_contract = chunk_id == 1
+            include_identity = chunk_id == 1
+        elif self.conditioning_mode == "markov_rolling_conditioning":
             include_contract = chunk_id == 1
             include_identity = chunk_id == 1
             include_prev_text = chunk_id > 1
@@ -1025,6 +1044,7 @@ class LongBookGenerator:
             "basic_conditioning",
             "summaries_conditioning",
             "extended_conditioning",
+            "extended_no_fixed_conditioning",
         }
 
         header_prompt = identity_prompt if include_identity else ""

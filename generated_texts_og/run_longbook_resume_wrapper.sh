@@ -34,7 +34,7 @@ handle_stop() {
     fi
 }
 
-trap handle_stop INT TERM HUP
+trap handle_stop INT TERM
 
 while :; do
     python -u generated_texts_og/run_longbook.py \

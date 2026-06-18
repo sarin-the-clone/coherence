@@ -33,6 +33,9 @@ NATURAL_JSON_PATHS = [
     "/tmp/natural_sc_extra_d.json",
     "/tmp/natural_sc_extra_e.json",
     "/tmp/natural_sc_extra_f.json",
+    "/tmp/natural_sc_extra_g.json",
+    "/tmp/natural_sc_extra_h.json",
+    "/tmp/natural_sc_extra_i.json",
 ]
 
 WINDOWS = ["W1k", "W2k", "W8k", "W40k"]
@@ -55,6 +58,7 @@ MODES_ORDER = [
     "summaries_conditioning",
     "basic_conditioning",
     "extended_conditioning",
+    "extended_no_fixed_conditioning",
     "markov_rolling_conditioning",
     "minimal_fixed_conditioning",
 ]
@@ -62,6 +66,7 @@ MODE_COLORS = {
     "summaries_conditioning":      "#1565C0",
     "basic_conditioning":          "#00897B",
     "extended_conditioning":       "#C62828",
+    "extended_no_fixed_conditioning": "#00897B",
     "markov_rolling_conditioning": "#E65100",
     "minimal_fixed_conditioning":  "#6A1B9A",
 }
@@ -69,6 +74,7 @@ MODE_LABELS = {
     "summaries_conditioning":      "summaries",
     "basic_conditioning":          "basic",
     "extended_conditioning":       "extended",
+    "extended_no_fixed_conditioning": "extended no fixed",
     "markov_rolling_conditioning": "markov",
     "minimal_fixed_conditioning":  "minimal",
 }

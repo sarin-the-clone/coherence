@@ -70,6 +70,7 @@ SUMMARIES_GROUPS = [
 
 CONDITIONING_GROUPS = [
     "extended_conditioning",
+    "extended_no_fixed_conditioning",
     "basic_conditioning",
     "minimal_fixed_conditioning",
     "markov_rolling_conditioning",
@@ -81,6 +82,7 @@ GROUP_LABELS = {
     "summaries_high_temperature": "Summaries high-temp",
     "summaries_low_temperature": "Summaries low-temp",
     "extended_conditioning": "Extended/full",
+    "extended_no_fixed_conditioning": "Extended no fixed",
     "basic_conditioning": "Basic",
     "minimal_fixed_conditioning": "Minimal fixed",
     "markov_rolling_conditioning": "Markov rolling",
@@ -90,6 +92,7 @@ GROUP_COLORS = {
     "summaries_high_temperature": "#1f77b4",
     "summaries_low_temperature": "#17becf",
     "extended_conditioning": "#d62728",
+    "extended_no_fixed_conditioning": "#ff7f0e",
     "basic_conditioning": "#2ca02c",
     "minimal_fixed_conditioning": "#9467bd",
     "markov_rolling_conditioning": "#8c564b",
@@ -131,6 +134,7 @@ def infer_conditioning_group(folder: Path) -> str | None:
         for candidate in (
             "summaries_conditioning",
             "extended_conditioning",
+            "extended_no_fixed_conditioning",
             "basic_conditioning",
             "minimal_fixed_conditioning",
             "markov_rolling_conditioning",
@@ -152,6 +156,8 @@ def infer_conditioning_group(folder: Path) -> str | None:
 
     if mode == "extended_conditioning":
         return "extended_conditioning"
+    if mode == "extended_no_fixed_conditioning":
+        return "extended_no_fixed_conditioning"
     if mode == "basic_conditioning":
         return "basic_conditioning"
     if mode == "minimal_fixed_conditioning":
@@ -403,6 +409,8 @@ def write_cached_aggregate(
 
 
 NATURAL_BENCHMARK_PALETTE = ["#5B8FF9", "#FF7F0E", "#2CA02C", "#D62728", "#9467BD", "#8C564B"]
+NATURAL_INNER_BAND_ALPHA = 0.18
+NATURAL_OUTER_BAND_ALPHA = 0.10
 DEFAULT_Y_PAD_FRACTION = 0.18
 METRIC_Y_PAD_FRACTION = {
     "beta": 0.25,
@@ -433,11 +441,13 @@ def natural_segments_for_metric(metric: str, xmax_k: float):
         x1 = min(xmax_k, hi_tok / 1000.0)
         if x0 >= x1:
             continue
-        p_low = mstats.get("p2_5") or mstats.get("p5") or mstats.get("p25")
-        p_high = mstats.get("p97_5") or mstats.get("p95") or mstats.get("p75")
+        outer_low = mstats.get("p2_5") or mstats.get("p5") or mstats.get("p25")
+        outer_high = mstats.get("p97_5") or mstats.get("p95") or mstats.get("p75")
+        inner_low = mstats.get("p25")
+        inner_high = mstats.get("p75")
         mean = mstats.get("mean")
         color = NATURAL_BENCHMARK_PALETTE[idx % len(NATURAL_BENCHMARK_PALETTE)]
-        segments.append((x0, x1, p_low, p_high, mean, color))
+        segments.append((x0, x1, outer_low, outer_high, inner_low, inner_high, mean, color))
     return segments
 
 
@@ -449,19 +459,40 @@ def plot_natural_overlay(
     *,
     contribute_to_ylim: bool = False,
 ) -> None:
-    for idx, (x0, x1, p_low, p_high, mean, color) in enumerate(natural_segments_for_metric(metric, xmax_k)):
-        if p_low is not None and p_high is not None:
+    for idx, (
+        x0,
+        x1,
+        outer_low,
+        outer_high,
+        inner_low,
+        inner_high,
+        mean,
+        color,
+    ) in enumerate(natural_segments_for_metric(metric, xmax_k)):
+        if outer_low is not None and outer_high is not None:
             ax.fill_between(
                 [x0, x1],
-                [p_low, p_low],
-                [p_high, p_high],
+                [outer_low, outer_low],
+                [outer_high, outer_high],
                 color=color,
-                alpha=0.10,
+                alpha=NATURAL_OUTER_BAND_ALPHA,
                 zorder=1,
                 label="natural p2.5-p97.5" if idx == 0 else None,
             )
             if contribute_to_ylim:
-                y_values.extend([p_low, p_high])
+                y_values.extend([outer_low, outer_high])
+        if inner_low is not None and inner_high is not None:
+            ax.fill_between(
+                [x0, x1],
+                [inner_low, inner_low],
+                [inner_high, inner_high],
+                color=color,
+                alpha=NATURAL_INNER_BAND_ALPHA,
+                zorder=2,
+                label="natural p25-p75" if idx == 0 else None,
+            )
+            if contribute_to_ylim:
+                y_values.extend([inner_low, inner_high])
         if mean is not None:
             ax.plot(
                 [x0, x1],
@@ -469,7 +500,7 @@ def plot_natural_overlay(
                 color=color,
                 linestyle="--",
                 linewidth=1.15,
-                zorder=2,
+                zorder=3,
                 label="natural mean" if idx == 0 else None,
             )
             if contribute_to_ylim:

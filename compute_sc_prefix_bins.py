@@ -80,19 +80,30 @@ SCALAR_KEYS = ["off_diag_mean", "novelty_mean", "sim_lag1_mean", "mean_sim_to_pa
 # ---------------------------------------------------------------------------
 
 def load_full_text(run_dir):
-    path = os.path.join(run_dir, "token_naturalness_by_chunk.jsonl")
-    accepted = {}
-    with open(path) as f:
-        for line in f:
-            r = json.loads(line)
-            accepted[r["chunk_id"]] = r["accepted_attempt"]
-
     all_chunks = {}
     for fname in os.listdir(run_dir):
         m = re.match(r"chunk_(\d+)_attempt_(\d+)\.txt$", fname)
         if m:
             cid, att = int(m.group(1)), int(m.group(2))
             all_chunks.setdefault(cid, []).append(att)
+
+    # Build accepted-attempt map: sidecar preferred, marker files as fallback
+    accepted = {}
+    sidecar_path = os.path.join(run_dir, "token_naturalness_by_chunk.jsonl")
+    if os.path.exists(sidecar_path):
+        with open(sidecar_path) as f:
+            for line in f:
+                r = json.loads(line)
+                accepted[r["chunk_id"]] = r["accepted_attempt"]
+    else:
+        for cid in all_chunks:
+            marker = os.path.join(run_dir, f"chunk_{cid:03d}_accepted.txt")
+            if os.path.exists(marker):
+                try:
+                    data = json.loads(open(marker).read())
+                    accepted[cid] = data.get("attempt", min(all_chunks[cid]))
+                except Exception:
+                    pass
 
     text = ""
     for cid in sorted(all_chunks.keys()):
@@ -150,7 +161,7 @@ def main():
 
     for i, (run_id, run_dir, meta) in enumerate(runs):
         existing_bins = all_results.get(run_id, {}).get("bins", {})
-        missing_bins = [b for b in BINS if str(b) not in existing_bins]
+        missing_bins = [str(b) for b in BINS if str(b) not in existing_bins]
         if not missing_bins:
             print(f"[{i+1}/{len(runs)}] skip  {run_id[:60]}")
             continue

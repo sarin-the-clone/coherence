@@ -258,6 +258,7 @@ def main():
             "basic_conditioning",
             "summaries_conditioning",
             "extended_conditioning",
+            "extended_no_fixed_conditioning",
             "minimal_fixed_conditioning",
             "markov_rolling_conditioning",
             "minimal_rolling_conditioning",
@@ -268,6 +269,7 @@ def main():
             "basic_conditioning (C + I + D_n + L_n), "
             "summaries_conditioning (basic + M_n), "
             "extended_conditioning (summaries + G_n + R_n), "
+            "extended_no_fixed_conditioning (extended; C + I only at first chunk), "
             "minimal_fixed_conditioning (C + I), or "
             "markov_rolling_conditioning (first chunk: C + I, then only L_n). "
             "minimal_rolling_conditioning is accepted as a legacy alias."
