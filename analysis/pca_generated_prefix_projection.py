@@ -58,7 +58,7 @@ DEFAULT_FOLDERS = [
     ROOT / "generated_texts_og" / "prompts" / "20260601_001605_unveiling_mars_monoliths_mysteries_and_the_new_cosmos_science_basic_conditioning",
     ROOT / "generated_texts_og" / "prompts" / "20260521_144550_stellar_exodus_the_final_frontier_space_opera_markov_rolling_conditioning",
 ]
-DEFAULT_OUTPUT_DIR = ROOT / "natural_texts" / "Output" / "pca_generated_prefixes"
+DEFAULT_OUTPUT_DIR = ROOT / "natural_texts" / "Output" / "pca" / "generated_prefixes"
 DEFAULT_LANDMARK_METRICS_DIR = ROOT / "natural_texts" / "Selected_Books" / "metrics_with_token_naturalness"
 DEFAULT_SIZE_STATS = ROOT / "natural_texts" / "Output" / "analysis" / "size_binned_metrics.json"
 SIZE_BIN_COLORS = [

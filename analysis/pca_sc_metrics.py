@@ -39,9 +39,9 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_GENERATED_SC = ROOT / "generated_texts_og" / "Output" / "sc_prefix_bins.json"
-DEFAULT_OUTPUT_DIR = ROOT / "generated_texts_og" / "Output" / "sc_pca"
-DEFAULT_GLOBAL_OUTPUT_DIR = ROOT / "generated_texts_og" / "Output" / "sc_pca_global"
-DEFAULT_RAW_OUTPUT_DIR = ROOT / "generated_texts_og" / "Output" / "sc_pca_raw"
+DEFAULT_OUTPUT_DIR = ROOT / "natural_texts" / "Output" / "pca" / "sc"
+DEFAULT_GLOBAL_OUTPUT_DIR = ROOT / "natural_texts" / "Output" / "pca" / "sc_global"
+DEFAULT_RAW_OUTPUT_DIR = ROOT / "natural_texts" / "Output" / "pca" / "sc_raw"
 DEFAULT_NATURAL_MEDIAN_SC = Path("/tmp/natural_books_sc_median.json")
 DEFAULT_NATURAL_EXTRA_GLOB = "/tmp/natural_sc_extra_*.json"
 

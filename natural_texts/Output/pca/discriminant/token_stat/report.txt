@@ -1,0 +1,60 @@
+PLS-DA discriminant analysis — feature set: token_stat
+======================================================================
+natural (SC subcorpus): 1047    generated: 245 (6 modes)
+features: 40    latent variables: 3
+normalization: per-size-bin median/IQR (matched size); CV: 5-fold StratifiedGroupKFold (run-grouped)
+
+Cross-validated AUC              : 0.999 ± 0.001
+Cross-validated balanced accuracy: 0.974 ± 0.028
+natural score mean +0.04 | generated score mean +0.83
+
+Variable importance (VIP > 1 = important), with matched-size direction:
+  metric                           family   VIP  offset  direction
+ *td_heaps_exponent                token   1.73   -2.29  gen lower
+ *tr_repeat_gap_median_log2        token   1.73   +1.66  gen higher
+ *tr_repeat_gap_mean_log2          token   1.50   +0.99  gen higher
+ *tr_repeat_gap_burstiness         token   1.35   -0.20  gen lower
+ *td_vocab_size                    token   1.31   -1.19  gen lower
+ *tr_repeat_gap_cv                 token   1.29   -0.18  gen lower
+ *td_zipf_exponent                 token   1.28   +1.29  gen higher
+ *td_zipf_slope                    token   1.28   -1.29  gen lower
+ *tr_repeat_rate                   token   1.11   +0.93  gen higher
+ *td_type_token_ratio              token   1.11   -0.93  gen lower
+ *td_top10_token_fraction          token   1.07   -0.15  gen lower
+ *td_hapax_token_fraction          token   1.04   -0.81  gen lower
+ *tp_redundancy_1                  token   1.02   +0.90  gen higher
+ *tp_entropy_gain_1                token   1.01   +0.47  gen higher
+  td_top1_token_fraction           token   0.96   -0.33  gen lower
+  tp_cond_entropy_4                token   0.95   +1.05  gen higher
+  tr_repeat_gap_mean               token   0.92   -0.67  gen lower
+  tp_cond_entropy_3                token   0.91   +0.76  gen higher
+  lz_complexity                    stat    0.90   -1.10  gen lower
+  tp_cond_entropy_1                token   0.88   -1.20  gen lower
+  tp_context_efficiency_4          token   0.86   -1.01  gen lower
+  tp_redundancy_4                  token   0.86   -1.01  gen lower
+  H_DFA1                           stat    0.86   -0.47  gen lower
+  tp_redundancy_3                  token   0.85   -0.71  gen lower
+  H_WT_db4                         stat    0.84   -0.08  gen lower
+  tr_repeat_gap_logbin_entropy     token   0.84   -0.89  gen lower
+  tp_entropy_slope                 token   0.84   +0.76  gen higher
+  tp_entropy_gain_3                token   0.81   -0.54  gen lower
+  tp_entropy_drop_4                token   0.81   -0.60  gen lower
+  tp_entropy_gain_4                token   0.81   -0.60  gen lower
+  tp_entropy_gain_2                token   0.80   -0.21  gen lower
+  tp_entropy_0                     token   0.79   -0.40  gen lower
+  entropy_bits                     stat    0.79   -0.42  gen lower
+  perplexity                       stat    0.78   -0.39  gen lower
+  tp_redundancy_2                  token   0.77   +0.04  gen higher
+  mi_decay_gamma                   stat    0.66   +0.85  gen higher
+  tp_cond_entropy_2                token   0.63   -0.32  gen lower
+  alpha                            stat    0.47   +0.18  gen higher
+  td_hapax_type_fraction           token   0.40   -0.32  gen lower
+  beta                             stat    0.33   -0.09  gen lower
+
+Per-ablation-mode separation (mean PLS score; higher = more generated-like):
+  markov rolling       n= 15  mean=+0.56 ± 0.11
+  basic                n= 65  mean=+0.81 ± 0.05
+  minimal fixed        n= 15  mean=+0.82 ± 0.07
+  summaries            n= 90  mean=+0.85 ± 0.07
+  extended/full        n= 45  mean=+0.87 ± 0.06
+  extended no fixed    n= 15  mean=+0.93 ± 0.05

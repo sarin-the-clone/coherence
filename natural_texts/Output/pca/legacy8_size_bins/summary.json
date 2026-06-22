@@ -1,0 +1,22 @@
+{
+  "n_natural_books": 10068,
+  "n_generated_prefixes": 245,
+  "n_features": 8,
+  "features": [
+    "beta",
+    "alpha",
+    "H_DFA1",
+    "H_WT_db4",
+    "entropy_bits",
+    "perplexity",
+    "lz_complexity",
+    "mi_decay_gamma"
+  ],
+  "normalization": "global",
+  "explained_variance_ratio": [
+    0.4506797393216949,
+    0.31124643780977734,
+    0.09652080968921775,
+    0.06157755216173606
+  ]
+}

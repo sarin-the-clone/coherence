@@ -1,6 +1,9 @@
 # Exclude local Claude Code settings
 .claude/
 
+# Exclude in-project poster copies (duplicates of figures under Output/)
+ppt/
+
 # Exclude metric-file backups
 *.pre_*_backup.json
 

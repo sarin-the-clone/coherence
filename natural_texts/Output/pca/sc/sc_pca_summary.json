@@ -1,0 +1,48 @@
+{
+  "features": [
+    "W2k_off_diag_mean",
+    "W2k_novelty_mean",
+    "W2k_sim_lag1_mean",
+    "W8k_off_diag_mean",
+    "W8k_novelty_mean",
+    "W8k_sim_lag1_mean",
+    "W40k_off_diag_mean",
+    "W40k_novelty_mean",
+    "W40k_sim_lag1_mean"
+  ],
+  "windows": [
+    "W2k",
+    "W8k",
+    "W40k"
+  ],
+  "metrics": [
+    "off_diag_mean",
+    "novelty_mean",
+    "sim_lag1_mean"
+  ],
+  "n_natural_rows": 1064,
+  "n_generated_rows": 245,
+  "natural_rows_by_bin": {
+    "0": 283,
+    "1": 284,
+    "2": 284,
+    "3": 145,
+    "4": 68
+  },
+  "standardization_mode": "bin",
+  "pca_bin_balanced": true,
+  "pca_bin_balance_method": "weighted covariance with each token-size bin contributing equal total weight",
+  "n_components": 4,
+  "explained_variance_ratio": [
+    0.6591979535280182,
+    0.2390053877685661,
+    0.04085446524945278,
+    0.024627642594638104
+  ],
+  "natural_files": [
+    "/tmp/natural_books_sc_median.json"
+  ],
+  "natural_extra_glob": "/tmp/natural_sc_extra_*.json",
+  "generated_file": "/home/sarin/pienicolol/src/coherence/generated_texts_og/Output/sc_prefix_bins.json",
+  "standardization": "per-bin robust z = (x - natural bin median) / natural bin IQR; std fallback if IQR is zero"
+}

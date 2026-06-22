@@ -95,28 +95,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.3021908402442932,
-          "novelty_mean": 0.328243340148997,
-          "sim_lag1_mean": 0.3271711459381196,
-          "mean_sim_to_past_mean": 0.3010248207694199
+          "off_diag_mean": 0.301862895488739,
+          "novelty_mean": 0.328116121130849,
+          "sim_lag1_mean": 0.3268978780746902,
+          "mean_sim_to_past_mean": 0.3008686164210647
         },
         "W2k": {
-          "off_diag_mean": 0.4534255862236023,
-          "novelty_mean": 0.33416506005882707,
-          "sim_lag1_mean": 0.4770306597699176,
-          "mean_sim_to_past_mean": 0.4528263262439674
+          "off_diag_mean": 0.453663170337677,
+          "novelty_mean": 0.333935361481075,
+          "sim_lag1_mean": 0.47730413363564905,
+          "mean_sim_to_past_mean": 0.4529495899024935
         },
         "W8k": {
-          "off_diag_mean": 0.7548230886459351,
-          "novelty_mean": 0.17107093311915889,
-          "sim_lag1_mean": 0.7744469188084112,
-          "mean_sim_to_past_mean": 0.7543254323094805
+          "off_diag_mean": 0.7543054223060608,
+          "novelty_mean": 0.1712037265190167,
+          "sim_lag1_mean": 0.7742863302991652,
+          "mean_sim_to_past_mean": 0.7540695945937912
         },
         "W40k": {
-          "off_diag_mean": 0.9248117208480835,
-          "novelty_mean": 0.054810711156542055,
-          "sim_lag1_mean": 0.9322566807827103,
-          "mean_sim_to_past_mean": 0.9250646099865993
+          "off_diag_mean": 0.9260402917861938,
+          "novelty_mean": 0.054276796144859814,
+          "sim_lag1_mean": 0.9328636098130841,
+          "mean_sim_to_past_mean": 0.9256846319849246
         }
       }
     }
@@ -217,28 +217,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.2969779074192047,
-          "novelty_mean": 0.3305692821775863,
-          "sim_lag1_mean": 0.3175997136076875,
-          "mean_sim_to_past_mean": 0.29962830494890297
+          "off_diag_mean": 0.2969890236854553,
+          "novelty_mean": 0.3305680784460616,
+          "sim_lag1_mean": 0.3175252148051646,
+          "mean_sim_to_past_mean": 0.2996215797287836
         },
         "W2k": {
-          "off_diag_mean": 0.4514087438583374,
-          "novelty_mean": 0.33487893517827283,
-          "sim_lag1_mean": 0.4748410927981665,
-          "mean_sim_to_past_mean": 0.4545357163748101
+          "off_diag_mean": 0.45123013854026794,
+          "novelty_mean": 0.3349457295010105,
+          "sim_lag1_mean": 0.47490540856811697,
+          "mean_sim_to_past_mean": 0.45443187653309836
         },
         "W8k": {
-          "off_diag_mean": 0.749584436416626,
-          "novelty_mean": 0.17475266501168224,
-          "sim_lag1_mean": 0.7690320166471962,
-          "mean_sim_to_past_mean": 0.7531488602406511
+          "off_diag_mean": 0.7492234110832214,
+          "novelty_mean": 0.1749444557388476,
+          "sim_lag1_mean": 0.7688805108619888,
+          "mean_sim_to_past_mean": 0.7529500206606982
         },
         "W40k": {
-          "off_diag_mean": 0.922279953956604,
-          "novelty_mean": 0.0568094699182243,
-          "sim_lag1_mean": 0.9307279497663551,
-          "mean_sim_to_past_mean": 0.9249669018192826
+          "off_diag_mean": 0.9232104420661926,
+          "novelty_mean": 0.05626642815420561,
+          "sim_lag1_mean": 0.9312299211448598,
+          "mean_sim_to_past_mean": 0.9254365028621995
         }
       }
     }
@@ -339,28 +339,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.29560261964797974,
-          "novelty_mean": 0.3285016895647452,
-          "sim_lag1_mean": 0.3204559168672128,
-          "mean_sim_to_past_mean": 0.2957847226695259
+          "off_diag_mean": 0.2955631613731384,
+          "novelty_mean": 0.3285165865419628,
+          "sim_lag1_mean": 0.32043655233709883,
+          "mean_sim_to_past_mean": 0.29576494379359314
         },
         "W2k": {
-          "off_diag_mean": 0.44654932618141174,
-          "novelty_mean": 0.3349460067785475,
-          "sim_lag1_mean": 0.472220255436649,
-          "mean_sim_to_past_mean": 0.4480915960018793
+          "off_diag_mean": 0.4465424418449402,
+          "novelty_mean": 0.33499589797136037,
+          "sim_lag1_mean": 0.47222603226618437,
+          "mean_sim_to_past_mean": 0.44808671441026976
         },
         "W8k": {
-          "off_diag_mean": 0.7457712292671204,
-          "novelty_mean": 0.17733371057242991,
-          "sim_lag1_mean": 0.7645808995327102,
-          "mean_sim_to_past_mean": 0.7456830412427956
+          "off_diag_mean": 0.7450661063194275,
+          "novelty_mean": 0.17756675606343283,
+          "sim_lag1_mean": 0.7643860774253731,
+          "mean_sim_to_past_mean": 0.7453294965758253
         },
         "W40k": {
-          "off_diag_mean": 0.9196867942810059,
-          "novelty_mean": 0.05918698890186916,
-          "sim_lag1_mean": 0.9282774167640186,
-          "mean_sim_to_past_mean": 0.9214807642954532
+          "off_diag_mean": 0.919719398021698,
+          "novelty_mean": 0.05907290449766355,
+          "sim_lag1_mean": 0.928364120911215,
+          "mean_sim_to_past_mean": 0.921497226875519
         }
       }
     }
@@ -461,28 +461,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.29616278409957886,
-          "novelty_mean": 0.33652985565918764,
-          "sim_lag1_mean": 0.3175725578733444,
-          "mean_sim_to_past_mean": 0.2973353829185307
+          "off_diag_mean": 0.29565495252609253,
+          "novelty_mean": 0.33495495122704805,
+          "sim_lag1_mean": 0.31693874380682824,
+          "mean_sim_to_past_mean": 0.2970403164827217
         },
         "W2k": {
-          "off_diag_mean": 0.4458048641681671,
-          "novelty_mean": 0.33547651397515527,
-          "sim_lag1_mean": 0.47155528426227306,
-          "mean_sim_to_past_mean": 0.44781681542839663
+          "off_diag_mean": 0.44550463557243347,
+          "novelty_mean": 0.33494760635990284,
+          "sim_lag1_mean": 0.4709652852592839,
+          "mean_sim_to_past_mean": 0.44759991830529466
         },
         "W8k": {
-          "off_diag_mean": 0.7467866539955139,
-          "novelty_mean": 0.17244359667056075,
-          "sim_lag1_mean": 0.764214004088785,
-          "mean_sim_to_past_mean": 0.7471927769830293
+          "off_diag_mean": 0.7463338971138,
+          "novelty_mean": 0.17244274836121157,
+          "sim_lag1_mean": 0.7639076274299277,
+          "mean_sim_to_past_mean": 0.7469542220531278
         },
         "W40k": {
-          "off_diag_mean": 0.9217420816421509,
-          "novelty_mean": 0.05528073890186916,
-          "sim_lag1_mean": 0.9316953855140186,
-          "mean_sim_to_past_mean": 0.9211469303781741
+          "off_diag_mean": 0.9238585829734802,
+          "novelty_mean": 0.05409712357954546,
+          "sim_lag1_mean": 0.9330433238636363,
+          "mean_sim_to_past_mean": 0.9222765429453417
         }
       }
     }
@@ -583,28 +583,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.2964578866958618,
-          "novelty_mean": 0.33260637856820036,
-          "sim_lag1_mean": 0.3186338641355998,
-          "mean_sim_to_past_mean": 0.29732654215639803
+          "off_diag_mean": 0.2963375151157379,
+          "novelty_mean": 0.33163352904280996,
+          "sim_lag1_mean": 0.31857503031219786,
+          "mean_sim_to_past_mean": 0.2972401360755697
         },
         "W2k": {
-          "off_diag_mean": 0.44925418496131897,
-          "novelty_mean": 0.33314743807483277,
-          "sim_lag1_mean": 0.473663723759257,
-          "mean_sim_to_past_mean": 0.4497409881271931
+          "off_diag_mean": 0.4487539231777191,
+          "novelty_mean": 0.33284983251185246,
+          "sim_lag1_mean": 0.4730965387589616,
+          "mean_sim_to_past_mean": 0.4494772567504209
         },
         "W8k": {
-          "off_diag_mean": 0.748696506023407,
-          "novelty_mean": 0.17198817172897196,
-          "sim_lag1_mean": 0.7663533148364486,
-          "mean_sim_to_past_mean": 0.7485104502918565
+          "off_diag_mean": 0.7482590675354004,
+          "novelty_mean": 0.17214077333860758,
+          "sim_lag1_mean": 0.766198929136528,
+          "mean_sim_to_past_mean": 0.7482991391021563
         },
         "W40k": {
-          "off_diag_mean": 0.9243910312652588,
-          "novelty_mean": 0.05512558411214953,
-          "sim_lag1_mean": 0.9295277818341121,
-          "mean_sim_to_past_mean": 0.9227517670560106
+          "off_diag_mean": 0.9249308109283447,
+          "novelty_mean": 0.054723011363636366,
+          "sim_lag1_mean": 0.9298961292613637,
+          "mean_sim_to_past_mean": 0.9230832007798282
         }
       }
     }
@@ -705,28 +705,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.29720890522003174,
-          "novelty_mean": 0.3313516483791842,
-          "sim_lag1_mean": 0.31719567833009066,
-          "mean_sim_to_past_mean": 0.298303882164543
+          "off_diag_mean": 0.2967965304851532,
+          "novelty_mean": 0.33000150435084236,
+          "sim_lag1_mean": 0.31748163568455007,
+          "mean_sim_to_past_mean": 0.29806011202725197
         },
         "W2k": {
-          "off_diag_mean": 0.4490743577480316,
-          "novelty_mean": 0.33476637153607264,
-          "sim_lag1_mean": 0.4707496085351469,
-          "mean_sim_to_past_mean": 0.44978484506391764
+          "off_diag_mean": 0.4482327699661255,
+          "novelty_mean": 0.33457624130742153,
+          "sim_lag1_mean": 0.4696849706760734,
+          "mean_sim_to_past_mean": 0.4493339692800549
         },
         "W8k": {
-          "off_diag_mean": 0.7520284652709961,
-          "novelty_mean": 0.1731591340537383,
-          "sim_lag1_mean": 0.7677770882009346,
-          "mean_sim_to_past_mean": 0.7526629309787929
+          "off_diag_mean": 0.7515683174133301,
+          "novelty_mean": 0.17312655121841156,
+          "sim_lag1_mean": 0.7676301260717509,
+          "mean_sim_to_past_mean": 0.7524097184196706
         },
         "W40k": {
-          "off_diag_mean": 0.9280012249946594,
-          "novelty_mean": 0.05346907856308411,
-          "sim_lag1_mean": 0.9333610178154206,
-          "mean_sim_to_past_mean": 0.929444236733089
+          "off_diag_mean": 0.9290679693222046,
+          "novelty_mean": 0.05271661931818182,
+          "sim_lag1_mean": 0.9339888139204545,
+          "mean_sim_to_past_mean": 0.9299652744423259
         }
       }
     }
@@ -824,6 +824,32 @@
           "novelty_mean": 0.061002052436440676,
           "sim_lag1_mean": 0.9265840174788136
         }
+      },
+      "4": {
+        "W1k": {
+          "off_diag_mean": 0.2923261821269989,
+          "novelty_mean": 0.3241957080344439,
+          "sim_lag1_mean": 0.31678889208787536,
+          "mean_sim_to_past_mean": 0.2966240876656179
+        },
+        "W2k": {
+          "off_diag_mean": 0.44395262002944946,
+          "novelty_mean": 0.33076940224320056,
+          "sim_lag1_mean": 0.4749848642298294,
+          "mean_sim_to_past_mean": 0.4443657103384971
+        },
+        "W8k": {
+          "off_diag_mean": 0.7361465096473694,
+          "novelty_mean": 0.1778965177300759,
+          "sim_lag1_mean": 0.7626563982447818,
+          "mean_sim_to_past_mean": 0.7373496555286748
+        },
+        "W40k": {
+          "off_diag_mean": 0.9129844903945923,
+          "novelty_mean": 0.06015625,
+          "sim_lag1_mean": 0.9261300223214286,
+          "mean_sim_to_past_mean": 0.9126704823403131
+        }
       }
     }
   },
@@ -920,6 +946,32 @@
           "novelty_mean": 0.06020756091101695,
           "sim_lag1_mean": 0.9314751059322034
         }
+      },
+      "4": {
+        "W1k": {
+          "off_diag_mean": 0.28968262672424316,
+          "novelty_mean": 0.3322692682489749,
+          "sim_lag1_mean": 0.3135019768891041,
+          "mean_sim_to_past_mean": 0.29025349353551017
+        },
+        "W2k": {
+          "off_diag_mean": 0.4424874782562256,
+          "novelty_mean": 0.33358333777081306,
+          "sim_lag1_mean": 0.46980572396847614,
+          "mean_sim_to_past_mean": 0.44494238400790104
+        },
+        "W8k": {
+          "off_diag_mean": 0.7454892992973328,
+          "novelty_mean": 0.17669828869047619,
+          "sim_lag1_mean": 0.766767113095238,
+          "mean_sim_to_past_mean": 0.7477322045962016
+        },
+        "W40k": {
+          "off_diag_mean": 0.917080283164978,
+          "novelty_mean": 0.0590913318452381,
+          "sim_lag1_mean": 0.9295526413690476,
+          "mean_sim_to_past_mean": 0.9185193924676804
+        }
       }
     }
   },
@@ -1015,6 +1067,32 @@
           "off_diag_mean": 0.9152362942695618,
           "novelty_mean": 0.06284759004237288,
           "sim_lag1_mean": 0.9237453654661016
+        }
+      },
+      "4": {
+        "W1k": {
+          "off_diag_mean": 0.2924540936946869,
+          "novelty_mean": 0.3278440685385078,
+          "sim_lag1_mean": 0.31902668112128446,
+          "mean_sim_to_past_mean": 0.2919672009851453
+        },
+        "W2k": {
+          "off_diag_mean": 0.4419492185115814,
+          "novelty_mean": 0.33551229531477217,
+          "sim_lag1_mean": 0.47179270460948863,
+          "mean_sim_to_past_mean": 0.4434508780686531
+        },
+        "W8k": {
+          "off_diag_mean": 0.74586021900177,
+          "novelty_mean": 0.1724835020123106,
+          "sim_lag1_mean": 0.7684566613399622,
+          "mean_sim_to_past_mean": 0.7462673163549467
+        },
+        "W40k": {
+          "off_diag_mean": 0.9168094992637634,
+          "novelty_mean": 0.06007254464285714,
+          "sim_lag1_mean": 0.92607421875,
+          "mean_sim_to_past_mean": 0.9155380288759868
         }
       }
     }
@@ -1115,28 +1193,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.3041820228099823,
-          "novelty_mean": 0.3405029353824061,
-          "sim_lag1_mean": 0.33656431340047854,
-          "mean_sim_to_past_mean": 0.30652847467066385
+          "off_diag_mean": 0.30397170782089233,
+          "novelty_mean": 0.33982028670149167,
+          "sim_lag1_mean": 0.33655319265992406,
+          "mean_sim_to_past_mean": 0.3063668907011079
         },
         "W2k": {
-          "off_diag_mean": 0.4555005431175232,
-          "novelty_mean": 0.3341611524090719,
-          "sim_lag1_mean": 0.49364534497431917,
-          "mean_sim_to_past_mean": 0.4580387134644271
+          "off_diag_mean": 0.4550498127937317,
+          "novelty_mean": 0.3340117611102204,
+          "sim_lag1_mean": 0.49344948156556084,
+          "mean_sim_to_past_mean": 0.45775253375046954
         },
         "W8k": {
-          "off_diag_mean": 0.7401859164237976,
-          "novelty_mean": 0.17449529059579438,
-          "sim_lag1_mean": 0.7801821699766355,
-          "mean_sim_to_past_mean": 0.7421387031813649
+          "off_diag_mean": 0.7402472496032715,
+          "novelty_mean": 0.17440461764370438,
+          "sim_lag1_mean": 0.7805852959625912,
+          "mean_sim_to_past_mean": 0.7421211407784998
         },
         "W40k": {
-          "off_diag_mean": 0.9028043150901794,
-          "novelty_mean": 0.060236565420560745,
-          "sim_lag1_mean": 0.930052570093458,
-          "mean_sim_to_past_mean": 0.9045092680743921
+          "off_diag_mean": 0.9037945866584778,
+          "novelty_mean": 0.059547914277522936,
+          "sim_lag1_mean": 0.9309059633027523,
+          "mean_sim_to_past_mean": 0.9049899135160884
         }
       }
     }
@@ -1237,28 +1315,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.30032438039779663,
-          "novelty_mean": 0.32747281935211103,
-          "sim_lag1_mean": 0.32747572197456976,
-          "mean_sim_to_past_mean": 0.3024553230433356
+          "off_diag_mean": 0.30006638169288635,
+          "novelty_mean": 0.32706022753258635,
+          "sim_lag1_mean": 0.327690243148542,
+          "mean_sim_to_past_mean": 0.3022840734943492
         },
         "W2k": {
-          "off_diag_mean": 0.44775551557540894,
-          "novelty_mean": 0.33724055538551123,
-          "sim_lag1_mean": 0.4785023273262064,
-          "mean_sim_to_past_mean": 0.4493582362742499
+          "off_diag_mean": 0.4471900165081024,
+          "novelty_mean": 0.33709530975556207,
+          "sim_lag1_mean": 0.4787198569233021,
+          "mean_sim_to_past_mean": 0.44904257322921126
         },
         "W8k": {
-          "off_diag_mean": 0.7426955103874207,
-          "novelty_mean": 0.17522269275700936,
-          "sim_lag1_mean": 0.7736556293808411,
-          "mean_sim_to_past_mean": 0.7444557905197143
+          "off_diag_mean": 0.7419033050537109,
+          "novelty_mean": 0.17531085451007325,
+          "sim_lag1_mean": 0.7738667582417582,
+          "mean_sim_to_past_mean": 0.744020422081371
         },
         "W40k": {
-          "off_diag_mean": 0.9125897288322449,
-          "novelty_mean": 0.06001752336448598,
-          "sim_lag1_mean": 0.9240836740654206,
-          "mean_sim_to_past_mean": 0.9141704841194865
+          "off_diag_mean": 0.9123727083206177,
+          "novelty_mean": 0.059906285837155966,
+          "sim_lag1_mean": 0.9245851849197247,
+          "mean_sim_to_past_mean": 0.9140434565894101
         }
       }
     }
@@ -1359,28 +1437,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.2979744076728821,
-          "novelty_mean": 0.33621464260591616,
-          "sim_lag1_mean": 0.3268390080576764,
-          "mean_sim_to_past_mean": 0.2995536538796399
+          "off_diag_mean": 0.29783058166503906,
+          "novelty_mean": 0.33569462188110494,
+          "sim_lag1_mean": 0.32655479633460177,
+          "mean_sim_to_past_mean": 0.2994578015204785
         },
         "W2k": {
-          "off_diag_mean": 0.4529711902141571,
-          "novelty_mean": 0.3356003923047062,
-          "sim_lag1_mean": 0.4866847126209388,
-          "mean_sim_to_past_mean": 0.45486780083384515
+          "off_diag_mean": 0.45275750756263733,
+          "novelty_mean": 0.3355388749117232,
+          "sim_lag1_mean": 0.4865266329375589,
+          "mean_sim_to_past_mean": 0.4547340359377435
         },
         "W8k": {
-          "off_diag_mean": 0.7412306070327759,
-          "novelty_mean": 0.17594461886682242,
-          "sim_lag1_mean": 0.7763169903621495,
-          "mean_sim_to_past_mean": 0.7430124153600675
+          "off_diag_mean": 0.74067223072052,
+          "novelty_mean": 0.17602224332412522,
+          "sim_lag1_mean": 0.7761918378798343,
+          "mean_sim_to_past_mean": 0.7427044328624592
         },
         "W40k": {
-          "off_diag_mean": 0.9077693223953247,
-          "novelty_mean": 0.06381881571261683,
-          "sim_lag1_mean": 0.9248913916471962,
-          "mean_sim_to_past_mean": 0.9076953129233601
+          "off_diag_mean": 0.908488929271698,
+          "novelty_mean": 0.06334092881944445,
+          "sim_lag1_mean": 0.9254376446759259,
+          "mean_sim_to_past_mean": 0.9080638857903304
         }
       }
     }
@@ -1481,28 +1559,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.28244954347610474,
-          "novelty_mean": 0.3449413458839952,
-          "sim_lag1_mean": 0.31047394193912237,
-          "mean_sim_to_past_mean": 0.2831456245768034
+          "off_diag_mean": 0.2815929353237152,
+          "novelty_mean": 0.34452421373049563,
+          "sim_lag1_mean": 0.3100133101947814,
+          "mean_sim_to_past_mean": 0.28270220664979917
         },
         "W2k": {
-          "off_diag_mean": 0.43034428358078003,
-          "novelty_mean": 0.34871493146798854,
-          "sim_lag1_mean": 0.46317801222639454,
-          "mean_sim_to_past_mean": 0.4314797987962988
+          "off_diag_mean": 0.43009892106056213,
+          "novelty_mean": 0.34838626145980256,
+          "sim_lag1_mean": 0.462605249057872,
+          "mean_sim_to_past_mean": 0.431339277423039
         },
         "W8k": {
-          "off_diag_mean": 0.7224586009979248,
-          "novelty_mean": 0.18949054468457943,
-          "sim_lag1_mean": 0.7544063960280374,
-          "mean_sim_to_past_mean": 0.723230834764855
+          "off_diag_mean": 0.7220408320426941,
+          "novelty_mean": 0.18958955652573528,
+          "sim_lag1_mean": 0.754058837890625,
+          "mean_sim_to_past_mean": 0.7230065896668855
         },
         "W40k": {
-          "off_diag_mean": 0.9068292379379272,
-          "novelty_mean": 0.0648638288551402,
-          "sim_lag1_mean": 0.9240699839369159,
-          "mean_sim_to_past_mean": 0.9081207157295441
+          "off_diag_mean": 0.9081885814666748,
+          "novelty_mean": 0.06404170283564815,
+          "sim_lag1_mean": 0.9251347294560185,
+          "mean_sim_to_past_mean": 0.9088015296944866
         }
       }
     }
@@ -1603,28 +1681,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.2935088276863098,
-          "novelty_mean": 0.34311100305975917,
-          "sim_lag1_mean": 0.3216253200110117,
-          "mean_sim_to_past_mean": 0.2934623360112466
+          "off_diag_mean": 0.29305341839790344,
+          "novelty_mean": 0.34253275090040547,
+          "sim_lag1_mean": 0.32093463702012076,
+          "mean_sim_to_past_mean": 0.29323368775181613
         },
         "W2k": {
-          "off_diag_mean": 0.43588972091674805,
-          "novelty_mean": 0.34788044411430963,
-          "sim_lag1_mean": 0.46775384092809363,
-          "mean_sim_to_past_mean": 0.43555160204987176
+          "off_diag_mean": 0.43580663204193115,
+          "novelty_mean": 0.3476887522274093,
+          "sim_lag1_mean": 0.4677652400355649,
+          "mean_sim_to_past_mean": 0.4355156302564443
         },
         "W8k": {
-          "off_diag_mean": 0.7333279252052307,
-          "novelty_mean": 0.1843850394275701,
-          "sim_lag1_mean": 0.7641857111565421,
-          "mean_sim_to_past_mean": 0.7340067957049218
+          "off_diag_mean": 0.7326765656471252,
+          "novelty_mean": 0.18460358396639043,
+          "sim_lag1_mean": 0.7635010215239411,
+          "mean_sim_to_past_mean": 0.7336695969214536
         },
         "W40k": {
-          "off_diag_mean": 0.9081347584724426,
-          "novelty_mean": 0.06447594188084112,
-          "sim_lag1_mean": 0.9228971962616822,
-          "mean_sim_to_past_mean": 0.9071686317987531
+          "off_diag_mean": 0.9092239737510681,
+          "novelty_mean": 0.06378399884259259,
+          "sim_lag1_mean": 0.9235704210069444,
+          "mean_sim_to_past_mean": 0.9077379918760724
         }
       }
     }
@@ -1725,28 +1803,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.2929738461971283,
-          "novelty_mean": 0.34185296982519825,
-          "sim_lag1_mean": 0.31759700247922756,
-          "mean_sim_to_past_mean": 0.293044088406613
+          "off_diag_mean": 0.29295408725738525,
+          "novelty_mean": 0.341334018049569,
+          "sim_lag1_mean": 0.3175718169376768,
+          "mean_sim_to_past_mean": 0.2930327576908401
         },
         "W2k": {
-          "off_diag_mean": 0.4457809031009674,
-          "novelty_mean": 0.34136738346571904,
-          "sim_lag1_mean": 0.4735420908702371,
-          "mean_sim_to_past_mean": 0.44472492455268553
+          "off_diag_mean": 0.4461139738559723,
+          "novelty_mean": 0.3411085915430791,
+          "sim_lag1_mean": 0.4742915841370204,
+          "mean_sim_to_past_mean": 0.44491085633214583
         },
         "W8k": {
-          "off_diag_mean": 0.7413341403007507,
-          "novelty_mean": 0.1807252117406542,
-          "sim_lag1_mean": 0.7669401650116823,
-          "mean_sim_to_past_mean": 0.7418133442646989
+          "off_diag_mean": 0.741108238697052,
+          "novelty_mean": 0.18074679155156537,
+          "sim_lag1_mean": 0.7669342771639043,
+          "mean_sim_to_past_mean": 0.7416920330423457
         },
         "W40k": {
-          "off_diag_mean": 0.9126793742179871,
-          "novelty_mean": 0.06212580315420561,
-          "sim_lag1_mean": 0.926410995911215,
-          "mean_sim_to_past_mean": 0.913700225754319
+          "off_diag_mean": 0.913715660572052,
+          "novelty_mean": 0.061595775462962965,
+          "sim_lag1_mean": 0.9268798828125,
+          "mean_sim_to_past_mean": 0.9142209749530863
         }
       }
     }
@@ -1847,28 +1925,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.28592923283576965,
-          "novelty_mean": 0.35152386006203346,
-          "sim_lag1_mean": 0.3179828598417545,
-          "mean_sim_to_past_mean": 0.2855493577667743
+          "off_diag_mean": 0.28578925132751465,
+          "novelty_mean": 0.3513719594936892,
+          "sim_lag1_mean": 0.3179265596956056,
+          "mean_sim_to_past_mean": 0.28548195244914376
         },
         "W2k": {
-          "off_diag_mean": 0.4362708628177643,
-          "novelty_mean": 0.34832160027472525,
-          "sim_lag1_mean": 0.4739849675630076,
-          "mean_sim_to_past_mean": 0.43656764537224174
+          "off_diag_mean": 0.43633848428726196,
+          "novelty_mean": 0.34817638071483636,
+          "sim_lag1_mean": 0.47422278040500476,
+          "mean_sim_to_past_mean": 0.4365986000315288
         },
         "W8k": {
-          "off_diag_mean": 0.7291761040687561,
-          "novelty_mean": 0.18578325788551403,
-          "sim_lag1_mean": 0.7606025481892523,
-          "mean_sim_to_past_mean": 0.7296579583783016
+          "off_diag_mean": 0.7285199761390686,
+          "novelty_mean": 0.18595271915584416,
+          "sim_lag1_mean": 0.7600455487592764,
+          "mean_sim_to_past_mean": 0.7293248480680038
         },
         "W40k": {
-          "off_diag_mean": 0.9040910005569458,
-          "novelty_mean": 0.06461740654205607,
-          "sim_lag1_mean": 0.9251423773364486,
-          "mean_sim_to_past_mean": 0.9044021501719395
+          "off_diag_mean": 0.905975878238678,
+          "novelty_mean": 0.06395571699766354,
+          "sim_lag1_mean": 0.9260778694509346,
+          "mean_sim_to_past_mean": 0.9053533795838044
         }
       }
     }
@@ -1969,28 +2047,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.2950606942176819,
-          "novelty_mean": 0.34489282528392523,
-          "sim_lag1_mean": 0.3257512527939209,
-          "mean_sim_to_past_mean": 0.2956429659531254
+          "off_diag_mean": 0.2952329218387604,
+          "novelty_mean": 0.3446606909157061,
+          "sim_lag1_mean": 0.32620391280039024,
+          "mean_sim_to_past_mean": 0.2957260135709687
         },
         "W2k": {
-          "off_diag_mean": 0.43814074993133545,
-          "novelty_mean": 0.351310135813575,
-          "sim_lag1_mean": 0.4713571605873746,
-          "mean_sim_to_past_mean": 0.4373334647720075
+          "off_diag_mean": 0.438175767660141,
+          "novelty_mean": 0.3511940875096405,
+          "sim_lag1_mean": 0.47137378752373044,
+          "mean_sim_to_past_mean": 0.43735653645034983
         },
         "W8k": {
-          "off_diag_mean": 0.7342538833618164,
-          "novelty_mean": 0.18537072867990653,
-          "sim_lag1_mean": 0.7629828051985982,
-          "mean_sim_to_past_mean": 0.7330260516327118
+          "off_diag_mean": 0.7338491082191467,
+          "novelty_mean": 0.18543363723330242,
+          "sim_lag1_mean": 0.7631953704777366,
+          "mean_sim_to_past_mean": 0.7328320340234407
         },
         "W40k": {
-          "off_diag_mean": 0.9140271544456482,
-          "novelty_mean": 0.06129983206775701,
-          "sim_lag1_mean": 0.9285284024532711,
-          "mean_sim_to_past_mean": 0.914317350521266
+          "off_diag_mean": 0.9150012135505676,
+          "novelty_mean": 0.06082524094626168,
+          "sim_lag1_mean": 0.9292037821261683,
+          "mean_sim_to_past_mean": 0.9148089155972561
         }
       }
     }
@@ -2091,28 +2169,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.289272665977478,
-          "novelty_mean": 0.349364978104225,
-          "sim_lag1_mean": 0.3207193832450851,
-          "mean_sim_to_past_mean": 0.2906263704829445
+          "off_diag_mean": 0.28937268257141113,
+          "novelty_mean": 0.34921182474828805,
+          "sim_lag1_mean": 0.32085639365646945,
+          "mean_sim_to_past_mean": 0.2906700154635
         },
         "W2k": {
-          "off_diag_mean": 0.4368055462837219,
-          "novelty_mean": 0.3504262487682155,
-          "sim_lag1_mean": 0.4723695918127389,
-          "mean_sim_to_past_mean": 0.4403505841198004
+          "off_diag_mean": 0.436653733253479,
+          "novelty_mean": 0.3505653892876248,
+          "sim_lag1_mean": 0.4723345021435152,
+          "mean_sim_to_past_mean": 0.4402576954490618
         },
         "W8k": {
-          "off_diag_mean": 0.729580283164978,
-          "novelty_mean": 0.18717326226635514,
-          "sim_lag1_mean": 0.7622928227219626,
-          "mean_sim_to_past_mean": 0.7313002108413482
+          "off_diag_mean": 0.7289614081382751,
+          "novelty_mean": 0.1872113876626394,
+          "sim_lag1_mean": 0.7624012546468402,
+          "mean_sim_to_past_mean": 0.7309800040766209
         },
         "W40k": {
-          "off_diag_mean": 0.9029267430305481,
-          "novelty_mean": 0.06640168662383178,
-          "sim_lag1_mean": 0.9259500949182243,
-          "mean_sim_to_past_mean": 0.9071368146165509
+          "off_diag_mean": 0.904386043548584,
+          "novelty_mean": 0.06558940566588785,
+          "sim_lag1_mean": 0.9267623758761683,
+          "mean_sim_to_past_mean": 0.9078732667682327
         }
       }
     }
@@ -2209,6 +2287,32 @@
           "off_diag_mean": 0.9168956279754639,
           "novelty_mean": 0.06022411281779661,
           "sim_lag1_mean": 0.9296461202330508
+        }
+      },
+      "4": {
+        "W1k": {
+          "off_diag_mean": 0.29749736189842224,
+          "novelty_mean": 0.32396758143775384,
+          "sim_lag1_mean": 0.32188050825517256,
+          "mean_sim_to_past_mean": 0.2977025745702641
+        },
+        "W2k": {
+          "off_diag_mean": 0.44550085067749023,
+          "novelty_mean": 0.3317015884907045,
+          "sim_lag1_mean": 0.47296500905852495,
+          "mean_sim_to_past_mean": 0.4449633079746815
+        },
+        "W8k": {
+          "off_diag_mean": 0.7422710061073303,
+          "novelty_mean": 0.175064232791587,
+          "sim_lag1_mean": 0.7654998954349904,
+          "mean_sim_to_past_mean": 0.742578929856448
+        },
+        "W40k": {
+          "off_diag_mean": 0.9204310178756714,
+          "novelty_mean": 0.057382436899038464,
+          "sim_lag1_mean": 0.9322603665865384,
+          "mean_sim_to_past_mean": 0.9202512135872474
         }
       }
     }
@@ -2309,28 +2413,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.30282893776893616,
-          "novelty_mean": 0.32698338488362344,
-          "sim_lag1_mean": 0.322451113431026,
-          "mean_sim_to_past_mean": 0.3031681078886524
+          "off_diag_mean": 0.3028087913990021,
+          "novelty_mean": 0.3269506744861492,
+          "sim_lag1_mean": 0.32245586534901693,
+          "mean_sim_to_past_mean": 0.30315782971581146
         },
         "W2k": {
-          "off_diag_mean": 0.45847243070602417,
-          "novelty_mean": 0.32965271608486624,
-          "sim_lag1_mean": 0.4839157053459448,
-          "mean_sim_to_past_mean": 0.45988230731176294
+          "off_diag_mean": 0.45834654569625854,
+          "novelty_mean": 0.32968323278563755,
+          "sim_lag1_mean": 0.48381402453811484,
+          "mean_sim_to_past_mean": 0.459817593011724
         },
         "W8k": {
-          "off_diag_mean": 0.7473305463790894,
-          "novelty_mean": 0.17461850175233645,
-          "sim_lag1_mean": 0.7703152380257009,
-          "mean_sim_to_past_mean": 0.7464791378128194
+          "off_diag_mean": 0.7466870546340942,
+          "novelty_mean": 0.17490216155550373,
+          "sim_lag1_mean": 0.7699548522038246,
+          "mean_sim_to_past_mean": 0.746158076422428
         },
         "W40k": {
-          "off_diag_mean": 0.9211164712905884,
-          "novelty_mean": 0.05740727219626168,
-          "sim_lag1_mean": 0.929098824474299,
-          "mean_sim_to_past_mean": 0.9221804665627881
+          "off_diag_mean": 0.9212079048156738,
+          "novelty_mean": 0.0572794976635514,
+          "sim_lag1_mean": 0.9293863171728972,
+          "mean_sim_to_past_mean": 0.922226612255952
         }
       }
     }
@@ -2431,28 +2535,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.31068047881126404,
-          "novelty_mean": 0.3144261311450315,
-          "sim_lag1_mean": 0.3321137407150251,
-          "mean_sim_to_past_mean": 0.3115067977422611
+          "off_diag_mean": 0.3108050525188446,
+          "novelty_mean": 0.3136311941964286,
+          "sim_lag1_mean": 0.3321677734375,
+          "mean_sim_to_past_mean": 0.31155306638053487
         },
         "W2k": {
-          "off_diag_mean": 0.46333643794059753,
-          "novelty_mean": 0.32030532625492714,
-          "sim_lag1_mean": 0.4903432642849678,
-          "mean_sim_to_past_mean": 0.4615591574145229
+          "off_diag_mean": 0.4621911942958832,
+          "novelty_mean": 0.3202464928787746,
+          "sim_lag1_mean": 0.48954312899585967,
+          "mean_sim_to_past_mean": 0.4610189214865032
         },
         "W8k": {
-          "off_diag_mean": 0.7559797763824463,
-          "novelty_mean": 0.1671199620327103,
-          "sim_lag1_mean": 0.7816004672897197,
-          "mean_sim_to_past_mean": 0.7539140820503235
+          "off_diag_mean": 0.7562832832336426,
+          "novelty_mean": 0.16679097269917584,
+          "sim_lag1_mean": 0.7818438072344323,
+          "mean_sim_to_past_mean": 0.75410895775526
         },
         "W40k": {
-          "off_diag_mean": 0.9223450422286987,
-          "novelty_mean": 0.054267669392523366,
-          "sim_lag1_mean": 0.9326354410046729,
-          "mean_sim_to_past_mean": 0.9222394322680536
+          "off_diag_mean": 0.9224552512168884,
+          "novelty_mean": 0.054172340883027525,
+          "sim_lag1_mean": 0.9329397219036697,
+          "mean_sim_to_past_mean": 0.922306207888717
         }
       }
     }
@@ -2553,28 +2657,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.29955917596817017,
-          "novelty_mean": 0.33126441665482126,
-          "sim_lag1_mean": 0.32709586105898375,
-          "mean_sim_to_past_mean": 0.29825086305007004
+          "off_diag_mean": 0.2997620105743408,
+          "novelty_mean": 0.3305842766528911,
+          "sim_lag1_mean": 0.3275457806154127,
+          "mean_sim_to_past_mean": 0.2983811233020105
         },
         "W2k": {
-          "off_diag_mean": 0.4526956081390381,
-          "novelty_mean": 0.33244359453386285,
-          "sim_lag1_mean": 0.48421752754718106,
-          "mean_sim_to_past_mean": 0.4512332671718397
+          "off_diag_mean": 0.4522574841976166,
+          "novelty_mean": 0.3320133303748831,
+          "sim_lag1_mean": 0.4846357476661115,
+          "mean_sim_to_past_mean": 0.4510429024752081
         },
         "W8k": {
-          "off_diag_mean": 0.7452667355537415,
-          "novelty_mean": 0.17471798335280375,
-          "sim_lag1_mean": 0.7754170925817757,
-          "mean_sim_to_past_mean": 0.7450906423764808
+          "off_diag_mean": 0.7450213432312012,
+          "novelty_mean": 0.17447529850319926,
+          "sim_lag1_mean": 0.775647709095064,
+          "mean_sim_to_past_mean": 0.7449700915181441
         },
         "W40k": {
-          "off_diag_mean": 0.9144840836524963,
-          "novelty_mean": 0.0585754964953271,
-          "sim_lag1_mean": 0.9285284024532711,
-          "mean_sim_to_past_mean": 0.915142436450887
+          "off_diag_mean": 0.9147466421127319,
+          "novelty_mean": 0.05822641915137615,
+          "sim_lag1_mean": 0.9291185851490825,
+          "mean_sim_to_past_mean": 0.9152713664081118
         }
       }
     }
@@ -2671,6 +2775,32 @@
           "off_diag_mean": 0.9307109713554382,
           "novelty_mean": 0.049920550847457626,
           "sim_lag1_mean": 0.938724841101695
+        }
+      },
+      "4": {
+        "W1k": {
+          "off_diag_mean": 0.3184753358364105,
+          "novelty_mean": 0.3147638838872552,
+          "sim_lag1_mean": 0.3393259336021939,
+          "mean_sim_to_past_mean": 0.3191931327412998
+        },
+        "W2k": {
+          "off_diag_mean": 0.47316551208496094,
+          "novelty_mean": 0.31417410714285715,
+          "sim_lag1_mean": 0.49485435411188233,
+          "mean_sim_to_past_mean": 0.47255203628697506
+        },
+        "W8k": {
+          "off_diag_mean": 0.7651875615119934,
+          "novelty_mean": 0.16218686514101338,
+          "sim_lag1_mean": 0.7783772630855641,
+          "mean_sim_to_past_mean": 0.7644051353288654
+        },
+        "W40k": {
+          "off_diag_mean": 0.932953417301178,
+          "novelty_mean": 0.04858867938701923,
+          "sim_lag1_mean": 0.9385094275841346,
+          "mean_sim_to_past_mean": 0.9320104064849707
         }
       }
     }
@@ -2771,28 +2901,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.31762707233428955,
-          "novelty_mean": 0.3067329394280674,
-          "sim_lag1_mean": 0.33658351769168143,
-          "mean_sim_to_past_mean": 0.31912560850826766
+          "off_diag_mean": 0.3176235854625702,
+          "novelty_mean": 0.30624642323877355,
+          "sim_lag1_mean": 0.3363610121122499,
+          "mean_sim_to_past_mean": 0.3191029090252675
         },
         "W2k": {
-          "off_diag_mean": 0.4712092876434326,
-          "novelty_mean": 0.31564221698817485,
-          "sim_lag1_mean": 0.4933975883152174,
-          "mean_sim_to_past_mean": 0.4727522872078664
+          "off_diag_mean": 0.47115060687065125,
+          "novelty_mean": 0.3153963380976213,
+          "sim_lag1_mean": 0.49363911898698776,
+          "mean_sim_to_past_mean": 0.4727008003448463
         },
         "W8k": {
-          "off_diag_mean": 0.7680583596229553,
-          "novelty_mean": 0.15708327248831774,
-          "sim_lag1_mean": 0.7852675963785046,
-          "mean_sim_to_past_mean": 0.77043566826348
+          "off_diag_mean": 0.7677676677703857,
+          "novelty_mean": 0.15699006531998158,
+          "sim_lag1_mean": 0.7853217081031307,
+          "mean_sim_to_past_mean": 0.7702556666309224
         },
         "W40k": {
-          "off_diag_mean": 0.9322881102561951,
-          "novelty_mean": 0.04913387120327103,
-          "sim_lag1_mean": 0.939799941588785,
-          "mean_sim_to_past_mean": 0.9329352133742003
+          "off_diag_mean": 0.9336898326873779,
+          "novelty_mean": 0.0484619140625,
+          "sim_lag1_mean": 0.9407145182291666,
+          "mean_sim_to_past_mean": 0.9336457384957207
         }
       }
     }
@@ -2889,6 +3019,32 @@
           "off_diag_mean": 0.9299694299697876,
           "novelty_mean": 0.04963916843220339,
           "sim_lag1_mean": 0.9386503575211864
+        }
+      },
+      "4": {
+        "W1k": {
+          "off_diag_mean": 0.31819212436676025,
+          "novelty_mean": 0.31142600496908773,
+          "sim_lag1_mean": 0.3415056099568991,
+          "mean_sim_to_past_mean": 0.31718242457714213
+        },
+        "W2k": {
+          "off_diag_mean": 0.47671085596084595,
+          "novelty_mean": 0.3098445301221126,
+          "sim_lag1_mean": 0.4998896785144971,
+          "mean_sim_to_past_mean": 0.4784950731865366
+        },
+        "W8k": {
+          "off_diag_mean": 0.7644886374473572,
+          "novelty_mean": 0.15649964755639098,
+          "sim_lag1_mean": 0.7803941310796523,
+          "mean_sim_to_past_mean": 0.7653781154886224
+        },
+        "W40k": {
+          "off_diag_mean": 0.9317541718482971,
+          "novelty_mean": 0.04774100825471698,
+          "sim_lag1_mean": 0.939476157134434,
+          "mean_sim_to_past_mean": 0.9325720217992675
         }
       }
     }
@@ -2989,28 +3145,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.30213895440101624,
-          "novelty_mean": 0.32321026755124505,
-          "sim_lag1_mean": 0.327163793683636,
-          "mean_sim_to_past_mean": 0.30068701142842763
+          "off_diag_mean": 0.30219200253486633,
+          "novelty_mean": 0.3226951400062774,
+          "sim_lag1_mean": 0.3271358188347518,
+          "mean_sim_to_past_mean": 0.30072912962320625
         },
         "W2k": {
-          "off_diag_mean": 0.4551163613796234,
-          "novelty_mean": 0.3314643491698519,
-          "sim_lag1_mean": 0.47986248105664714,
-          "mean_sim_to_past_mean": 0.45514380184304354
+          "off_diag_mean": 0.45527908205986023,
+          "novelty_mean": 0.3312683394187559,
+          "sim_lag1_mean": 0.479970190360395,
+          "mean_sim_to_past_mean": 0.45522710349668055
         },
         "W8k": {
-          "off_diag_mean": 0.7529770731925964,
-          "novelty_mean": 0.1716413551401869,
-          "sim_lag1_mean": 0.7711548992406542,
-          "mean_sim_to_past_mean": 0.7510025457801106
+          "off_diag_mean": 0.7520527839660645,
+          "novelty_mean": 0.17195532722966728,
+          "sim_lag1_mean": 0.7706743335547597,
+          "mean_sim_to_past_mean": 0.7505617800018924
         },
         "W40k": {
-          "off_diag_mean": 0.924206018447876,
-          "novelty_mean": 0.054810711156542055,
-          "sim_lag1_mean": 0.9322064836448598,
-          "mean_sim_to_past_mean": 0.924803435245407
+          "off_diag_mean": 0.925553023815155,
+          "novelty_mean": 0.054230866608796294,
+          "sim_lag1_mean": 0.9330060040509259,
+          "mean_sim_to_past_mean": 0.9254945301347308
         }
       }
     }
@@ -3111,28 +3267,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.3129425644874573,
-          "novelty_mean": 0.31603599567916085,
-          "sim_lag1_mean": 0.33338380799806283,
-          "mean_sim_to_past_mean": 0.31385471985258506
+          "off_diag_mean": 0.31250813603401184,
+          "novelty_mean": 0.3152741325269992,
+          "sim_lag1_mean": 0.3333929170745774,
+          "mean_sim_to_past_mean": 0.3135996279608187
         },
         "W2k": {
-          "off_diag_mean": 0.47102653980255127,
-          "novelty_mean": 0.3152225237398471,
-          "sim_lag1_mean": 0.4991083851398262,
-          "mean_sim_to_past_mean": 0.47168031029449486
+          "off_diag_mean": 0.46986719965934753,
+          "novelty_mean": 0.31483772545777494,
+          "sim_lag1_mean": 0.49762634164524605,
+          "mean_sim_to_past_mean": 0.4710710286653416
         },
         "W8k": {
-          "off_diag_mean": 0.7643254399299622,
-          "novelty_mean": 0.15952650408878505,
-          "sim_lag1_mean": 0.7892249561915888,
-          "mean_sim_to_past_mean": 0.7644749785138067
+          "off_diag_mean": 0.7627652883529663,
+          "novelty_mean": 0.1599861447991877,
+          "sim_lag1_mean": 0.7883864860672383,
+          "mean_sim_to_past_mean": 0.7636789832304531
         },
         "W40k": {
-          "off_diag_mean": 0.9217439889907837,
-          "novelty_mean": 0.05184451664719626,
-          "sim_lag1_mean": 0.9372535776869159,
-          "mean_sim_to_past_mean": 0.9227072329164665
+          "off_diag_mean": 0.9233980774879456,
+          "novelty_mean": 0.05075905539772727,
+          "sim_lag1_mean": 0.9376598011363636,
+          "mean_sim_to_past_mean": 0.9235337447036397
         }
       }
     }
@@ -3233,28 +3389,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.27783286571502686,
-          "novelty_mean": 0.35001741502288897,
-          "sim_lag1_mean": 0.2987600637533349,
-          "mean_sim_to_past_mean": 0.2767840691757197
+          "off_diag_mean": 0.2776426672935486,
+          "novelty_mean": 0.3484205735013471,
+          "sim_lag1_mean": 0.29866183194870044,
+          "mean_sim_to_past_mean": 0.27673003022221504
         },
         "W2k": {
-          "off_diag_mean": 0.4246634542942047,
-          "novelty_mean": 0.35261231635212614,
-          "sim_lag1_mean": 0.44125641787729936,
-          "mean_sim_to_past_mean": 0.4249265878338935
+          "off_diag_mean": 0.42438021302223206,
+          "novelty_mean": 0.35153780531609197,
+          "sim_lag1_mean": 0.4413982242277299,
+          "mean_sim_to_past_mean": 0.42477477512825496
         },
         "W8k": {
-          "off_diag_mean": 0.7355823516845703,
-          "novelty_mean": 0.18470356308411215,
-          "sim_lag1_mean": 0.7456438011098131,
-          "mean_sim_to_past_mean": 0.7346566592421487
+          "off_diag_mean": 0.7347496151924133,
+          "novelty_mean": 0.18461685729541366,
+          "sim_lag1_mean": 0.7450240979091727,
+          "mean_sim_to_past_mean": 0.7342664793455344
         },
         "W40k": {
-          "off_diag_mean": 0.9276199340820312,
-          "novelty_mean": 0.05467837324766355,
-          "sim_lag1_mean": 0.9282180928738317,
-          "mean_sim_to_past_mean": 0.9288045000807147
+          "off_diag_mean": 0.9276196360588074,
+          "novelty_mean": 0.05447635135135135,
+          "sim_lag1_mean": 0.9284118102477478,
+          "mean_sim_to_past_mean": 0.9287805546511401
         }
       }
     }
@@ -3355,28 +3511,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.2574262320995331,
-          "novelty_mean": 0.35531265262348377,
-          "sim_lag1_mean": 0.3542187964134848,
-          "mean_sim_to_past_mean": 0.26571670853288887
+          "off_diag_mean": 0.25408604741096497,
+          "novelty_mean": 0.35693132788330756,
+          "sim_lag1_mean": 0.3502555767406857,
+          "mean_sim_to_past_mean": 0.2632797757357976
         },
         "W2k": {
-          "off_diag_mean": 0.38190674781799316,
-          "novelty_mean": 0.3515697320682035,
-          "sim_lag1_mean": 0.5058226897508062,
-          "mean_sim_to_past_mean": 0.3940862734716188
+          "off_diag_mean": 0.3780641555786133,
+          "novelty_mean": 0.35458502069219844,
+          "sim_lag1_mean": 0.4996678278996394,
+          "mean_sim_to_past_mean": 0.3910676445063021
         },
         "W8k": {
-          "off_diag_mean": 0.6163794994354248,
-          "novelty_mean": 0.19634656103971962,
-          "sim_lag1_mean": 0.7676454347984814,
-          "mean_sim_to_past_mean": 0.6366442539424539
+          "off_diag_mean": 0.6145591139793396,
+          "novelty_mean": 0.19872462606837607,
+          "sim_lag1_mean": 0.7646181807558761,
+          "mean_sim_to_past_mean": 0.6339872406079219
         },
         "W40k": {
-          "off_diag_mean": 0.7702039480209351,
-          "novelty_mean": 0.09796427789135514,
-          "sim_lag1_mean": 0.8768823926693925,
-          "mean_sim_to_past_mean": 0.7979749867292208
+          "off_diag_mean": 0.7699509263038635,
+          "novelty_mean": 0.09684036124465811,
+          "sim_lag1_mean": 0.8796804053151709,
+          "mean_sim_to_past_mean": 0.7955854007830987
         }
       }
     }
@@ -3477,28 +3633,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.24866779148578644,
-          "novelty_mean": 0.36732207063141475,
-          "sim_lag1_mean": 0.27184439094744556,
-          "mean_sim_to_past_mean": 0.2487831475695016
+          "off_diag_mean": 0.24764300882816315,
+          "novelty_mean": 0.3643773445873526,
+          "sim_lag1_mean": 0.2724628648829486,
+          "mean_sim_to_past_mean": 0.24823561385912782
         },
         "W2k": {
-          "off_diag_mean": 0.3860076069831848,
-          "novelty_mean": 0.3830056078856605,
-          "sim_lag1_mean": 0.40552650156399306,
-          "mean_sim_to_past_mean": 0.3851034773404212
+          "off_diag_mean": 0.38468489050865173,
+          "novelty_mean": 0.3820167923308549,
+          "sim_lag1_mean": 0.4060178091904906,
+          "mean_sim_to_past_mean": 0.3844934094883665
         },
         "W8k": {
-          "off_diag_mean": 0.7022449374198914,
-          "novelty_mean": 0.20911306220794393,
-          "sim_lag1_mean": 0.7117050598714953,
-          "mean_sim_to_past_mean": 0.703539647788645
+          "off_diag_mean": 0.6993857622146606,
+          "novelty_mean": 0.20855723359777015,
+          "sim_lag1_mean": 0.7125158293578473,
+          "mean_sim_to_past_mean": 0.7019538107499046
         },
         "W40k": {
-          "off_diag_mean": 0.9143955707550049,
-          "novelty_mean": 0.06468129380841121,
-          "sim_lag1_mean": 0.9180737076518691,
-          "mean_sim_to_past_mean": 0.9158357025306916
+          "off_diag_mean": 0.9115257263183594,
+          "novelty_mean": 0.06418372844827586,
+          "sim_lag1_mean": 0.919378872575431,
+          "mean_sim_to_past_mean": 0.9142754237199652
         }
       }
     }
@@ -3599,28 +3755,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.2587631642818451,
-          "novelty_mean": 0.3729150521607841,
-          "sim_lag1_mean": 0.2849178198531204,
-          "mean_sim_to_past_mean": 0.25938929574216946
+          "off_diag_mean": 0.2588888108730316,
+          "novelty_mean": 0.37193604912310496,
+          "sim_lag1_mean": 0.28527003294816006,
+          "mean_sim_to_past_mean": 0.2594413949351425
         },
         "W2k": {
-          "off_diag_mean": 0.4027727246284485,
-          "novelty_mean": 0.3746080685618729,
-          "sim_lag1_mean": 0.4225847050156026,
-          "mean_sim_to_past_mean": 0.40519183787272073
+          "off_diag_mean": 0.4028574526309967,
+          "novelty_mean": 0.37415517958128225,
+          "sim_lag1_mean": 0.42231769803204117,
+          "mean_sim_to_past_mean": 0.40518994441459394
         },
         "W8k": {
-          "off_diag_mean": 0.7196764349937439,
-          "novelty_mean": 0.19847126898364487,
-          "sim_lag1_mean": 0.7255850248247664,
-          "mean_sim_to_past_mean": 0.7197823150135646
+          "off_diag_mean": 0.7190302014350891,
+          "novelty_mean": 0.1986410399496337,
+          "sim_lag1_mean": 0.7251593621222527,
+          "mean_sim_to_past_mean": 0.7194589574040074
         },
         "W40k": {
-          "off_diag_mean": 0.9200806021690369,
-          "novelty_mean": 0.06074310017523365,
-          "sim_lag1_mean": 0.9211768034462616,
-          "mean_sim_to_past_mean": 0.9210814332293573
+          "off_diag_mean": 0.9206439256668091,
+          "novelty_mean": 0.06037664850917431,
+          "sim_lag1_mean": 0.9216868549311926,
+          "mean_sim_to_past_mean": 0.9213672695903603
         }
       }
     }
@@ -3721,28 +3877,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.24379588663578033,
-          "novelty_mean": 0.36865432272987375,
-          "sim_lag1_mean": 0.26722003108336706,
-          "mean_sim_to_past_mean": 0.24396677698756686
+          "off_diag_mean": 0.2427806258201599,
+          "novelty_mean": 0.36641273228221627,
+          "sim_lag1_mean": 0.2675467817369182,
+          "mean_sim_to_past_mean": 0.24341575391766582
         },
         "W2k": {
-          "off_diag_mean": 0.38412919640541077,
-          "novelty_mean": 0.38636490356620284,
-          "sim_lag1_mean": 0.4046216765147217,
-          "mean_sim_to_past_mean": 0.3841564357280731
+          "off_diag_mean": 0.3830605149269104,
+          "novelty_mean": 0.38513446630043424,
+          "sim_lag1_mean": 0.4046438950242552,
+          "mean_sim_to_past_mean": 0.3836073008093167
         },
         "W8k": {
-          "off_diag_mean": 0.7033039927482605,
-          "novelty_mean": 0.2092919465537383,
-          "sim_lag1_mean": 0.711181640625,
-          "mean_sim_to_past_mean": 0.7034878404341012
+          "off_diag_mean": 0.6985531449317932,
+          "novelty_mean": 0.21007252067225085,
+          "sim_lag1_mean": 0.7104907478253866,
+          "mean_sim_to_past_mean": 0.7010121741348115
         },
         "W40k": {
-          "off_diag_mean": 0.9109455347061157,
-          "novelty_mean": 0.06633779935747663,
-          "sim_lag1_mean": 0.9167092581775701,
-          "mean_sim_to_past_mean": 0.9147971829521322
+          "off_diag_mean": 0.9100252985954285,
+          "novelty_mean": 0.0652234307650862,
+          "sim_lag1_mean": 0.9178424703663793,
+          "mean_sim_to_past_mean": 0.914136628138608
         }
       }
     }
@@ -3843,28 +3999,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.23527979850769043,
-          "novelty_mean": 0.3749613191298958,
-          "sim_lag1_mean": 0.34597458159809547,
-          "mean_sim_to_past_mean": 0.24731722048426003
+          "off_diag_mean": 0.2356569766998291,
+          "novelty_mean": 0.37458045763030345,
+          "sim_lag1_mean": 0.3460773299006403,
+          "mean_sim_to_past_mean": 0.24743938904161222
         },
         "W2k": {
-          "off_diag_mean": 0.34999462962150574,
-          "novelty_mean": 0.3673505131502329,
-          "sim_lag1_mean": 0.49125683780384016,
-          "mean_sim_to_past_mean": 0.36636065941693763
+          "off_diag_mean": 0.350134015083313,
+          "novelty_mean": 0.36736292170798696,
+          "sim_lag1_mean": 0.4909066605737827,
+          "mean_sim_to_past_mean": 0.3663372889453116
         },
         "W8k": {
-          "off_diag_mean": 0.5802545547485352,
-          "novelty_mean": 0.2097083546290888,
-          "sim_lag1_mean": 0.7575939142815421,
-          "mean_sim_to_past_mean": 0.6073598451564245
+          "off_diag_mean": 0.5806562304496765,
+          "novelty_mean": 0.2096081134555065,
+          "sim_lag1_mean": 0.7577460193279507,
+          "mean_sim_to_past_mean": 0.6074117983528673
         },
         "W40k": {
-          "off_diag_mean": 0.7358487844467163,
-          "novelty_mean": 0.1164162894275701,
-          "sim_lag1_mean": 0.844849773656542,
-          "mean_sim_to_past_mean": 0.7685281653827596
+          "off_diag_mean": 0.7368378043174744,
+          "novelty_mean": 0.11577741676401869,
+          "sim_lag1_mean": 0.8457487587616822,
+          "mean_sim_to_past_mean": 0.7690272796376844
         }
       }
     }
@@ -3965,28 +4121,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.246604785323143,
-          "novelty_mean": 0.369091492197523,
-          "sim_lag1_mean": 0.3461845954982223,
-          "mean_sim_to_past_mean": 0.25268992704353394
+          "off_diag_mean": 0.2475876659154892,
+          "novelty_mean": 0.3684187806791211,
+          "sim_lag1_mean": 0.3463980636333294,
+          "mean_sim_to_past_mean": 0.2531034360603179
         },
         "W2k": {
-          "off_diag_mean": 0.3661661744117737,
-          "novelty_mean": 0.364143965748925,
-          "sim_lag1_mean": 0.4947052512280518,
-          "mean_sim_to_past_mean": 0.3767928992530684
+          "off_diag_mean": 0.3672441840171814,
+          "novelty_mean": 0.36343714563943214,
+          "sim_lag1_mean": 0.4949894796330113,
+          "mean_sim_to_past_mean": 0.3771916012594373
         },
         "W8k": {
-          "off_diag_mean": 0.597873866558075,
-          "novelty_mean": 0.20541216413551402,
-          "sim_lag1_mean": 0.7627190420560748,
-          "mean_sim_to_past_mean": 0.6169110010160463
+          "off_diag_mean": 0.5990502238273621,
+          "novelty_mean": 0.2052957383747698,
+          "sim_lag1_mean": 0.7625073736763351,
+          "mean_sim_to_past_mean": 0.6172247352850372
         },
         "W40k": {
-          "off_diag_mean": 0.7572795748710632,
-          "novelty_mean": 0.09643326518691589,
-          "sim_lag1_mean": 0.877155054395444,
-          "mean_sim_to_past_mean": 0.7848621322729877
+          "off_diag_mean": 0.7597392201423645,
+          "novelty_mean": 0.09553132233796297,
+          "sim_lag1_mean": 0.8783286765769676,
+          "mean_sim_to_past_mean": 0.7858525080675328
         }
       }
     }
@@ -4087,28 +4243,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.26552829146385193,
-          "novelty_mean": 0.36376970209718335,
-          "sim_lag1_mean": 0.29422136990373887,
-          "mean_sim_to_past_mean": 0.26602070254530275
+          "off_diag_mean": 0.26492393016815186,
+          "novelty_mean": 0.3632327294977806,
+          "sim_lag1_mean": 0.29394525345521555,
+          "mean_sim_to_past_mean": 0.26570715923438365
         },
         "W2k": {
-          "off_diag_mean": 0.4115379750728607,
-          "novelty_mean": 0.36698990123327757,
-          "sim_lag1_mean": 0.44312208734285413,
-          "mean_sim_to_past_mean": 0.41182967801157844
+          "off_diag_mean": 0.41078177094459534,
+          "novelty_mean": 0.36660000439934304,
+          "sim_lag1_mean": 0.44251860211791705,
+          "mean_sim_to_past_mean": 0.41144381191516805
         },
         "W8k": {
-          "off_diag_mean": 0.7104490399360657,
-          "novelty_mean": 0.20053756571261683,
-          "sim_lag1_mean": 0.736060711156542,
-          "mean_sim_to_past_mean": 0.7115587765925399
+          "off_diag_mean": 0.7097281813621521,
+          "novelty_mean": 0.20077766628440366,
+          "sim_lag1_mean": 0.7354850559059632,
+          "mean_sim_to_past_mean": 0.711175626789758
         },
         "W40k": {
-          "off_diag_mean": 0.9073980450630188,
-          "novelty_mean": 0.0667987003504673,
-          "sim_lag1_mean": 0.9157098787967289,
-          "mean_sim_to_past_mean": 0.9086080577885993
+          "off_diag_mean": 0.9066248536109924,
+          "novelty_mean": 0.06728426032110092,
+          "sim_lag1_mean": 0.9154691083715596,
+          "mean_sim_to_past_mean": 0.908221700869569
         }
       }
     }
@@ -4209,28 +4365,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.264474093914032,
-          "novelty_mean": 0.36863235462954863,
-          "sim_lag1_mean": 0.29746095712073123,
-          "mean_sim_to_past_mean": 0.2654108576435732
+          "off_diag_mean": 0.2643885314464569,
+          "novelty_mean": 0.36814352573402664,
+          "sim_lag1_mean": 0.29801364833802857,
+          "mean_sim_to_past_mean": 0.2653536424995448
         },
         "W2k": {
-          "off_diag_mean": 0.405249685049057,
-          "novelty_mean": 0.3717382205939441,
-          "sim_lag1_mean": 0.44023261364145366,
-          "mean_sim_to_past_mean": 0.4060857910333612
+          "off_diag_mean": 0.4049531817436218,
+          "novelty_mean": 0.3717006532485876,
+          "sim_lag1_mean": 0.44026784663371,
+          "mean_sim_to_past_mean": 0.40592486313114506
         },
         "W8k": {
-          "off_diag_mean": 0.7065364122390747,
-          "novelty_mean": 0.20263671875,
-          "sim_lag1_mean": 0.7331848714953271,
-          "mean_sim_to_past_mean": 0.7092931694516512
+          "off_diag_mean": 0.7058027982711792,
+          "novelty_mean": 0.2027958822513812,
+          "sim_lag1_mean": 0.7331610410911602,
+          "mean_sim_to_past_mean": 0.7088818699944743
         },
         "W40k": {
-          "off_diag_mean": 0.9045150876045227,
-          "novelty_mean": 0.0688294027453271,
-          "sim_lag1_mean": 0.9147880768107477,
-          "mean_sim_to_past_mean": 0.9077714007591533
+          "off_diag_mean": 0.9057653546333313,
+          "novelty_mean": 0.06797055844907407,
+          "sim_lag1_mean": 0.915771484375,
+          "mean_sim_to_past_mean": 0.9083848038205394
         }
       }
     }
@@ -4331,28 +4487,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.2661077380180359,
-          "novelty_mean": 0.3643127825812413,
-          "sim_lag1_mean": 0.29561367617750156,
-          "mean_sim_to_past_mean": 0.26549561903947766
+          "off_diag_mean": 0.2662854790687561,
+          "novelty_mean": 0.36407946430843563,
+          "sim_lag1_mean": 0.295880926104688,
+          "mean_sim_to_past_mean": 0.2655864712899649
         },
         "W2k": {
-          "off_diag_mean": 0.41485297679901123,
-          "novelty_mean": 0.36586146530100333,
-          "sim_lag1_mean": 0.446738208929318,
-          "mean_sim_to_past_mean": 0.41630050048723327
+          "off_diag_mean": 0.4148675799369812,
+          "novelty_mean": 0.36580062298915633,
+          "sim_lag1_mean": 0.4468629326106709,
+          "mean_sim_to_past_mean": 0.4163034828122283
         },
         "W8k": {
-          "off_diag_mean": 0.715647280216217,
-          "novelty_mean": 0.1967590902453271,
-          "sim_lag1_mean": 0.7355258834696262,
-          "mean_sim_to_past_mean": 0.7167455942831307
+          "off_diag_mean": 0.7152985334396362,
+          "novelty_mean": 0.19673187994646182,
+          "sim_lag1_mean": 0.7355934299348231,
+          "mean_sim_to_past_mean": 0.7165668147236275
         },
         "W40k": {
-          "off_diag_mean": 0.9125636219978333,
-          "novelty_mean": 0.06349025262850468,
-          "sim_lag1_mean": 0.9153584988317757,
-          "mean_sim_to_past_mean": 0.913341903797934
+          "off_diag_mean": 0.9132922887802124,
+          "novelty_mean": 0.0630247882593458,
+          "sim_lag1_mean": 0.9158148364485982,
+          "mean_sim_to_past_mean": 0.9137096605568289
         }
       }
     }
@@ -4453,28 +4609,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.2673421800136566,
-          "novelty_mean": 0.3613877506669874,
-          "sim_lag1_mean": 0.29905139379410134,
-          "mean_sim_to_past_mean": 0.2679574473169903
+          "off_diag_mean": 0.2673335075378418,
+          "novelty_mean": 0.36122946854632215,
+          "sim_lag1_mean": 0.2990344063529755,
+          "mean_sim_to_past_mean": 0.26795203291015
         },
         "W2k": {
-          "off_diag_mean": 0.4083308279514313,
-          "novelty_mean": 0.3619823938798973,
-          "sim_lag1_mean": 0.43902687039947147,
-          "mean_sim_to_past_mean": 0.4102509922378666
+          "off_diag_mean": 0.40839603543281555,
+          "novelty_mean": 0.3619362062991774,
+          "sim_lag1_mean": 0.4390287312883733,
+          "mean_sim_to_past_mean": 0.41028012617406356
         },
         "W8k": {
-          "off_diag_mean": 0.7174379229545593,
-          "novelty_mean": 0.19471561039719626,
-          "sim_lag1_mean": 0.7377555490654205,
-          "mean_sim_to_past_mean": 0.7183562147283108
+          "off_diag_mean": 0.7159630060195923,
+          "novelty_mean": 0.19509063663873372,
+          "sim_lag1_mean": 0.7373628811685289,
+          "mean_sim_to_past_mean": 0.7176139113845328
         },
         "W40k": {
-          "off_diag_mean": 0.9125953912734985,
-          "novelty_mean": 0.06399222400700935,
-          "sim_lag1_mean": 0.9183246933411215,
-          "mean_sim_to_past_mean": 0.9144115665248621
+          "off_diag_mean": 0.9130977392196655,
+          "novelty_mean": 0.06376861857476636,
+          "sim_lag1_mean": 0.918598495911215,
+          "mean_sim_to_past_mean": 0.9146651113144705
         }
       }
     }
@@ -4575,28 +4731,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.2851262092590332,
-          "novelty_mean": 0.3492511938801172,
-          "sim_lag1_mean": 0.311727596324781,
-          "mean_sim_to_past_mean": 0.2854395487971633
+          "off_diag_mean": 0.28531739115715027,
+          "novelty_mean": 0.3485134330600603,
+          "sim_lag1_mean": 0.3117548770663659,
+          "mean_sim_to_past_mean": 0.28553133186307894
         },
         "W2k": {
-          "off_diag_mean": 0.4327707290649414,
-          "novelty_mean": 0.3520089052421763,
-          "sim_lag1_mean": 0.4591659932289178,
-          "mean_sim_to_past_mean": 0.4344368199312795
+          "off_diag_mean": 0.43280330300331116,
+          "novelty_mean": 0.3518851882202493,
+          "sim_lag1_mean": 0.4593213028427799,
+          "mean_sim_to_past_mean": 0.43442894458798786
         },
         "W8k": {
-          "off_diag_mean": 0.7337056398391724,
-          "novelty_mean": 0.18578234521028036,
-          "sim_lag1_mean": 0.7492297021028037,
-          "mean_sim_to_past_mean": 0.7340170663093852
+          "off_diag_mean": 0.7331691980361938,
+          "novelty_mean": 0.1858197380514706,
+          "sim_lag1_mean": 0.7490467744715074,
+          "mean_sim_to_past_mean": 0.7337418832980535
         },
         "W40k": {
-          "off_diag_mean": 0.9216098785400391,
-          "novelty_mean": 0.05771301839953271,
-          "sim_lag1_mean": 0.925557644567757,
-          "mean_sim_to_past_mean": 0.922875447808025
+          "off_diag_mean": 0.9229428768157959,
+          "novelty_mean": 0.057065610532407406,
+          "sim_lag1_mean": 0.9265046296296297,
+          "mean_sim_to_past_mean": 0.9235401186678145
         }
       }
     }
@@ -4697,28 +4853,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.2871953845024109,
-          "novelty_mean": 0.35035498058264813,
-          "sim_lag1_mean": 0.3140047614825253,
-          "mean_sim_to_past_mean": 0.28797608549750736
+          "off_diag_mean": 0.28735217452049255,
+          "novelty_mean": 0.34955265233925487,
+          "sim_lag1_mean": 0.3140344582438057,
+          "mean_sim_to_past_mean": 0.2880450168648098
         },
         "W2k": {
-          "off_diag_mean": 0.4357159435749054,
-          "novelty_mean": 0.35107946783176064,
-          "sim_lag1_mean": 0.4624565842615265,
-          "mean_sim_to_past_mean": 0.4357929860170071
+          "off_diag_mean": 0.4359298348426819,
+          "novelty_mean": 0.3510168957743989,
+          "sim_lag1_mean": 0.4627146273500118,
+          "mean_sim_to_past_mean": 0.43590032664434575
         },
         "W8k": {
-          "off_diag_mean": 0.7379911541938782,
-          "novelty_mean": 0.1811769859813084,
-          "sim_lag1_mean": 0.7543361200350467,
-          "mean_sim_to_past_mean": 0.7390283441989222
+          "off_diag_mean": 0.7369295954704285,
+          "novelty_mean": 0.18153811291436464,
+          "sim_lag1_mean": 0.7539781883057091,
+          "mean_sim_to_past_mean": 0.7384810746813787
         },
         "W40k": {
-          "off_diag_mean": 0.9234084486961365,
-          "novelty_mean": 0.056855103679906545,
-          "sim_lag1_mean": 0.9280264310747663,
-          "mean_sim_to_past_mean": 0.9241450189430023
+          "off_diag_mean": 0.9244171380996704,
+          "novelty_mean": 0.05627893518518518,
+          "sim_lag1_mean": 0.9285300925925926,
+          "mean_sim_to_past_mean": 0.9246491756704118
         }
       }
     }
@@ -4819,28 +4975,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.27530330419540405,
-          "novelty_mean": 0.36428417991529627,
-          "sim_lag1_mean": 0.30644949160451956,
-          "mean_sim_to_past_mean": 0.27693217462534836
+          "off_diag_mean": 0.2751880884170532,
+          "novelty_mean": 0.36419360982225973,
+          "sim_lag1_mean": 0.30638615985734535,
+          "mean_sim_to_past_mean": 0.27687077796789333
         },
         "W2k": {
-          "off_diag_mean": 0.4180472195148468,
-          "novelty_mean": 0.36810235662774726,
-          "sim_lag1_mean": 0.45221801699489367,
-          "mean_sim_to_past_mean": 0.4214261882167311
+          "off_diag_mean": 0.4179450571537018,
+          "novelty_mean": 0.36811367504021686,
+          "sim_lag1_mean": 0.452203479690479,
+          "mean_sim_to_past_mean": 0.42136643674256574
         },
         "W8k": {
-          "off_diag_mean": 0.7164734601974487,
-          "novelty_mean": 0.198075167932243,
-          "sim_lag1_mean": 0.7438750365070094,
-          "mean_sim_to_past_mean": 0.720365755580296
+          "off_diag_mean": 0.7157149314880371,
+          "novelty_mean": 0.19831583886173185,
+          "sim_lag1_mean": 0.7435886944250466,
+          "mean_sim_to_past_mean": 0.7199712127058644
         },
         "W40k": {
-          "off_diag_mean": 0.9102734327316284,
-          "novelty_mean": 0.06405611127336448,
-          "sim_lag1_mean": 0.9185619889018691,
-          "mean_sim_to_past_mean": 0.9147076317083056
+          "off_diag_mean": 0.9105215668678284,
+          "novelty_mean": 0.0637594918224299,
+          "sim_lag1_mean": 0.918721707067757,
+          "mean_sim_to_past_mean": 0.9148328471406598
         }
       }
     }
@@ -4941,28 +5097,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.27743515372276306,
-          "novelty_mean": 0.3632618303701598,
-          "sim_lag1_mean": 0.31024812823385245,
-          "mean_sim_to_past_mean": 0.2779688661097298
+          "off_diag_mean": 0.27747175097465515,
+          "novelty_mean": 0.36301970713990783,
+          "sim_lag1_mean": 0.3104972193845732,
+          "mean_sim_to_past_mean": 0.27798406704638534
         },
         "W2k": {
-          "off_diag_mean": 0.4244663715362549,
-          "novelty_mean": 0.3641397664835165,
-          "sim_lag1_mean": 0.4566437511198041,
-          "mean_sim_to_past_mean": 0.4222915296456601
+          "off_diag_mean": 0.42460206151008606,
+          "novelty_mean": 0.36395072393607547,
+          "sim_lag1_mean": 0.45672995774721037,
+          "mean_sim_to_past_mean": 0.4223724120603441
         },
         "W8k": {
-          "off_diag_mean": 0.7210065722465515,
-          "novelty_mean": 0.19522579585280375,
-          "sim_lag1_mean": 0.745816296728972,
-          "mean_sim_to_past_mean": 0.7203244067798151
+          "off_diag_mean": 0.7208052277565002,
+          "novelty_mean": 0.19530162917439703,
+          "sim_lag1_mean": 0.7459614882884972,
+          "mean_sim_to_past_mean": 0.7202286809848721
         },
         "W40k": {
-          "off_diag_mean": 0.9104329943656921,
-          "novelty_mean": 0.06519695531542057,
-          "sim_lag1_mean": 0.9181467216705608,
-          "mean_sim_to_past_mean": 0.9088580012321472
+          "off_diag_mean": 0.9118625521659851,
+          "novelty_mean": 0.0644713785046729,
+          "sim_lag1_mean": 0.9188722984813084,
+          "mean_sim_to_past_mean": 0.9095794408120842
         }
       }
     }
@@ -5063,28 +5219,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.27377867698669434,
-          "novelty_mean": 0.35477489687664016,
-          "sim_lag1_mean": 0.2963177685640841,
-          "mean_sim_to_past_mean": 0.2743133710914971
+          "off_diag_mean": 0.27389195561408997,
+          "novelty_mean": 0.3533057249468167,
+          "sim_lag1_mean": 0.29655664718651925,
+          "mean_sim_to_past_mean": 0.2743529892279456
         },
         "W2k": {
-          "off_diag_mean": 0.42350584268569946,
-          "novelty_mean": 0.3553551365414477,
-          "sim_lag1_mean": 0.44517217454759916,
-          "mean_sim_to_past_mean": 0.4230932266488351
+          "off_diag_mean": 0.4230077564716339,
+          "novelty_mean": 0.3544965692231362,
+          "sim_lag1_mean": 0.445268345713012,
+          "mean_sim_to_past_mean": 0.4228505347313225
         },
         "W8k": {
-          "off_diag_mean": 0.7347703576087952,
-          "novelty_mean": 0.18551310601635515,
-          "sim_lag1_mean": 0.7450578636098131,
-          "mean_sim_to_past_mean": 0.7335444756757433
+          "off_diag_mean": 0.7337754964828491,
+          "novelty_mean": 0.18541865726169066,
+          "sim_lag1_mean": 0.7447957649505396,
+          "mean_sim_to_past_mean": 0.7330912760050177
         },
         "W40k": {
-          "off_diag_mean": 0.9256681203842163,
-          "novelty_mean": 0.05512102073598131,
-          "sim_lag1_mean": 0.9285284024532711,
-          "mean_sim_to_past_mean": 0.9273308292727604
+          "off_diag_mean": 0.9266016483306885,
+          "novelty_mean": 0.05463031390765766,
+          "sim_lag1_mean": 0.929172825168919,
+          "mean_sim_to_past_mean": 0.92777641238393
         }
       }
     }
@@ -5185,28 +5341,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.2737276256084442,
-          "novelty_mean": 0.35490854208581174,
-          "sim_lag1_mean": 0.29603867990197014,
-          "mean_sim_to_past_mean": 0.2751141057011059
+          "off_diag_mean": 0.2739258110523224,
+          "novelty_mean": 0.3530180274971942,
+          "sim_lag1_mean": 0.29654867598237145,
+          "mean_sim_to_past_mean": 0.2751622732582384
         },
         "W2k": {
-          "off_diag_mean": 0.4250931143760681,
-          "novelty_mean": 0.3539024240026278,
-          "sim_lag1_mean": 0.44536574901830506,
-          "mean_sim_to_past_mean": 0.4240469861503315
+          "off_diag_mean": 0.4253122806549072,
+          "novelty_mean": 0.3523843839798851,
+          "sim_lag1_mean": 0.4457025076329023,
+          "mean_sim_to_past_mean": 0.42419392155504776
         },
         "W8k": {
-          "off_diag_mean": 0.7300064563751221,
-          "novelty_mean": 0.18748630987149534,
-          "sim_lag1_mean": 0.7395854629088785,
-          "mean_sim_to_past_mean": 0.7303504151718638
+          "off_diag_mean": 0.7300973534584045,
+          "novelty_mean": 0.1870398212679856,
+          "sim_lag1_mean": 0.7395484979204137,
+          "mean_sim_to_past_mean": 0.730383122353245
         },
         "W40k": {
-          "off_diag_mean": 0.9232352375984192,
-          "novelty_mean": 0.05724299065420561,
-          "sim_lag1_mean": 0.9259866019275701,
-          "mean_sim_to_past_mean": 0.9227388506737825
+          "off_diag_mean": 0.9231927394866943,
+          "novelty_mean": 0.05682977899774775,
+          "sim_lag1_mean": 0.9266742328265766,
+          "mean_sim_to_past_mean": 0.9227570558453465
         }
       }
     }
@@ -5307,28 +5463,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.2887198328971863,
-          "novelty_mean": 0.35506278861784174,
-          "sim_lag1_mean": 0.32789457164112157,
-          "mean_sim_to_past_mean": 0.29078321841117216
+          "off_diag_mean": 0.2886725068092346,
+          "novelty_mean": 0.35264744815805615,
+          "sim_lag1_mean": 0.3286913706406122,
+          "mean_sim_to_past_mean": 0.2906234048851314
         },
         "W2k": {
-          "off_diag_mean": 0.4309822618961334,
-          "novelty_mean": 0.35390254064888915,
-          "sim_lag1_mean": 0.47406825299360966,
-          "mean_sim_to_past_mean": 0.4327207063224631
+          "off_diag_mean": 0.43011239171028137,
+          "novelty_mean": 0.3532150854906725,
+          "sim_lag1_mean": 0.47399711438435543,
+          "mean_sim_to_past_mean": 0.43215887078730736
         },
         "W8k": {
-          "off_diag_mean": 0.72051602602005,
-          "novelty_mean": 0.18639748831775702,
-          "sim_lag1_mean": 0.7604702102803739,
-          "mean_sim_to_past_mean": 0.7219540867292993
+          "off_diag_mean": 0.7182878851890564,
+          "novelty_mean": 0.1869695373854712,
+          "sim_lag1_mean": 0.7596535674356457,
+          "mean_sim_to_past_mean": 0.720733494970811
         },
         "W40k": {
-          "off_diag_mean": 0.8928638696670532,
-          "novelty_mean": 0.06640625,
-          "sim_lag1_mean": 0.9189133688668224,
-          "mean_sim_to_past_mean": 0.8975858571373414
+          "off_diag_mean": 0.8985302448272705,
+          "novelty_mean": 0.06396484375,
+          "sim_lag1_mean": 0.9201831483004386,
+          "mean_sim_to_past_mean": 0.9003605502739287
         }
       }
     }
@@ -5429,28 +5585,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.2835332453250885,
-          "novelty_mean": 0.35952358010044905,
-          "sim_lag1_mean": 0.3296207991240323,
-          "mean_sim_to_past_mean": 0.28518831024659724
+          "off_diag_mean": 0.283019483089447,
+          "novelty_mean": 0.3551787070089191,
+          "sim_lag1_mean": 0.33084932545749357,
+          "mean_sim_to_past_mean": 0.2847684251729735
         },
         "W2k": {
-          "off_diag_mean": 0.42414265871047974,
-          "novelty_mean": 0.3553125606560559,
-          "sim_lag1_mean": 0.48211322899247494,
-          "mean_sim_to_past_mean": 0.4276400204130297
+          "off_diag_mean": 0.4231323003768921,
+          "novelty_mean": 0.3528095652306483,
+          "sim_lag1_mean": 0.4847124137779163,
+          "mean_sim_to_past_mean": 0.42681030559952066
         },
         "W8k": {
-          "off_diag_mean": 0.7018347978591919,
-          "novelty_mean": 0.19090519129672898,
-          "sim_lag1_mean": 0.7586375584112149,
-          "mean_sim_to_past_mean": 0.705185189063304
+          "off_diag_mean": 0.6982216238975525,
+          "novelty_mean": 0.18932815810381357,
+          "sim_lag1_mean": 0.7594879667637712,
+          "mean_sim_to_past_mean": 0.7029401702648502
         },
         "W40k": {
-          "off_diag_mean": 0.8790682554244995,
-          "novelty_mean": 0.07104264018691589,
-          "sim_lag1_mean": 0.9075779424649533,
-          "mean_sim_to_past_mean": 0.8810239551223327
+          "off_diag_mean": 0.8748144507408142,
+          "novelty_mean": 0.07214148569915255,
+          "sim_lag1_mean": 0.907176906779661,
+          "mean_sim_to_past_mean": 0.8786104180045047
         }
       }
     }
@@ -5567,28 +5723,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.31509774923324585,
-          "novelty_mean": 0.31202490245764813,
-          "sim_lag1_mean": 0.3319247036456283,
-          "mean_sim_to_past_mean": 0.31474106102975025
+          "off_diag_mean": 0.3147622048854828,
+          "novelty_mean": 0.31153865448416096,
+          "sim_lag1_mean": 0.3323083102430927,
+          "mean_sim_to_past_mean": 0.31458032986821105
         },
         "W2k": {
-          "off_diag_mean": 0.470195472240448,
-          "novelty_mean": 0.3148004975662924,
-          "sim_lag1_mean": 0.4907431859919971,
-          "mean_sim_to_past_mean": 0.4688374609452825
+          "off_diag_mean": 0.46996718645095825,
+          "novelty_mean": 0.3145765656059986,
+          "sim_lag1_mean": 0.49055707911891955,
+          "mean_sim_to_past_mean": 0.46875180822594126
         },
         "W8k": {
-          "off_diag_mean": 0.7663275599479675,
-          "novelty_mean": 0.1614440347546729,
-          "sim_lag1_mean": 0.7838967581775701,
-          "mean_sim_to_past_mean": 0.7658436897759126
+          "off_diag_mean": 0.7654280066490173,
+          "novelty_mean": 0.1615934215036563,
+          "sim_lag1_mean": 0.7836958695155393,
+          "mean_sim_to_past_mean": 0.7654018909883238
         },
         "W40k": {
-          "off_diag_mean": 0.930022656917572,
-          "novelty_mean": 0.05122846086448598,
-          "sim_lag1_mean": 0.9372855213200935,
-          "mean_sim_to_past_mean": 0.9288828072146834
+          "off_diag_mean": 0.9305645227432251,
+          "novelty_mean": 0.05087084288990826,
+          "sim_lag1_mean": 0.9376075114678899,
+          "mean_sim_to_past_mean": 0.92919103049357
         }
       }
     }
@@ -5712,28 +5868,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.32338041067123413,
-          "novelty_mean": 0.3067568580337357,
-          "sim_lag1_mean": 0.34146113536951284,
-          "mean_sim_to_past_mean": 0.3212747576033663
+          "off_diag_mean": 0.3232738971710205,
+          "novelty_mean": 0.30543633305668505,
+          "sim_lag1_mean": 0.3411335099058004,
+          "mean_sim_to_past_mean": 0.32127524125690593
         },
         "W2k": {
-          "off_diag_mean": 0.4803600609302521,
-          "novelty_mean": 0.31059971575639034,
-          "sim_lag1_mean": 0.5006480866280458,
-          "mean_sim_to_past_mean": 0.4766111704674396
+          "off_diag_mean": 0.48002979159355164,
+          "novelty_mean": 0.3101146801097973,
+          "sim_lag1_mean": 0.500649031810636,
+          "mean_sim_to_past_mean": 0.47653810518818934
         },
         "W8k": {
-          "off_diag_mean": 0.7721744775772095,
-          "novelty_mean": 0.1573342581775701,
-          "sim_lag1_mean": 0.792770699474299,
-          "mean_sim_to_past_mean": 0.7692955629847874
+          "off_diag_mean": 0.7724286317825317,
+          "novelty_mean": 0.15700510160519127,
+          "sim_lag1_mean": 0.7930443491006375,
+          "mean_sim_to_past_mean": 0.7694990845543005
         },
         "W40k": {
-          "off_diag_mean": 0.9279845356941223,
-          "novelty_mean": 0.05201336156542056,
-          "sim_lag1_mean": 0.9369250146028038,
-          "mean_sim_to_past_mean": 0.9272783576885116
+          "off_diag_mean": 0.9301769137382507,
+          "novelty_mean": 0.05097835435779816,
+          "sim_lag1_mean": 0.9379927608944955,
+          "mean_sim_to_past_mean": 0.9284160875399178
         }
       }
     }
@@ -5850,28 +6006,28 @@
       },
       "4": {
         "W1k": {
-          "off_diag_mean": 0.3202288746833801,
-          "novelty_mean": 0.3102741886581161,
-          "sim_lag1_mean": 0.34260012371044546,
-          "mean_sim_to_past_mean": 0.32104884339085904
+          "off_diag_mean": 0.3199463188648224,
+          "novelty_mean": 0.30957854242866617,
+          "sim_lag1_mean": 0.34271004546485534,
+          "mean_sim_to_past_mean": 0.3208877204116515
         },
         "W2k": {
-          "off_diag_mean": 0.47436586022377014,
-          "novelty_mean": 0.31392016823190394,
-          "sim_lag1_mean": 0.4996981486371984,
-          "mean_sim_to_past_mean": 0.47640372436481176
+          "off_diag_mean": 0.4735575318336487,
+          "novelty_mean": 0.3136047933703271,
+          "sim_lag1_mean": 0.49901148715865945,
+          "mean_sim_to_past_mean": 0.47595269206180196
         },
         "W8k": {
-          "off_diag_mean": 0.7646788358688354,
-          "novelty_mean": 0.15938869012850468,
-          "sim_lag1_mean": 0.7878422532126168,
-          "mean_sim_to_past_mean": 0.7668344902100964
+          "off_diag_mean": 0.764710545539856,
+          "novelty_mean": 0.15927520138254114,
+          "sim_lag1_mean": 0.788047553416362,
+          "mean_sim_to_past_mean": 0.7668034026784043
         },
         "W40k": {
-          "off_diag_mean": 0.9246855974197388,
-          "novelty_mean": 0.052173079731308414,
-          "sim_lag1_mean": 0.937764675817757,
-          "mean_sim_to_past_mean": 0.9255795200294423
+          "off_diag_mean": 0.9258202910423279,
+          "novelty_mean": 0.05156518778669725,
+          "sim_lag1_mean": 0.9383511324541285,
+          "mean_sim_to_past_mean": 0.9261506281861471
         }
       }
     }

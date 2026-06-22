@@ -45,13 +45,19 @@ WINDOWS      = [1, 2, 3, 4]
 
 CHARS_PER_TOKEN = 4.0
 
+# Bin 4 is the open-ended top size bin (>800k tok): generated texts are taken at
+# their full endpoint (no truncation), gated on the run exceeding this many tokens.
+BIN4_ENDPOINT = True
+BIN4_MIN_TOKENS = 800_000
+
 # Natural median book lengths in tokens → converted to chars for truncation
+# (bins 0-3). Bin 4 is handled as an endpoint, see BIN4_ENDPOINT above.
 BINS = {
     0: {"n_tokens":   121_140, "label": "Timber Pirate"},
     1: {"n_tokens":   193_795, "label": "Hero-Tales"},
     2: {"n_tokens":   353_917, "label": "Hist. Eng. Lit."},
     3: {"n_tokens":   593_869, "label": "Don Quixote"},
-    4: {"n_tokens": 1_072_000, "label": "natural bin-4 median"},
+    4: {"n_tokens": 1_072_000, "label": "endpoint (full text, >800k tok)"},
 }
 
 NATURAL_SCALARS = {
@@ -159,6 +165,10 @@ def main():
     ).to(DEVICE).eval()
     print(f"Model loaded in {time.perf_counter()-t0:.1f}s\n")
 
+    # gpt4 tokenizer only used to count tokens for the bin-4 endpoint gate
+    from tokenizer import Tokenizer
+    gpt4_tok = Tokenizer(kind="gpt4")
+
     for i, (run_id, run_dir, meta) in enumerate(runs):
         existing_bins = all_results.get(run_id, {}).get("bins", {})
         missing_bins = [str(b) for b in BINS if str(b) not in existing_bins]
@@ -177,6 +187,7 @@ def main():
 
         n_chars = len(full_text)
         print(f"  Full text: {n_chars:,} chars  ≈ {n_chars/CHARS_PER_TOKEN/1e6:.2f}M tokens")
+        n_tokens_full = None  # lazily computed for the bin-4 endpoint gate
 
         if run_id in all_results:
             entry = all_results[run_id]
@@ -192,12 +203,24 @@ def main():
         for bin_idx, binfo in BINS.items():
             if str(bin_idx) not in missing_bins:
                 continue
-            target_chars = int(binfo["n_tokens"] * CHARS_PER_TOKEN)
-            if target_chars > n_chars:
-                print(f"  Bin {bin_idx} ({binfo['n_tokens']}k tok): text too short, skip")
-                continue
 
-            prefix = full_text[:target_chars]
+            if bin_idx == 4 and BIN4_ENDPOINT:
+                # open-ended top bin: full generated text (endpoint), gated on >800k tok
+                if n_tokens_full is None:
+                    n_tokens_full = len(gpt4_tok.encode(full_text))
+                if n_tokens_full <= BIN4_MIN_TOKENS:
+                    print(f"  Bin 4 (endpoint): {n_tokens_full:,} tok ≤ "
+                          f"{BIN4_MIN_TOKENS:,}, not bin-4 eligible, skip")
+                    continue
+                prefix = full_text
+                print(f"  Bin 4 (endpoint): full text, {n_tokens_full:,} tok")
+            else:
+                target_chars = int(binfo["n_tokens"] * CHARS_PER_TOKEN)
+                if target_chars > n_chars:
+                    print(f"  Bin {bin_idx} ({binfo['n_tokens']}k tok): text too short, skip")
+                    continue
+                prefix = full_text[:target_chars]
+
             t_bin = time.perf_counter()
 
             sc = SemanticCoherence(

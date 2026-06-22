@@ -1,0 +1,48 @@
+{
+  "n_natural_books": 10068,
+  "n_generated_prefixes": 90,
+  "metrics": [
+    "beta",
+    "alpha",
+    "H_DFA1",
+    "H_WT_db4",
+    "entropy_bits",
+    "perplexity",
+    "lz_complexity",
+    "mi_decay_gamma"
+  ],
+  "normalization": "per_bin",
+  "explained_variance_ratio": [
+    0.5193398511806012,
+    0.27174106357769623,
+    0.07650204666651428,
+    0.06387165535560764
+  ],
+  "size_bins": [
+    {
+      "label": "100k-150k",
+      "n_natural": 5104,
+      "n_generated": 18
+    },
+    {
+      "label": "150k-300k",
+      "n_natural": 4036,
+      "n_generated": 18
+    },
+    {
+      "label": "300k-500k",
+      "n_natural": 704,
+      "n_generated": 18
+    },
+    {
+      "label": "500k-800k",
+      "n_natural": 145,
+      "n_generated": 18
+    },
+    {
+      "label": ">800k",
+      "n_natural": 79,
+      "n_generated": 18
+    }
+  ]
+}

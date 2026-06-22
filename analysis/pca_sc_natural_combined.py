@@ -12,6 +12,7 @@ points by SC bin (token-size bin).
 from __future__ import annotations
 
 import glob
+import re
 import json
 import math
 import os
@@ -37,7 +38,7 @@ NATURAL_SC_PATHS = (
 BATCH_RESULTS_DIR  = ROOT / "natural_texts" / "Output" / "batch_results"
 TOKEN_NAT_JSONL    = ROOT / "natural_texts" / "Output" / "gutenberg_benchmark_cache" / "token_naturalness_metrics.jsonl"
 TOKEN_PRED_JSONL   = ROOT / "natural_texts" / "Output" / "gutenberg_benchmark_cache" / "token_predictability_metrics.jsonl"
-OUTPUT_DIR         = ROOT / "natural_texts" / "Output" / "pca_sc_combined"
+OUTPUT_DIR         = ROOT / "natural_texts" / "Output" / "pca" / "sc_combined"
 GENERATED_SC_FILE  = ROOT / "generated_texts_og" / "Output" / "sc_prefix_bins.json"
 PROMPTS_DIR        = ROOT / "generated_texts_og" / "prompts"
 
@@ -55,10 +56,12 @@ SC_WINDOWS  = ["W2k", "W8k", "W40k"]
 SC_METRICS  = ["off_diag_mean", "novelty_mean", "sim_lag1_mean"]
 SC_FEATURES = [f"{w}_{m}" for w in SC_WINDOWS for m in SC_METRICS]
 
+# Canonical 8 stat/info descriptors, consistent with pca_all_metrics.py and
+# the figure scripts (H_DFA1 + H_WT_db4 retained; H_DMA, D, delta, mi_tau_max
+# excluded).
 STAT_INFO_METRICS = [
-    "beta", "alpha", "H_DFA1", "H_DMA", "H_WT_db4",
-    "D", "delta", "entropy_bits", "perplexity", "lz_complexity",
-    "mi_decay_gamma", "mi_tau_max",
+    "beta", "alpha", "H_DFA1", "H_WT_db4",
+    "entropy_bits", "perplexity", "lz_complexity", "mi_decay_gamma",
 ]
 
 TOKEN_PREFIXES = ("td_", "tr_", "tp_")
@@ -160,6 +163,37 @@ def feature_family(name: str) -> str:
 GENERATED_TOKEN_METRICS_CACHE = Path("/tmp/sc_generated_prefix_token_metrics.json")
 
 
+def build_marker_sidecar(folder: Path) -> list[dict]:
+    """Reconstruct sidecar-like records (chunk_id, accepted_attempt, n_tokens)
+    from chunk_NNN_accepted.txt markers + each accepted chunk's
+    accumulated_metrics, for runs that have no token_naturalness sidecar."""
+    chunks: dict[int, list[int]] = {}
+    for f in folder.iterdir():
+        m = re.match(r"chunk_(\d+)_attempt_(\d+)\.txt$", f.name)
+        if m:
+            chunks.setdefault(int(m.group(1)), []).append(int(m.group(2)))
+    recs = []
+    for cid in sorted(chunks):
+        marker = folder / f"chunk_{cid:03d}_accepted.txt"
+        att = None
+        if marker.exists():
+            try:
+                att = json.loads(marker.read_text()).get("attempt")
+            except Exception:
+                att = None
+        if att is None:
+            att = 1 if 1 in chunks[cid] else min(chunks[cid])
+        p = folder / f"chunk_{cid:03d}_attempt_{att}.txt"
+        try:
+            acc = (json.loads(p.read_text(encoding="utf-8")).get("accumulated_metrics") or {})
+            nt = acc.get("n_tokens")
+        except Exception:
+            nt = None
+        if nt is not None:
+            recs.append({"chunk_id": cid, "accepted_attempt": att, "n_tokens": nt})
+    return recs
+
+
 def load_generated_rows(features: list[str]) -> pd.DataFrame:
     """
     For each (run, bin) in sc_prefix_bins.json, combine:
@@ -188,14 +222,17 @@ def load_generated_rows(features: list[str]) -> pd.DataFrame:
 
     for run_id, run_rec in sc_data.items():
         folder = PROMPTS_DIR / run_id
+        if not folder.is_dir():
+            continue
         mode   = run_rec.get("conditioning_mode", "unknown")
         if mode == "minimal_rolling_conditioning":
             mode = "markov_rolling_conditioning"
 
         sidecar_path = folder / "token_naturalness_by_chunk.jsonl"
-        if not sidecar_path.exists():
-            continue
-        sidecar_recs = [json.loads(l) for l in sidecar_path.read_text().splitlines() if l.strip()]
+        if sidecar_path.exists():
+            sidecar_recs = [json.loads(l) for l in sidecar_path.read_text().splitlines() if l.strip()]
+        else:
+            sidecar_recs = build_marker_sidecar(folder)  # no-sidecar runs (marker fallback)
         if not sidecar_recs:
             continue
 
@@ -274,8 +311,9 @@ def main() -> None:
     # 3. Load additional token metrics
     tn_df   = load_token_jsonl(TOKEN_NAT_JSONL)
     tp_df   = load_token_jsonl(TOKEN_PRED_JSONL)
-    tn_cols = [c for c in tn_df.columns if c.startswith(TOKEN_PREFIXES)]
-    tp_cols = [c for c in tp_df.columns if c.startswith(TOKEN_PREFIXES)]
+    # exclude *_r2 (goodness-of-fit diagnostics, not content descriptors)
+    tn_cols = [c for c in tn_df.columns if c.startswith(TOKEN_PREFIXES) and not c.endswith("_r2")]
+    tp_cols = [c for c in tp_df.columns if c.startswith(TOKEN_PREFIXES) and not c.endswith("_r2")]
     tn_df   = tn_df[["book_id"] + tn_cols]
     tp_df   = tp_df[["book_id"] + tp_cols]
 

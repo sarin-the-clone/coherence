@@ -65,23 +65,22 @@ DEFAULT_NATURAL_TOKEN_CONTEXT_DYNAMICS = (
     / "token_context_dynamics_metrics.jsonl"
 )
 DEFAULT_PROMPTS_DIR = ROOT / "generated_texts_og" / "prompts"
-DEFAULT_OUTPUT_DIR = ROOT / "natural_texts" / "Output" / "pca_all_metrics"
+DEFAULT_OUTPUT_DIR = ROOT / "natural_texts" / "Output" / "pca" / "all_metrics"
 DEFAULT_SIZE_STATS = ROOT / "natural_texts" / "Output" / "analysis" / "size_binned_metrics.json"
 
+# Canonical 8 stat/info descriptors, kept consistent with the figures
+# (make_figure_abstract.py / plot_metrics_vs_size.py). H_DFA1 + H_WT_db4 are
+# the retained Hurst estimators; H_DMA, D, delta, mi_tau_max, mi_n_lags are
+# intentionally excluded so this set matches earlier results.
 OLD_DESCRIPTOR_METRICS = [
     "beta",
     "alpha",
     "H_DFA1",
-    "H_DMA",
     "H_WT_db4",
-    "D",
-    "delta",
     "entropy_bits",
     "perplexity",
     "lz_complexity",
     "mi_decay_gamma",
-    "mi_tau_max",
-    "mi_n_lags",
 ]
 TOKEN_PREFIXES = ("td_", "tr_", "tp_", "tc_")
 
@@ -200,7 +199,8 @@ def discover_token_metrics(
     available = sorted(
         col
         for col in df.columns
-        if col.startswith(TOKEN_PREFIXES) and pd.api.types.is_numeric_dtype(df[col])
+        if col.startswith(TOKEN_PREFIXES) and not col.endswith("_r2")
+        and pd.api.types.is_numeric_dtype(df[col])
     )
     if token_metric_set == "all":
         if include_chunk_context_metrics:
@@ -384,14 +384,32 @@ def robust_score_limits(
 def apply_robust_score_limits(
     ax,
     points: np.ndarray,
-    lower_q: float = 0.5,
-    upper_q: float = 99.5,
+    lower_q: float = 2.0,
+    upper_q: float = 98.0,
     pad_fraction: float = 0.08,
+    extra_points: np.ndarray | None = None,
 ) -> None:
+    """Set display limits from the natural-score quantiles, then expand just
+    enough to keep ``extra_points`` (e.g. projected generated books) on-panel.
+
+    The tighter default quantiles trim natural's heavy PC tails so the bulk
+    (and the loading arrows) is not crushed; the union with extra_points keeps
+    the generated books visible without letting them stretch the whole axis.
+    """
     limits = robust_score_limits(points, lower_q=lower_q, upper_q=upper_q, pad_fraction=pad_fraction)
     if limits is None:
         return
     (x_min, x_max), (y_min, y_max) = limits
+    if extra_points is not None:
+        ep = np.asarray(extra_points, dtype=float)
+        ep = ep[np.isfinite(ep).all(axis=1)] if ep.ndim == 2 else ep
+        if ep.ndim == 2 and len(ep):
+            px = (x_max - x_min) * 0.06
+            py = (y_max - y_min) * 0.06
+            x_min = min(x_min, float(ep[:, 0].min()) - px)
+            x_max = max(x_max, float(ep[:, 0].max()) + px)
+            y_min = min(y_min, float(ep[:, 1].min()) - py)
+            y_max = max(y_max, float(ep[:, 1].max()) + py)
     ax.set_xlim(x_min, x_max)
     ax.set_ylim(y_min, y_max)
 
@@ -565,10 +583,11 @@ def plot_pca(
     ax.set_title(
         "Natural-books PCA using original coherence + token-naturalness metrics\n"
         f"{len(metric_cols)} metrics, {len(natural)} natural books; loadings show top {len(top_indices)} contributors\n"
-        "Display axes use natural-score 0.5-99.5% quantiles to reduce outlier compression"
+        "Display axes use natural-score 2-98% quantiles (+ generated) to reduce outlier compression"
     )
     ax.grid(True, alpha=0.25)
-    apply_robust_score_limits(ax, points)
+    gen_pts = generated[["PC1", "PC2"]].to_numpy() if not generated.empty else None
+    apply_robust_score_limits(ax, points, extra_points=gen_pts)
     fig.tight_layout()
     fig.savefig(output_path, dpi=200)
     plt.close(fig)
@@ -608,10 +627,12 @@ def plot_score_scatter(
 
     ax.set_xlabel(f"{x_col} ({pca.explained_variance_ratio_[pc_x - 1] * 100:.1f}%)")
     ax.set_ylabel(f"{y_col} ({pca.explained_variance_ratio_[pc_y - 1] * 100:.1f}%)")
-    ax.set_title(f"Natural-books PCA scores: {x_col} x {y_col}\nDisplay axes: natural-score 0.5-99.5% quantiles")
+    ax.set_title(f"Natural-books PCA scores: {x_col} x {y_col}\nDisplay axes: natural-score 2-98% quantiles (+ generated)")
     ax.grid(True, alpha=0.25)
     ax.legend(loc="best", framealpha=0.9)
-    apply_robust_score_limits(ax, points)
+    gen_pts = (generated[[x_col, y_col]].to_numpy()
+               if (not generated.empty and x_col in generated and y_col in generated) else None)
+    apply_robust_score_limits(ax, points, extra_points=gen_pts)
     fig.tight_layout()
     fig.savefig(output_path, dpi=220)
     plt.close(fig)

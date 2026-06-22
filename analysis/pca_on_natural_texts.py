@@ -27,7 +27,7 @@ from matplotlib.patches import FancyBboxPatch
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BATCH_RESULTS_DIR = os.path.join(BASE_DIR, 'natural_texts/Output/batch_results')
 METADATA_FILE = os.path.join(BASE_DIR, 'natural_texts/Output/long_books_with_metadata.csv')
-OUTPUT_DIR = os.path.join(BASE_DIR, 'natural_texts/Output/pca_density')
+OUTPUT_DIR = os.path.join(BASE_DIR, 'natural_texts/Output/pca/density')
 SNAPSHOT_INTERVAL = 1000  # Create snapshot every N books
 
 # Metrics to use

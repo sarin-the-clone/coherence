@@ -34,25 +34,43 @@ BIN_TOKEN_TARGETS = {
     "1":  193_795,
     "2":  353_917,
     "3":  593_869,
-    "4": 1_072_000,
+    "4": 1_072_000,  # unused: bin 4 is the endpoint, see BIN4_MIN_TOKENS
 }
+
+# Bin 4 is the open-ended top size bin (>800k tok): use the full text (endpoint),
+# gated on the run exceeding this many tokens, matching compute_sc_prefix_bins.py.
+BIN4_MIN_TOKENS = 800_000
 
 
 def load_accepted_text(folder: Path) -> str:
-    """Reconstruct full accepted text from chunk attempt files."""
-    nat_path = folder / "token_naturalness_by_chunk.jsonl"
-    accepted = {}
-    with open(nat_path) as f:
-        for line in f:
-            r = json.loads(line)
-            accepted[r["chunk_id"]] = r["accepted_attempt"]
+    """Reconstruct full accepted text from chunk attempt files.
 
+    Prefers the token_naturalness_by_chunk.jsonl sidecar; falls back to the
+    chunk_NNN_accepted.txt marker files when no sidecar is present.
+    """
     all_chunks: dict[int, list[int]] = {}
     for fname in folder.iterdir():
         m = re.match(r"chunk_(\d+)_attempt_(\d+)\.txt$", fname.name)
         if m:
             cid, att = int(m.group(1)), int(m.group(2))
             all_chunks.setdefault(cid, []).append(att)
+
+    accepted = {}
+    nat_path = folder / "token_naturalness_by_chunk.jsonl"
+    if nat_path.exists():
+        with open(nat_path) as f:
+            for line in f:
+                r = json.loads(line)
+                accepted[r["chunk_id"]] = r["accepted_attempt"]
+    else:
+        for cid in all_chunks:
+            marker = folder / f"chunk_{cid:03d}_accepted.txt"
+            if marker.exists():
+                try:
+                    accepted[cid] = json.loads(marker.read_text()).get(
+                        "attempt", min(all_chunks[cid]))
+                except Exception:
+                    pass
 
     text = ""
     for cid in sorted(all_chunks):
@@ -77,8 +95,10 @@ def main() -> None:
 
     for run_idx, (run_id, run_rec) in enumerate(sc_data.items()):
         folder = PROMPTS_DIR / run_id
-        if not (folder / "token_naturalness_by_chunk.jsonl").exists():
-            print(f"[{run_idx+1}/{total_runs}] skip (no sidecar): {run_id[:60]}")
+        has_sidecar = (folder / "token_naturalness_by_chunk.jsonl").exists()
+        has_markers = any(folder.glob("chunk_*_accepted.txt"))
+        if not has_sidecar and not has_markers:
+            print(f"[{run_idx+1}/{total_runs}] skip (no sidecar/markers): {run_id[:60]}")
             continue
 
         bins_needed = [
@@ -104,12 +124,22 @@ def main() -> None:
         run_cache = cache.setdefault(run_id, {})
 
         for bin_id in sorted(bins_needed, key=int):
-            target = BIN_TOKEN_TARGETS[bin_id]
-            if len(tokens_full) < target:
-                print(f"  Bin {bin_id}: text too short ({len(tokens_full):,} < {target:,}), skip")
-                continue
+            if bin_id == "4":
+                # open-ended top bin: full text (endpoint), gated on >800k tok
+                if len(tokens_full) <= BIN4_MIN_TOKENS:
+                    print(f"  Bin 4 (endpoint): {len(tokens_full):,} tok ≤ "
+                          f"{BIN4_MIN_TOKENS:,}, not bin-4 eligible, skip")
+                    continue
+                prefix_tokens = tokens_full
+                target = len(tokens_full)
+                print(f"  Bin 4 (endpoint): full text, {len(tokens_full):,} tok")
+            else:
+                target = BIN_TOKEN_TARGETS[bin_id]
+                if len(tokens_full) < target:
+                    print(f"  Bin {bin_id}: text too short ({len(tokens_full):,} < {target:,}), skip")
+                    continue
+                prefix_tokens = tokens_full[:target]
 
-            prefix_tokens = tokens_full[:target]
             t_bin = time.perf_counter()
 
             td = token_distribution_scaling_metrics(prefix_tokens)
