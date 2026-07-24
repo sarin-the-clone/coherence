@@ -133,7 +133,8 @@ KDE_GRID = 240
 
 
 def add_bin_density_contours(ax, xy: np.ndarray, color: str,
-                             rng: np.random.Generator | None = None) -> None:
+                             rng: np.random.Generator | None = None,
+                             lw_scale: float = 1.0) -> None:
     """Draw highest-density regions of the 2D scores as KDE contours.
 
     The density threshold for each level is the empirical quantile of the KDE
@@ -160,9 +161,9 @@ def add_bin_density_contours(ax, xy: np.ndarray, color: str,
         thr = np.quantile(dens_at_points, 1 - level)
         # dark halo keeps pale bin colours readable on the white background
         ax.contour(gxx, gyy, dens, levels=[thr], colors=["#37474F"],
-                   linewidths=lw + 1.8, alpha=alpha, zorder=4)
+                   linewidths=(lw + 1.8) * lw_scale, alpha=alpha, zorder=4)
         ax.contour(gxx, gyy, dens, levels=[thr], colors=[color],
-                   linewidths=lw, alpha=1.0, zorder=5)
+                   linewidths=lw * lw_scale, alpha=1.0, zorder=5)
 
 
 def assign_bin(n_tokens: float, size_bins: list[dict],

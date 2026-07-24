@@ -40,13 +40,17 @@ import plot_chunk_metrics as pcm
 DEFAULT_PROMPTS_DIR = ROOT / "generated_texts_og" / "prompts"
 DEFAULT_OUT_LEGACY = ROOT / "generated_texts_og" / "Output" / "_aggregate_legacy_descriptors_by_group.jpg"
 DEFAULT_OUT_ADDITIONAL = ROOT / "generated_texts_og" / "Output" / "_aggregate_additional_descriptors_by_group.jpg"
+DEFAULT_OUT_FIG1 = ROOT / "generated_texts_og" / "Output" / "_fig1_legacy_descriptors_all_modes.jpg"
 DEFAULT_CACHE = ROOT / "generated_texts_og" / "Output" / "_aggregate_descriptor_group_stats.json"
 CACHE_VERSION = 1
 
+# canonical 8 statistical-scaling + informational descriptors (matches the PCA
+# and discriminant scripts: H_DFA1 + H_WT_db4 are the retained Hurst estimators)
 LEGACY_METRICS = [
     "beta",
     "alpha",
     "H_DFA1",
+    "H_WT_db4",
     "entropy_bits",
     "perplexity",
     "lz_complexity",
@@ -78,6 +82,17 @@ CONDITIONING_GROUPS = [
 
 GROUP_ORDER = SUMMARIES_GROUPS + CONDITIONING_GROUPS
 
+# Main-figure mode set: the six conditioning modes used in the discriminant
+# figures (low-temperature summaries are an ablation, kept for Extended Data).
+FIG1_GROUPS = [
+    "summaries_high_temperature",
+    "extended_conditioning",
+    "extended_no_fixed_conditioning",
+    "basic_conditioning",
+    "minimal_fixed_conditioning",
+    "markov_rolling_conditioning",
+]
+
 GROUP_LABELS = {
     "summaries_high_temperature": "Summaries high-temp",
     "summaries_low_temperature": "Summaries low-temp",
@@ -92,7 +107,7 @@ GROUP_COLORS = {
     "summaries_high_temperature": "#1f77b4",
     "summaries_low_temperature": "#17becf",
     "extended_conditioning": "#d62728",
-    "extended_no_fixed_conditioning": "#ff7f0e",
+    "extended_no_fixed_conditioning": "#00897B",
     "basic_conditioning": "#2ca02c",
     "minimal_fixed_conditioning": "#9467bd",
     "markov_rolling_conditioning": "#8c564b",
@@ -609,6 +624,95 @@ def plot_metric_panel(
     return y_values
 
 
+def plot_mode_grid(
+    stats: dict,
+    counts: Counter,
+    out_path: Path,
+    max_tokens: int,
+    metrics: List[str],
+    title: str,
+    groups: List[str],
+    ncols: int = 4,
+    chaotic_data: Dict[str, Dict[float, float]] | None = None,
+    y_axis_ignore_first_n: int = 50,
+) -> None:
+    """Main-figure layout: one panel per descriptor, every conditioning mode
+    overlaid in the same panel, against the natural reference bands."""
+    rows = math.ceil(len(metrics) / ncols)
+    fig, axes = plt.subplots(rows, ncols, figsize=(5.4 * ncols, 3.6 * rows),
+                             sharex=True, squeeze=False)
+    flat = axes.flatten()
+
+    for i, metric in enumerate(metrics):
+        ax = flat[i]
+        values = plot_metric_panel(
+            ax, stats, counts, metric, max_tokens,
+            groups=groups, chaotic_data=chaotic_data,
+            y_axis_ignore_first_n=y_axis_ignore_first_n,
+        )
+        limits = y_limits_for_metric(metric, values)
+        if limits:
+            ax.set_ylim(*limits)
+    for ax in flat[len(metrics):]:
+        ax.axis("off")
+    for ax in axes[-1, :]:
+        ax.set_xlabel("Tokens")
+
+    handles, labels, seen, hmap = [], [], set(), {}
+    for ax in flat:
+        h, l = ax.get_legend_handles_labels()
+        handles.extend(h); labels.extend(l)
+    for h, l in zip(handles, labels):
+        if not l or l in seen:
+            continue
+        seen.add(l); hmap[l] = h
+
+    from matplotlib.patches import Patch
+    from matplotlib.lines import Line2D
+    # grey swatch standing in for the per-mode shaded ±1σ bands
+    sd_handle = Patch(facecolor="0.45", alpha=0.30, edgecolor="none")
+
+    # ── two-part bottom legend, split by a vertical divider ──
+    # Left block: the natural reference bands + the chaotic (no-conditioning)
+    # baseline. Ordered column-major (ncol=2) so "Chaotic run" lands directly
+    # beneath "natural mean".
+    ref_order = ["natural p2.5-p97.5", "natural p25-p75", "natural mean", "Chaotic run"]
+    ref_pairs = [(hmap[l], l) for l in ref_order if l in hmap]
+    # Right block: the conditioning modes and their ±1σ bands.
+    mode_bases = ["Summaries high-temp", "Extended/full", "Extended no fixed",
+                  "Basic", "Minimal fixed", "Markov rolling"]
+    # Fig 1 uses the manuscript's mode names (GROUP_LABELS stays as-is elsewhere,
+    # e.g. the two-column comparison that also plots low-temp summaries)
+    mode_display = {"Summaries high-temp": "Hierarchical summaries",
+                    "Extended/full": "Extended", "Extended no fixed": "Extended variant",
+                    "Minimal fixed": "Fixed contract"}
+    mode_pairs = [(sd_handle, "±1σ within conditioning mode")]
+    for base in mode_bases:
+        match = next((l for l in hmap if l.startswith(base + " (")), None)
+        if match:
+            mode_pairs.append((hmap[match], match.replace(base, mode_display.get(base, base))))
+
+    if ref_pairs:
+        leg_ref = fig.legend([h for h, _ in ref_pairs], [l for _, l in ref_pairs],
+                             loc="lower right", bbox_to_anchor=(0.36, 0.005),
+                             ncol=2, fontsize=9, frameon=False)
+        fig.add_artist(leg_ref)
+    if mode_pairs:
+        fig.legend([h for h, _ in mode_pairs], [l for _, l in mode_pairs],
+                   loc="lower left", bbox_to_anchor=(0.39, 0.005),
+                   ncol=4, fontsize=9, frameon=False)
+    # divider between the natural/reference block and the conditioning modes
+    fig.add_artist(Line2D([0.375, 0.375], [0.012, 0.075], transform=fig.transFigure,
+                          color="0.6", linewidth=1.0))
+
+    fig.suptitle(title, fontsize=16)
+    fig.tight_layout(rect=[0, 0.07, 1, 0.96])
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_path, dpi=200)
+    plt.close(fig)
+    print(f"figure  → {out_path}")
+
+
 def plot_two_column_comparison(
     stats: dict,
     counts: Counter,
@@ -689,6 +793,7 @@ def main() -> None:
     parser.add_argument("--prompts-dir", type=Path, default=DEFAULT_PROMPTS_DIR)
     parser.add_argument("--out-legacy", type=Path, default=DEFAULT_OUT_LEGACY)
     parser.add_argument("--out-additional", type=Path, default=DEFAULT_OUT_ADDITIONAL)
+    parser.add_argument("--out-fig1", type=Path, default=DEFAULT_OUT_FIG1)
     parser.add_argument("--cache", type=Path, default=DEFAULT_CACHE)
     parser.add_argument("--refresh-cache", action="store_true", help="Recompute grouped aggregate stats and overwrite cache.")
     parser.add_argument("--no-cache", action="store_true", help="Do not read or write the aggregate stats cache.")
@@ -734,6 +839,23 @@ def main() -> None:
             print(f"  {GROUP_LABELS[group]}: {counts[group]}")
 
     chaotic_data = load_chaotic_data(args.max_tokens)
+
+    # Main figure: one panel per descriptor, all conditioning modes overlaid,
+    # no chaotic run / low-temperature ablation (those stay in Extended Data).
+    plot_mode_grid(
+        stats,
+        counts,
+        args.out_fig1,
+        max_tokens=args.max_tokens,
+        metrics=LEGACY_METRICS,
+        title="Statistical-scaling and informational descriptors vs accumulated tokens,\n"
+              "by conditioning mode, against natural reference bands",
+        groups=FIG1_GROUPS,
+        ncols=4,
+        chaotic_data=chaotic_data,
+        y_axis_ignore_first_n=args.y_axis_ignore_first_n,
+    )
+
     plot_two_column_comparison(
         stats,
         counts,

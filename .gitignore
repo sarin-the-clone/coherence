@@ -60,6 +60,7 @@ natural_texts/Converted_Txt
 natural_texts/Converted_Mobi_Txt
 
 # Archive and Legacy
+_archive/
 OLD_*
 natural_texts/OLD_*
 run_seq_*.log
