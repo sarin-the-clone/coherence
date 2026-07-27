@@ -1,11 +1,11 @@
 PLS-DA discriminant analysis — feature set: combined
 ======================================================================
 natural (SC subcorpus): 1047    generated: 245 (6 modes)
-features: 44    latent variables: 4
+features: 44    latent variables: 3
 normalization: per-size-bin median/IQR (matched size); CV refits natural-bin statistics in each training fold
 CV: 5-fold StratifiedGroupKFold (all five prefixes of each generated run held together)
 primary CV test unit: generated run (mean score across its five held-out prefixes) versus natural book
-incremental descriptor variance by latent variable: LV1 30.2%, LV2 26.0%, LV3 13.6%, LV4 3.5% (cumulative 73.3%)
+incremental descriptor variance by latent variable: LV1 30.2%, LV2 26.0%, LV3 13.6% (cumulative 69.7%)
 descriptor policy: preserve interpretively distinct descriptors; exclude exact aliases and the overlapping unigram-entropy source
 excluded exact token aliases:
   td_zipf_slope = -td_zipf_exponent
@@ -15,69 +15,69 @@ excluded exact token aliases:
 excluded provenance duplicate:
   tp_entropy_0 = same intended unigram entropy as entropy_bits; raw values differ because the stored pipelines are not aligned
 
-In-corpus run/book CV AUC        : 1.000 ± 0.000
-Run/book balanced accuracy        : 0.980 ± 0.040
-Prefix-row CV AUC (correlated)    : 1.000 ± 0.000
-Prefix-row balanced accuracy      : 0.986 ± 0.028
+In-corpus run/book CV AUC        : 0.997 ± 0.002
+Run/book balanced accuracy        : 0.968 ± 0.038
+Prefix-row CV AUC (correlated)    : 0.997 ± 0.002
+Prefix-row balanced accuracy      : 0.971 ± 0.034
 Pooled out-of-fold run/book confusion matrix (fold-specific training thresholds):
                          predicted natural  predicted generated
-  actual natural                  1046                    1
+  actual natural                  1021                   26
   actual generated                   2                   47
-Pooled sensitivity 0.959 | pooled specificity 0.999
+Pooled sensitivity 0.959 | pooled specificity 0.975
 scope: discrimination of these 49 generated runs versus this natural-book corpus; not an external-model, prompt, or corpus benchmark
-natural score mean +0.03 | generated score mean +0.86
+natural score mean +0.05 | generated score mean +0.79
 
 Variable importance (VIP > 1 = important), with matched-size direction:
   metric                           family   VIP  offset  direction
- *td_heaps_exponent                token   1.84   -2.29  gen lower
- *tr_repeat_gap_median_log2        token   1.67   +1.66  gen higher
- *tr_repeat_gap_mean_log2          token   1.40   +0.99  gen higher
- *tp_redundancy_1                  token   1.38   +0.90  gen higher
- *td_vocab_size                    token   1.33   -1.19  gen lower
- *td_zipf_exponent                 token   1.27   +1.29  gen higher
- *tp_entropy_gain_1                token   1.19   +0.47  gen higher
- *W8k_global_similarity            SC      1.18   +0.82  gen higher
- *td_type_token_ratio              token   1.13   -0.93  gen lower
- *tr_repeat_gap_burstiness         token   1.12   -0.20  gen lower
- *tp_cond_entropy_1                token   1.11   -1.20  gen lower
- *tr_repeat_gap_cv                 token   1.10   -0.18  gen lower
- *W40k_global_similarity           SC      1.10   +0.75  gen higher
+ *td_heaps_exponent                token   1.90   -2.29  gen lower
+ *tr_repeat_gap_median_log2        token   1.71   +1.66  gen higher
+ *td_vocab_size                    token   1.41   -1.19  gen lower
+ *tr_repeat_gap_mean_log2          token   1.41   +0.99  gen higher
+ *td_zipf_exponent                 token   1.35   +1.29  gen higher
+ *W8k_global_similarity            SC      1.25   +0.82  gen higher
+ *tp_redundancy_1                  token   1.23   +0.90  gen higher
+ *td_type_token_ratio              token   1.20   -0.93  gen lower
+ *W40k_global_similarity           SC      1.16   +0.75  gen higher
+ *W40k_novelty                     SC      1.13   -0.65  gen lower
+ *tp_entropy_gain_1                token   1.13   +0.47  gen higher
+ *W40k_local_flow                  SC      1.13   +0.66  gen higher
+ *td_hapax_token_fraction          token   1.09   -0.81  gen lower
  *W2k_global_similarity            SC      1.08   +0.71  gen higher
- *W40k_novelty                     SC      1.07   -0.65  gen lower
- *W40k_local_flow                  SC      1.07   +0.66  gen higher
- *td_hapax_token_fraction          token   1.04   -0.81  gen lower
-  tp_cond_entropy_4                token   0.98   +1.05  gen higher
-  lz_complexity                    stat    0.97   -1.10  gen lower
-  tp_cond_entropy_3                token   0.95   +0.76  gen higher
-  tr_repeat_gap_logbin_entropy     token   0.90   -0.89  gen lower
-  tp_cond_entropy_2                token   0.89   -0.32  gen lower
-  W8k_local_flow                   SC      0.88   +0.58  gen higher
-  tr_repeat_gap_mean               token   0.88   -0.67  gen lower
-  tp_redundancy_4                  token   0.86   -1.01  gen lower
-  W8k_novelty                      SC      0.86   -0.45  gen lower
-  W2k_local_flow                   SC      0.85   +0.10  gen higher
-  W2k_novelty                      SC      0.85   -0.02  gen lower
-  tp_redundancy_2                  token   0.84   +0.04  gen higher
-  tp_redundancy_3                  token   0.84   -0.71  gen lower
-  tp_entropy_slope                 token   0.81   +0.76  gen higher
-  td_top10_token_fraction          token   0.78   -0.15  gen lower
-  H_DFA1                           stat    0.77   -0.47  gen lower
-  tp_entropy_gain_3                token   0.76   -0.54  gen lower
-  H_WT_db4                         stat    0.76   -0.08  gen lower
-  td_top1_token_fraction           token   0.76   -0.33  gen lower
-  tp_entropy_gain_2                token   0.75   -0.21  gen lower
-  tp_entropy_gain_4                token   0.75   -0.60  gen lower
-  perplexity                       stat    0.75   -0.39  gen lower
-  mi_decay_gamma                   stat    0.74   +0.85  gen higher
-  entropy_bits                     stat    0.71   -0.42  gen lower
-  td_hapax_type_fraction           token   0.51   -0.32  gen lower
-  alpha                            stat    0.30   +0.18  gen higher
-  beta                             stat    0.28   -0.09  gen lower
+ *tr_repeat_gap_burstiness         token   1.03   -0.20  gen lower
+ *tp_cond_entropy_4                token   1.03   +1.05  gen higher
+ *tp_cond_entropy_1                token   1.00   -1.20  gen lower
+ *tr_repeat_gap_cv                 token   1.00   -0.18  gen lower
+  tp_cond_entropy_3                token   0.99   +0.76  gen higher
+  lz_complexity                    stat    0.98   -1.10  gen lower
+  tr_repeat_gap_logbin_entropy     token   0.94   -0.89  gen lower
+  tr_repeat_gap_mean               token   0.93   -0.67  gen lower
+  W2k_novelty                      SC      0.90   -0.02  gen lower
+  tp_redundancy_4                  token   0.90   -1.01  gen lower
+  tp_redundancy_3                  token   0.89   -0.71  gen lower
+  W8k_novelty                      SC      0.88   -0.45  gen lower
+  tp_entropy_slope                 token   0.85   +0.76  gen higher
+  tp_entropy_gain_3                token   0.81   -0.54  gen lower
+  H_DFA1                           stat    0.80   -0.47  gen lower
+  td_top1_token_fraction           token   0.80   -0.33  gen lower
+  tp_entropy_gain_4                token   0.80   -0.60  gen lower
+  perplexity                       stat    0.79   -0.39  gen lower
+  tp_redundancy_2                  token   0.78   +0.04  gen higher
+  tp_entropy_gain_2                token   0.78   -0.21  gen lower
+  W8k_local_flow                   SC      0.77   +0.58  gen higher
+  entropy_bits                     stat    0.76   -0.42  gen lower
+  td_top10_token_fraction          token   0.75   -0.15  gen lower
+  tp_cond_entropy_2                token   0.72   -0.32  gen lower
+  H_WT_db4                         stat    0.71   -0.08  gen lower
+  mi_decay_gamma                   stat    0.57   +0.85  gen higher
+  W2k_local_flow                   SC      0.38   +0.10  gen higher
+  td_hapax_type_fraction           token   0.33   -0.32  gen lower
+  alpha                            stat    0.31   +0.18  gen higher
+  beta                             stat    0.29   -0.09  gen lower
 
 Per-ablation-mode separation (mean PLS score; higher = more generated-like):
-  markov rolling       n= 15  mean=+0.77 ± 0.16
-  minimal fixed        n= 15  mean=+0.82 ± 0.06
-  extended/full        n= 45  mean=+0.86 ± 0.09
-  basic                n= 65  mean=+0.87 ± 0.06
-  summaries            n= 90  mean=+0.88 ± 0.08
-  extended no fixed    n= 15  mean=+0.89 ± 0.08
+  markov rolling       n= 15  mean=+0.50 ± 0.06
+  basic                n= 65  mean=+0.74 ± 0.05
+  minimal fixed        n= 15  mean=+0.81 ± 0.07
+  summaries            n= 90  mean=+0.81 ± 0.05
+  extended/full        n= 45  mean=+0.85 ± 0.04
+  extended no fixed    n= 15  mean=+0.91 ± 0.04

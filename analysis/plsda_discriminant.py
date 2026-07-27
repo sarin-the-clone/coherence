@@ -15,8 +15,7 @@ Feature sets (--feature-set):
   token_stat  8 stat + 27 token
 
 Outputs → natural_texts/Output/pca/discriminant/<feature_set>/
-  report.txt, vip.csv, plsda_scores.png, plsda_scores_lv3_lv4.png,
-  plsda_biplot.png, plsda_biplot_lv3_lv4.png
+  report.txt, vip.csv, plsda_scores.png, plsda_biplot.png
 """
 
 from __future__ import annotations
@@ -752,7 +751,7 @@ def load_landmark_projection(feats, stats, pls, size_bins, components=(0, 1)):
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--feature-set", choices=["combined", "sc", "token_stat"], default="combined")
-    p.add_argument("--n-components", type=int, default=4)
+    p.add_argument("--n-components", type=int, default=3)
     p.add_argument("--biplot-vip-min", type=float, default=1.0,
                    help="draw loading arrows for every feature with VIP above this "
                         "(default 1.0, the standard importance threshold).")
@@ -942,29 +941,6 @@ def main() -> None:
     plot_per_bin(out_dir / "plsda_per_bin.png", Tn, Tg, nat_bins,
                  generated["size_bin"].values, gen_modes, size_bins,
                  len(feats), args.feature_set, auc, arrows)
-
-    if T.shape[1] >= 4:
-        lv34_components = (2, 3)
-        score_figure(out_dir / "plsda_scores_lv3_lv4.png", Tn, Tg, gen_modes,
-                     nat_bins, size_bins, len(feats), args.feature_set, auc,
-                     lv_var=lv_var, components=lv34_components)
-        loadings_lv34 = pls.x_loadings_[:, list(lv34_components)]
-        arrows_lv34 = {
-            "lv": loadings_lv34[order],
-            "labels": [descriptor_label(feats[i]) for i in order],
-            "colors": [FAM_COLOR[fine_family(feats[i])] for i in order],
-        }
-        landmarks_lv34 = load_landmark_projection(
-            feats, stats, pls, size_bins, components=lv34_components)
-        biplot_title_lv34 = (
-            f"Residual descriptor distribution — natural, generated & landmark books\n"
-            f"(LV3 × LV4; showing {len(order)} of {len(feats)} descriptors with "
-            f"VIP > {args.biplot_vip_min:g}  —  in-corpus CV AUC {auc:.3f})")
-        score_figure(out_dir / "plsda_biplot_lv3_lv4.png", Tn, Tg, gen_modes,
-                     nat_bins, size_bins, len(feats), args.feature_set, auc,
-                     arrows=arrows_lv34, landmarks=landmarks_lv34,
-                     show_bin_means=False, title=biplot_title_lv34, lv_var=lv_var,
-                     components=lv34_components)
 
     # canonical variate analysis: natural + each ablation mode as a group
     groups = np.r_[np.array(["natural"] * len(Xn)), gen_modes]
