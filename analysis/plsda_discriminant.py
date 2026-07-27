@@ -241,7 +241,8 @@ def plot_vip(table: pd.DataFrame, out_path: Path, feature_set: str, auc: float) 
         ax.axvline(x, color="#1B5E20", ls=(0, (5, 3)), lw=1.5, alpha=0.9, zorder=2)
     ax.axvline(0, color="black", lw=0.8)
     ax.set_xlabel("signed VIP\n($\\mathbf{VIP > 1}$ = discriminating)", fontsize=11)
-    ax.set_title(f"PLS-DA variable importance — {feature_set} (CV AUC {auc:.3f})", fontsize=12)
+    ax.set_title(f"PLS-DA variable importance — {feature_set} "
+                 f"(in-corpus CV AUC {auc:.3f})", fontsize=12)
     fams = [f for f in FINE_ORDER if f in set(t["fam"])]
     ax.legend(handles=[plt.Line2D([], [], marker="s", linestyle="", markersize=6.5,
                                   markerfacecolor=FAM_COLOR[f], markeredgecolor="black",
@@ -484,7 +485,7 @@ def score_figure(out_path, Tn, Tg, gen_modes, nat_bins, size_bins, n_feat, fs, a
     else:
         ax.set_title(f"PLS-DA LV{x_component + 1} × LV{y_component + 1} "
                      f"({fs}, {n_feat} feat, per-bin normalized){title_extra}\n"
-                     f"natural vs generated — CV AUC {auc:.3f}")
+                     f"natural vs generated — in-corpus CV AUC {auc:.3f}")
 
     # ── three legends: descriptor-family colours · point types · landmark key ──
     # (1+2) one legend: point types (natural, contours, generated modes) plus
@@ -594,7 +595,7 @@ def plot_per_bin(out_path, Tn, Tg, nat_bins, gen_bins, gen_modes, size_bins,
         ax.set_xlim(*xlim); ax.set_ylim(*ylim); ax.tick_params(labelsize=9)
 
     fig.suptitle(f"PLS-DA ({fs}, {n_feat} feat, per-bin normalized) — per size bin "
-                 f"(CV AUC {auc:.3f})", fontsize=18)
+                 f"(in-corpus CV AUC {auc:.3f})", fontsize=18)
     fig.savefig(out_path, dpi=170, bbox_inches="tight")
     plt.close(fig)
 
@@ -757,13 +758,20 @@ def main() -> None:
     y = np.r_[np.zeros(len(Xn)), np.ones(len(Xg))]
     groups = np.r_[[f"nat{b}" for b in natural["book_id"]],
                    ["gen_" + str(r) for r in generated["run_id"]]]
+    raw_rows = pd.concat([natural, generated], ignore_index=True)
 
-    # group-aware cross-validation
+    # Group-aware CV: all five prefixes from a generated run stay together.
+    # Refit the natural per-bin median/IQR transform inside each training fold
+    # so held-out natural books cannot influence their own normalization.
     cv = StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=0)
     aucs, baccs = [], []
     for tr, te in cv.split(X, y, groups):
-        m = PLSRegression(n_components=args.n_components).fit(X[tr], y[tr])
-        p_tr, p_te = m.predict(X[tr]).ravel(), m.predict(X[te]).ravel()
+        natural_train = natural.iloc[tr[tr < len(natural)]]
+        fold_stats = fit_per_bin_stats(natural_train, feats)
+        Xtr = standardize_per_bin(raw_rows.iloc[tr], feats, fold_stats)
+        Xte = standardize_per_bin(raw_rows.iloc[te], feats, fold_stats)
+        m = PLSRegression(n_components=args.n_components).fit(Xtr, y[tr])
+        p_tr, p_te = m.predict(Xtr).ravel(), m.predict(Xte).ravel()
         # threshold from the train fold (Youden's J) — fixed 0.5 is degenerate
         # under class imbalance
         fpr, tpr, thr = roc_curve(y[tr], p_tr)
@@ -808,7 +816,9 @@ def main() -> None:
                  f"({generated['conditioning_mode'].nunique()} modes)")
     lines.append(f"features: {len(feats)}    latent variables: {args.n_components}")
     lines.append("normalization: per-size-bin median/IQR (matched size); "
-                 "CV: 5-fold StratifiedGroupKFold (run-grouped)")
+                 "CV refits natural-bin statistics in each training fold")
+    lines.append("CV: 5-fold StratifiedGroupKFold (all five prefixes of each "
+                 "generated run held together)")
     lv_parts = [f"LV{i + 1} {value:.1f}%" for i, value in enumerate(lv_var)]
     lines.append("incremental descriptor variance by latent variable: " + ", ".join(lv_parts)
                  + f" (cumulative {np.nansum(lv_var):.1f}%)")
@@ -822,8 +832,10 @@ def main() -> None:
         for metric, relationship in EXCLUDED_PROVENANCE_DUPLICATES.items():
             lines.append(f"  {metric} = {relationship}")
     lines.append("")
-    lines.append(f"Cross-validated AUC              : {np.mean(aucs):.3f} ± {np.std(aucs):.3f}")
+    lines.append(f"In-corpus run-grouped CV AUC     : {np.mean(aucs):.3f} ± {np.std(aucs):.3f}")
     lines.append(f"Cross-validated balanced accuracy: {np.mean(baccs):.3f} ± {np.std(baccs):.3f}")
+    lines.append("scope: discrimination of these 49 generated runs versus this natural-book "
+                 "corpus; not an external-model, prompt, or corpus benchmark")
     lines.append(f"natural score mean {nat_scores.mean():+.2f} | generated score mean {gen_scores.mean():+.2f}")
     lines.append("")
     lines.append("Variable importance (VIP > 1 = important), with matched-size direction:")
@@ -864,7 +876,8 @@ def main() -> None:
         print(f"landmark books projected: {len(landmarks['labels'])}")
     biplot_title = (f"Discriminant descriptor distribution — natural, generated "
                     f"& landmark books\n(showing {len(order)} of {len(feats)} "
-                    f"descriptors with VIP > {args.biplot_vip_min:g}  —  CV AUC {auc:.3f})")
+                    f"descriptors with VIP > {args.biplot_vip_min:g}  —  "
+                    f"in-corpus CV AUC {auc:.3f})")
     score_figure(out_dir / "plsda_biplot.png", Tn, Tg, gen_modes, nat_bins, size_bins,
                  len(feats), args.feature_set, auc, arrows=arrows,
                  landmarks=landmarks, show_bin_means=False, title=biplot_title, lv_var=lv_var,
@@ -889,7 +902,7 @@ def main() -> None:
         biplot_title_lv34 = (
             f"Residual descriptor distribution — natural, generated & landmark books\n"
             f"(LV3 × LV4; showing {len(order)} of {len(feats)} descriptors with "
-            f"VIP > {args.biplot_vip_min:g}  —  CV AUC {auc:.3f})")
+            f"VIP > {args.biplot_vip_min:g}  —  in-corpus CV AUC {auc:.3f})")
         score_figure(out_dir / "plsda_biplot_lv3_lv4.png", Tn, Tg, gen_modes,
                      nat_bins, size_bins, len(feats), args.feature_set, auc,
                      arrows=arrows_lv34, landmarks=landmarks_lv34,

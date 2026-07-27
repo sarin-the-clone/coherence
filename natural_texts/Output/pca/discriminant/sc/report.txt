@@ -2,11 +2,13 @@ PLS-DA discriminant analysis — feature set: sc
 ======================================================================
 natural (SC subcorpus): 1047    generated: 245 (6 modes)
 features: 9    latent variables: 4
-normalization: per-size-bin median/IQR (matched size); CV: 5-fold StratifiedGroupKFold (run-grouped)
+normalization: per-size-bin median/IQR (matched size); CV refits natural-bin statistics in each training fold
+CV: 5-fold StratifiedGroupKFold (all five prefixes of each generated run held together)
 incremental descriptor variance by latent variable: LV1 64.1%, LV2 25.7%, LV3 4.5%, LV4 2.2% (cumulative 96.6%)
 
-Cross-validated AUC              : 0.946 ± 0.032
-Cross-validated balanced accuracy: 0.866 ± 0.047
+In-corpus run-grouped CV AUC     : 0.939 ± 0.030
+Cross-validated balanced accuracy: 0.870 ± 0.055
+scope: discrimination of these 49 generated runs versus this natural-book corpus; not an external-model, prompt, or corpus benchmark
 natural score mean +0.14 | generated score mean +0.41
 
 Variable importance (VIP > 1 = important), with matched-size direction:
