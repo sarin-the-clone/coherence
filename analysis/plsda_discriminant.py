@@ -139,7 +139,7 @@ PRETTY = {
 }
 # One loading-label exception: the Robinson Crusoe landmark lies directly over
 # this long recurrence label in the combined LV1/LV2 biplot.
-ARROW_LABEL_OFFSETS = {"Repeat-gap burstiness": (0.0, 0.45)}
+ARROW_LABEL_OFFSETS = {"Repeat-gap burstiness": (0.0, -0.28)}
 
 def pretty_name(name: str) -> str:
     """Human-readable label for a (display-name) descriptor, for plot axes."""
