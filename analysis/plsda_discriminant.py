@@ -137,6 +137,9 @@ PRETTY = {
     "tp_cond_entropy_4": "Conditional entropy (order 4)",
     "tp_context_efficiency_4": "Context efficiency (order 4)",
 }
+# One loading-label exception: the Robinson Crusoe landmark lies directly over
+# this long recurrence label in the combined LV1/LV2 biplot.
+ARROW_LABEL_OFFSETS = {"Repeat-gap burstiness": (0.0, 0.45)}
 
 def pretty_name(name: str) -> str:
     """Human-readable label for a (display-name) descriptor, for plot axes."""
@@ -465,13 +468,17 @@ def score_figure(out_path, Tn, Tg, gen_modes, nat_bins, size_bins, n_feat, fs, a
             ax=ax,
         )
         max_label_distance = 0.08 * span
-        for text, (tip_x, tip_y) in zip(arrow_texts, Ls):
+        for text, (tip_x, tip_y), label in zip(arrow_texts, Ls, arrows["labels"]):
             text_x, text_y = text.get_position()
             delta_x, delta_y = text_x - tip_x, text_y - tip_y
             distance = np.hypot(delta_x, delta_y)
             if distance > max_label_distance:
                 ratio = max_label_distance / distance
                 text.set_position((tip_x + delta_x * ratio, tip_y + delta_y * ratio))
+            offset_x, offset_y = ARROW_LABEL_OFFSETS.get(label, (0.0, 0.0))
+            if offset_x or offset_y:
+                text_x, text_y = text.get_position()
+                text.set_position((text_x + offset_x, text_y + offset_y))
 
     # Robust display limits suppress sparse score tails while retaining the full
     # baseline ellipses, loading arrows, and landmark projections below.
@@ -708,9 +715,9 @@ LANDMARK_TITLES = [("F", "Frankenstein"), ("SH", "Sherlock Holmes"),
                    ("MD", "Moby Dick"), ("U", "Ulysses"), ("DQ", "Don Quixote"),
                    ("MC", "Count of Monte Cristo"), ("WP", "War and Peace"),
                    ("LM", "Les Misérables")]
-# These pairs overlap nearby loading-label boxes on LV1/LV2. Offset only the
-# visible initials; points remain at their fitted scores.
-LANDMARK_LABEL_OFFSETS = {"F": (0.42, 0.04), "RC": (-0.62, 0.48)}
+# Frankenstein and Sherlock project almost identically on LV1/LV2. Offset only
+# the visible Frankenstein initial; the point remains at its fitted score.
+LANDMARK_LABEL_OFFSETS = {"F": (0.42, 0.04)}
 
 
 def load_landmark_projection(feats, stats, pls, size_bins, components=(0, 1)):
