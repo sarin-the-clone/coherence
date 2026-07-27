@@ -30,6 +30,15 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from analysis.descriptor_schema import (
+    SC_FEATURES,
+    SC_METRICS,
+    SC_WINDOWS,
+    STAT_INFO_METRICS,
+    TOKEN_METRICS,
+    available_features,
+)
+
 # ── paths ─────────────────────────────────────────────────────────────────────
 NATURAL_SC_PATHS = (
     [Path("/tmp/natural_books_sc_median.json")]
@@ -50,19 +59,6 @@ BIN_TOKEN_TARGETS = {
     "3":  593_869,
     "4": 1_072_000,
 }
-
-# ── feature groups ─────────────────────────────────────────────────────────────
-SC_WINDOWS  = ["W2k", "W8k", "W40k"]
-SC_METRICS  = ["off_diag_mean", "novelty_mean", "sim_lag1_mean"]
-SC_FEATURES = [f"{w}_{m}" for w in SC_WINDOWS for m in SC_METRICS]
-
-# Canonical 8 stat/info descriptors, consistent with pca_all_metrics.py and
-# the figure scripts (H_DFA1 + H_WT_db4 retained; H_DMA, D, delta, mi_tau_max
-# excluded).
-STAT_INFO_METRICS = [
-    "beta", "alpha", "H_DFA1", "H_WT_db4",
-    "entropy_bits", "perplexity", "lz_complexity", "mi_decay_gamma",
-]
 
 TOKEN_PREFIXES = ("td_", "tr_", "tp_")
 
@@ -311,9 +307,8 @@ def main() -> None:
     # 3. Load additional token metrics
     tn_df   = load_token_jsonl(TOKEN_NAT_JSONL)
     tp_df   = load_token_jsonl(TOKEN_PRED_JSONL)
-    # exclude *_r2 (goodness-of-fit diagnostics, not content descriptors)
-    tn_cols = [c for c in tn_df.columns if c.startswith(TOKEN_PREFIXES) and not c.endswith("_r2")]
-    tp_cols = [c for c in tp_df.columns if c.startswith(TOKEN_PREFIXES) and not c.endswith("_r2")]
+    tn_cols = [c for c in TOKEN_METRICS if c in tn_df.columns]
+    tp_cols = [c for c in TOKEN_METRICS if c in tp_df.columns]
     tn_df   = tn_df[["book_id"] + tn_cols]
     tp_df   = tp_df[["book_id"] + tp_cols]
 
@@ -324,14 +319,7 @@ def main() -> None:
     print(f"After merge: {len(df)} rows")
 
     # 5. Build feature matrix — drop near-zero-variance and rows with any NaN
-    all_features = SC_FEATURES + [c for c in STAT_INFO_METRICS if c in df.columns] + tn_cols + tp_cols
-    # deduplicate (tp_ overlap between files)
-    seen, all_features_dedup = set(), []
-    for f in all_features:
-        if f in df.columns and f not in seen:
-            all_features_dedup.append(f)
-            seen.add(f)
-    all_features = all_features_dedup
+    all_features = available_features(df.columns)
 
     for col in all_features:
         df[col] = pd.to_numeric(df[col], errors="coerce")

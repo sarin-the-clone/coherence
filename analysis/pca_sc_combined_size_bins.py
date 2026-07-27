@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Size-bin-envelope PCA on the SC-analysed natural subcorpus (~1,064 books),
-including the full feature set: 9 SC + 8 stat/info + 32 token (no *_r2).
+including the canonical feature set: 9 SC + 8 stat/info + 27 token.
 
 This is the SC-inclusive counterpart of pca_allmetrics_size_bins.py: same
 combined-figure layout (panel A density + descriptor loadings + size-bin means;
@@ -46,8 +46,7 @@ DEFAULT_POSTER_DIR = ROOT / "ppt"
 
 
 def build_natural() -> tuple[pd.DataFrame, list[str]]:
-    """Assemble the 1,064-book SC subcorpus with all 49 features (mirrors the
-    merge in pca_sc_natural_combined.main)."""
+    """Assemble the SC subcorpus with the canonical 35 analysis features."""
     sc_df = scn.load_sc_books()
     batch_df = scn.load_batch_metrics()
     keep_stat = ["book_id"] + [c for c in scn.STAT_INFO_METRICS if c in batch_df.columns]
@@ -55,20 +54,14 @@ def build_natural() -> tuple[pd.DataFrame, list[str]]:
 
     tn_df = scn.load_token_jsonl(scn.TOKEN_NAT_JSONL)
     tp_df = scn.load_token_jsonl(scn.TOKEN_PRED_JSONL)
-    tn_cols = [c for c in tn_df.columns if c.startswith(scn.TOKEN_PREFIXES) and not c.endswith("_r2")]
-    tp_cols = [c for c in tp_df.columns if c.startswith(scn.TOKEN_PREFIXES) and not c.endswith("_r2")]
+    tn_cols = [c for c in scn.TOKEN_METRICS if c in tn_df.columns]
+    tp_cols = [c for c in scn.TOKEN_METRICS if c in tp_df.columns]
 
     df = (sc_df.merge(batch_df, on="book_id", how="inner")
                 .merge(tn_df[["book_id"] + tn_cols], on="book_id", how="inner")
                 .merge(tp_df[["book_id"] + tp_cols], on="book_id", how="inner"))
 
-    all_features = (scn.SC_FEATURES
-                    + [c for c in scn.STAT_INFO_METRICS if c in df.columns]
-                    + tn_cols + tp_cols)
-    seen, features = set(), []
-    for f in all_features:
-        if f in df.columns and f not in seen:
-            features.append(f); seen.add(f)
+    features = scn.available_features(df.columns)
     for c in features:
         df[c] = pd.to_numeric(df[c], errors="coerce")
     df = df.replace([np.inf, -np.inf], np.nan).dropna(subset=features + ["n_tokens"]).reset_index(drop=True)

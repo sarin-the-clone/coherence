@@ -10,12 +10,13 @@ of each metric (generated higher/lower), per-ablation-mode separation, and a
 PLS-DA score plot with the per-size-bin natural means drawn as a star trajectory.
 
 Feature sets (--feature-set):
-  combined    9 SC + 8 stat + 32 token   (default)
+  combined    9 SC + 8 stat + 27 token   (default)
   sc          9 SC only
-  token_stat  8 stat + 32 token
+  token_stat  8 stat + 27 token
 
 Outputs → natural_texts/Output/pca/discriminant/<feature_set>/
-  report.txt, vip.csv, plsda_scores.png
+  report.txt, vip.csv, plsda_scores.png, plsda_scores_lv3_lv4.png,
+  plsda_biplot.png, plsda_biplot_lv3_lv4.png
 """
 
 from __future__ import annotations
@@ -48,6 +49,10 @@ sys.path.insert(0, str(ROOT / "analysis"))
 import pca_sc_natural_combined as scn  # noqa: E402
 import pca_sc_combined_size_bins as scs  # noqa: E402
 import pca_allmetrics_size_bins as ams  # noqa: E402
+from descriptor_schema import (  # noqa: E402
+    EXCLUDED_EXACT_ALIASES,
+    EXCLUDED_PROVENANCE_DUPLICATES,
+)
 from pca_legacy_size_bins import (  # noqa: E402
     NAVY, add_bin_density_contours, assign_bin, fit_per_bin_stats, load_size_bins,
     size_bin_palette, standardize_per_bin,
@@ -77,13 +82,12 @@ def is_sc(metric: str) -> bool:
     return metric.startswith(SC_WINDOWS)
 
 
-# fine-family bar colours (validated categorical hues; adjacent block-boundary
-# pairs clear the CVD/normal-vision gates): blue / orange / aqua / violet / red
+# fine-family bar colours: blue / orange / aqua / violet / magenta
 FAM_COLOR = {"stat": "#2a78d6", "td": "#eb6834", "tr": "#1baf7a",
-             "tp": "#4a3aa7", "sc": "#e34948"}
+             "tp": "#4a3aa7", "sc": "#c51b7d"}
 # darker same-hue shades for the tick labels (readable as small text, ≥4.8:1)
 FAM_TEXT_COLOR = {"stat": "#1c5cab", "td": "#bf4e1e", "tr": "#0e7a54",
-                  "tp": "#4a3aa7", "sc": "#c0322f"}
+                  "tp": "#4a3aa7", "sc": "#8d1459"}
 FAM_LABEL = {"sc": "semantic coherence", "stat": "scaling / informational",
              "td": "token distribution", "tr": "token recurrence",
              "tp": "token predictability"}
@@ -135,7 +139,6 @@ PRETTY = {
     "tp_context_efficiency_4": "Context efficiency (order 4)",
 }
 
-
 def pretty_name(name: str) -> str:
     """Human-readable label for a (display-name) descriptor, for plot axes."""
     for w in SC_WINDOWS:
@@ -143,6 +146,11 @@ def pretty_name(name: str) -> str:
             suffix = name[len(w) + 1:]
             return f"{SC_PRETTY.get(suffix, suffix.replace('_', ' '))} ({w[1:]} window)"
     return PRETTY.get(name, name.replace("_", " "))
+
+
+def descriptor_label(metric: str) -> str:
+    """Single display label for VIP bars and PLS loading arrows."""
+    return pretty_name(display_name(metric))
 
 
 def fine_family(metric: str) -> str:
@@ -235,10 +243,11 @@ def plot_vip(table: pd.DataFrame, out_path: Path, feature_set: str, auc: float) 
     ax.set_xlabel("signed VIP\n($\\mathbf{VIP > 1}$ = discriminating)", fontsize=11)
     ax.set_title(f"PLS-DA variable importance — {feature_set} (CV AUC {auc:.3f})", fontsize=12)
     fams = [f for f in FINE_ORDER if f in set(t["fam"])]
-    ax.legend(handles=[plt.Line2D([], [], marker="s", linestyle="", markersize=9,
+    ax.legend(handles=[plt.Line2D([], [], marker="s", linestyle="", markersize=6.5,
                                   markerfacecolor=FAM_COLOR[f], markeredgecolor="black",
                                   label=FAM_LABEL[f]) for f in fams],
-              fontsize=8, loc="upper right", framealpha=0.9)
+              fontsize=6.8, loc="upper right", framealpha=0.9,
+              borderpad=0.35, labelspacing=0.3, handletextpad=0.45)
     fig.tight_layout(rect=[0, 0, 0.92, 1])          # reserve right margin for the two label tiers
     fig.savefig(out_path, dpi=170, bbox_inches="tight", pad_inches=0.3)
     plt.close(fig)
@@ -253,6 +262,26 @@ def vip_scores(pls: PLSRegression) -> np.ndarray:
     total = ssy.sum()
     wn = w / np.linalg.norm(w, axis=0)
     return np.sqrt(p * np.sum((wn ** 2) * ssy[None, :], axis=1) / total)
+
+
+def pls_component_x_variance(pls: PLSRegression, X: np.ndarray) -> np.ndarray:
+    """Incremental descriptor variance reconstructed by each PLS component."""
+    scores = pls.x_scores_
+    loadings = pls.x_loadings_
+    scaled = (X - pls._x_mean) / pls._x_std
+    total = np.sum(scaled ** 2)
+    if total <= 0:
+        return np.full(scores.shape[1], np.nan)
+
+    reconstruction = np.zeros_like(scaled)
+    previous_residual = total
+    explained = []
+    for component in range(scores.shape[1]):
+        reconstruction += np.outer(scores[:, component], loadings[:, component])
+        residual = np.sum((scaled - reconstruction) ** 2)
+        explained.append(100.0 * (previous_residual - residual) / total)
+        previous_residual = residual
+    return np.asarray(explained)
 
 
 # generated-mode legend labels (the manuscript's Fig-legend names). Used across
@@ -301,15 +330,19 @@ DUMMY_MODES = {"markov_rolling_conditioning", "minimal_fixed_conditioning"}
 
 def score_figure(out_path, Tn, Tg, gen_modes, nat_bins, size_bins, n_feat, fs, auc,
                  arrows=None, title_extra="", landmarks=None, show_bin_means=True,
-                 title=None, lv_var=None):
-    """LV1×LV2 score plot (natural, generated by mode, per-bin natural-mean star
+                 title=None, lv_var=None, components=(0, 1)):
+    """PLS score plot for a selected LV pair (natural, generated by mode, per-bin star
     trajectory); with `arrows` it becomes a biplot overlaying loading vectors.
     `landmarks` overlays projected landmark books; `show_bin_means` toggles the
     per-bin star trajectory; `title` overrides the default title."""
+    x_component, y_component = components
+    Tn = Tn[:, [x_component, y_component]]
+    Tg = Tg[:, [x_component, y_component]]
     palette = size_bin_palette(len(size_bins))
     bin_color = {b["label"]: palette[i] for i, b in enumerate(size_bins)}
     labels = [b["label"] for b in size_bins if b["label"] in set(nat_bins)]
     fig, ax = plt.subplots(figsize=(9.5, 8))
+    ellipse_bounds = []
     ax.scatter(Tn[:, 0], Tn[:, 1], s=7, c="#B0BEC5", alpha=0.35, linewidths=0, label="natural books")
     # natural 50% / 95% highest-density contours (thin lines)
     if len(Tn) >= 20:
@@ -344,6 +377,14 @@ def score_figure(out_path, Tn, Tg, gen_modes, nat_bins, size_bins, n_feat, fs, a
             ax.add_patch(Ellipse(pts.mean(0), w, h, angle=ang_e,
                                  facecolor=to_rgba(col, 0.10), edgecolor=col,
                                  lw=2.2, ls="--", zorder=4))
+            # Include the full rotated 2-sigma ellipse in the final plot limits.
+            theta = np.radians(ang_e)
+            half_w, half_h = w / 2, h / 2
+            radius_x = np.hypot(half_w * np.cos(theta), half_h * np.sin(theta))
+            radius_y = np.hypot(half_w * np.sin(theta), half_h * np.cos(theta))
+            center_x, center_y = pts.mean(0)
+            ellipse_bounds.append((center_x - radius_x, center_x + radius_x,
+                                   center_y - radius_y, center_y + radius_y))
     if show_bin_means:
         nat_df = pd.DataFrame({"size_bin": nat_bins, "LV1": Tn[:, 0], "LV2": Tn[:, 1]})
         means = nat_df.groupby("size_bin")[["LV1", "LV2"]].mean().reindex(labels).dropna()
@@ -354,7 +395,7 @@ def score_figure(out_path, Tn, Tg, gen_modes, nat_bins, size_bins, n_feat, fs, a
 
     LANDMARK_COLOR = "#B3261E"
     Ls = None
-    arrow_texts, avoid_x, avoid_y = [], [], []
+    arrow_texts = []
     if arrows is not None:
         allpts = np.vstack([Tn[:, :2], Tg[:, :2]])
         xr = np.percentile(allpts[:, 0], [2, 98]); yr = np.percentile(allpts[:, 1], [2, 98])
@@ -365,11 +406,15 @@ def score_figure(out_path, Tn, Tg, gen_modes, nat_bins, size_bins, n_feat, fs, a
         for (lv1, lv2), lab, col in zip(Ls, arrows["labels"], arrows["colors"]):
             ax.annotate("", xy=(lv1, lv2), xytext=(0, 0), zorder=9,
                         arrowprops=dict(arrowstyle="-|>", color=col, lw=1.8, mutation_scale=13))
+            # Fixed offsets keep labels visually tied to their loading arrows.
+            dx = 0.018 * span * (1 if lv1 >= 0 else -1)
+            dy = 0.018 * span * (1 if lv2 >= 0 else -1)
             arrow_texts.append(ax.text(
-                lv1, lv2, lab, color="white", fontsize=7, fontweight="bold",
-                ha="center", va="center", zorder=10,
+                lv1 + dx, lv2 + dy, lab,
+                color="white", fontsize=6.5, fontweight="bold",
+                ha="left" if lv1 >= 0 else "right",
+                va="bottom" if lv2 >= 0 else "top", zorder=10,
                 bbox=dict(boxstyle="round,pad=0.16", facecolor=col, edgecolor="none", alpha=0.95)))
-        avoid_x += list(Ls[:, 0]); avoid_y += list(Ls[:, 1])
 
     # landmark books, projected into the PLS space: boxed red initials
     # (same style as metrics_vs_size_all.png)
@@ -377,17 +422,45 @@ def score_figure(out_path, Tn, Tg, gen_modes, nat_bins, size_bins, n_feat, fs, a
     if landmarks is not None:
         lx, ly = landmarks["xy"][:, 0], landmarks["xy"][:, 1]
         for x, y, lab in zip(lx, ly, landmarks["labels"]):
+            dx, dy = LANDMARK_LABEL_OFFSETS.get(lab, (0.0, 0.0))
             landmark_texts.append(ax.text(
-                x, y, lab, fontsize=7.5, fontweight="bold", ha="center", va="center",
+                x + dx, y + dy, lab, fontsize=7.5, fontweight="bold", ha="center", va="center",
                 color=LANDMARK_COLOR, zorder=12,
                 bbox=dict(boxstyle="round,pad=0.3", facecolor="white",
                           edgecolor=LANDMARK_COLOR, linewidth=1.1)))
-        avoid_x += list(lx); avoid_y += list(ly)
 
-    # robust display limits (ignore the ~1% score outliers), keeping labels on-panel
+    if arrow_texts:
+        adjust_text(
+            arrow_texts,
+            objects=landmark_texts,
+            target_x=Ls[:, 0],
+            target_y=Ls[:, 1],
+            avoid_self=False,
+            force_text=(0.35, 0.50),
+            force_static=(0.12, 0.18),
+            force_pull=(1.0, 1.0),
+            force_explode=(0.15, 0.20),
+            pull_threshold=8,
+            expand=(1.08, 1.15),
+            max_move=(7, 7),
+            iter_lim=7,
+            min_arrow_len=12,
+            ax=ax,
+        )
+        max_label_distance = 0.08 * span
+        for text, (tip_x, tip_y) in zip(arrow_texts, Ls):
+            text_x, text_y = text.get_position()
+            delta_x, delta_y = text_x - tip_x, text_y - tip_y
+            distance = np.hypot(delta_x, delta_y)
+            if distance > max_label_distance:
+                ratio = max_label_distance / distance
+                text.set_position((tip_x + delta_x * ratio, tip_y + delta_y * ratio))
+
+    # Robust display limits suppress sparse score tails while retaining the full
+    # baseline ellipses, loading arrows, and landmark projections below.
     allpts = np.vstack([Tn[:, :2], Tg[:, :2]])
-    x_lo, x_hi = np.percentile(allpts[:, 0], [1, 99])
-    y_lo, y_hi = np.percentile(allpts[:, 1], [1, 99])
+    x_lo, x_hi = np.percentile(allpts[:, 0], [2, 98])
+    y_lo, y_hi = np.percentile(allpts[:, 1], [2, 98])
     if Ls is not None:
         tips = Ls * 1.16
         x_lo, x_hi = min(x_lo, tips[:, 0].min()), max(x_hi, tips[:, 0].max())
@@ -395,26 +468,23 @@ def score_figure(out_path, Tn, Tg, gen_modes, nat_bins, size_bins, n_feat, fs, a
     if landmarks is not None:
         x_lo, x_hi = min(x_lo, lx.min()), max(x_hi, lx.max())
         y_lo, y_hi = min(y_lo, ly.min()), max(y_hi, ly.max())
+    for ellipse_x_lo, ellipse_x_hi, ellipse_y_lo, ellipse_y_hi in ellipse_bounds:
+        x_lo, x_hi = min(x_lo, ellipse_x_lo), max(x_hi, ellipse_x_hi)
+        y_lo, y_hi = min(y_lo, ellipse_y_lo), max(y_hi, ellipse_y_hi)
     px, py = 0.10 * (x_hi - x_lo), 0.10 * (y_hi - y_lo)
     ax.set_xlim(x_lo - px, x_hi + px); ax.set_ylim(y_lo - py, y_hi + py)
 
     if lv_var is not None:
-        ax.set_xlabel(f"LV1  ({lv_var[0]:.0f}% of descriptor variance)")
-        ax.set_ylabel(f"LV2  ({lv_var[1]:.0f}% of descriptor variance)")
+        ax.set_xlabel(f"LV{x_component + 1}  ({lv_var[x_component]:.0f}% of descriptor variance)")
+        ax.set_ylabel(f"LV{y_component + 1}  ({lv_var[y_component]:.0f}% of descriptor variance)")
     else:
-        ax.set_xlabel("LV1"); ax.set_ylabel("LV2")
+        ax.set_xlabel(f"LV{x_component + 1}"); ax.set_ylabel(f"LV{y_component + 1}")
     if title is not None:
         ax.set_title(title)
     else:
-        ax.set_title(f"PLS-DA ({fs}, {n_feat} feat, per-bin normalized){title_extra}\n"
+        ax.set_title(f"PLS-DA LV{x_component + 1} × LV{y_component + 1} "
+                     f"({fs}, {n_feat} feat, per-bin normalized){title_extra}\n"
                      f"natural vs generated — CV AUC {auc:.3f}")
-
-    # repel the loading labels off each other, the arrow tips and the landmarks;
-    # landmark boxes stay pinned to their books, thin leaders link moved labels
-    if arrow_texts:
-        adjust_text(arrow_texts, x=avoid_x, y=avoid_y, objects=landmark_texts, ax=ax,
-                    expand=(1.25, 1.5), force_text=(0.4, 0.6), max_move=None,
-                    arrowprops=dict(arrowstyle="-", color="0.55", lw=0.6, alpha=0.8))
 
     # ── three legends: descriptor-family colours · point types · landmark key ──
     # (1+2) one legend: point types (natural, contours, generated modes) plus
@@ -431,7 +501,8 @@ def score_figure(out_path, Tn, Tg, gen_modes, nat_bins, size_bins, n_feat, fs, a
         ell = Ellipse((0, 0), 1, 1, facecolor="none", edgecolor="0.35", ls="--", lw=1.3)
         pt_handles.append(ell); pt_labels.append("2σ ellipse (Fixed contract, Markov rolling)")
         pt_hmap[ell] = HandlerEllipse()
-    pt_leg = ax.legend(pt_handles, pt_labels, handler_map=pt_hmap, loc="lower right",
+    pt_leg = ax.legend(pt_handles, pt_labels, handler_map=pt_hmap,
+                       loc="upper right", bbox_to_anchor=(0.995, 0.995),
                        fontsize=7.5, framealpha=0.9, ncol=2)
     ax.add_artist(pt_leg)
     # (3) landmark books key — boxed initials + titles, same style as
@@ -441,7 +512,8 @@ def score_figure(out_path, Tn, Tg, gen_modes, nat_bins, size_bins, n_feat, fs, a
         for ini, ttl in LANDMARK_TITLES:
             h = Line2D([], [], linestyle="none", marker="", label=ttl)
             lm_h.append(h); lm_l.append(ttl); hmap[h] = BoxedInitialHandler(ini, LANDMARK_COLOR)
-        ax.legend(lm_h, lm_l, handler_map=hmap, loc="lower left", ncol=3, fontsize=7,
+        ax.legend(lm_h, lm_l, handler_map=hmap, loc="lower right",
+                  bbox_to_anchor=(0.995, 0.005), ncol=3, fontsize=7,
                   title="Landmark books", title_fontsize=7.5, framealpha=0.9,
                   handlelength=1.3, handletextpad=0.4, columnspacing=0.9, labelspacing=0.4)
     fig.tight_layout()
@@ -619,10 +691,13 @@ LANDMARK_TITLES = [("F", "Frankenstein"), ("SH", "Sherlock Holmes"),
                    ("MD", "Moby Dick"), ("U", "Ulysses"), ("DQ", "Don Quixote"),
                    ("MC", "Count of Monte Cristo"), ("WP", "War and Peace"),
                    ("LM", "Les Misérables")]
+# Frankenstein and Sherlock project almost identically on LV1/LV2. Offset only
+# the visible Frankenstein initial; the point remains at its fitted score.
+LANDMARK_LABEL_OFFSETS = {"F": (0.42, 0.04)}
 
 
-def load_landmark_projection(feats, stats, pls, size_bins):
-    """Assemble the 49-feature vector for each landmark book (40 non-SC features
+def load_landmark_projection(feats, stats, pls, size_bins, components=(0, 1)):
+    """Assemble the 35-feature vector for each landmark book (26 non-SC features
     from the endpoint CSV row + 9 SC features computed offline), per-bin
     standardize against the natural stats, and project through the fitted PLS.
     Returns {"xy": (k,2) array, "labels": [initials]} or None if SC missing."""
@@ -653,13 +728,13 @@ def load_landmark_projection(feats, stats, pls, size_bins):
         return None
     df = pd.DataFrame(rows).dropna(subset=["size_bin"]).reset_index(drop=True)
     T = pls.transform(standardize_per_bin(df, feats, stats))
-    return {"xy": T[:, :2], "labels": list(df["_ini"])}
+    return {"xy": T[:, list(components)], "labels": list(df["_ini"])}
 
 
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--feature-set", choices=["combined", "sc", "token_stat"], default="combined")
-    p.add_argument("--n-components", type=int, default=3)
+    p.add_argument("--n-components", type=int, default=4)
     p.add_argument("--biplot-vip-min", type=float, default=1.0,
                    help="draw loading arrows for every feature with VIP above this "
                         "(default 1.0, the standard importance threshold).")
@@ -698,6 +773,7 @@ def main() -> None:
 
     pls = PLSRegression(n_components=args.n_components).fit(X, y)
     vip = vip_scores(pls)
+    lv_var = pls_component_x_variance(pls, X)
     coef = np.ravel(pls.coef_)
     if coef.size != len(feats):                       # sklearn version shape guard
         coef = np.ravel(pls.coef_.T)[:len(feats)]
@@ -733,6 +809,18 @@ def main() -> None:
     lines.append(f"features: {len(feats)}    latent variables: {args.n_components}")
     lines.append("normalization: per-size-bin median/IQR (matched size); "
                  "CV: 5-fold StratifiedGroupKFold (run-grouped)")
+    lv_parts = [f"LV{i + 1} {value:.1f}%" for i, value in enumerate(lv_var)]
+    lines.append("incremental descriptor variance by latent variable: " + ", ".join(lv_parts)
+                 + f" (cumulative {np.nansum(lv_var):.1f}%)")
+    if args.feature_set != "sc":
+        lines.append("descriptor policy: preserve interpretively distinct descriptors; "
+                     "exclude exact aliases and the overlapping unigram-entropy source")
+        lines.append("excluded exact token aliases:")
+        for metric, relationship in EXCLUDED_EXACT_ALIASES.items():
+            lines.append(f"  {metric} = {relationship}")
+        lines.append("excluded provenance duplicate:")
+        for metric, relationship in EXCLUDED_PROVENANCE_DUPLICATES.items():
+            lines.append(f"  {metric} = {relationship}")
     lines.append("")
     lines.append(f"Cross-validated AUC              : {np.mean(aucs):.3f} ± {np.std(aucs):.3f}")
     lines.append(f"Cross-validated balanced accuracy: {np.mean(baccs):.3f} ± {np.std(baccs):.3f}")
@@ -759,13 +847,8 @@ def main() -> None:
     gen_modes = generated["conditioning_mode"].to_numpy()
     nat_bins = natural["size_bin"].values
     auc = float(np.mean(aucs))
-    # fraction of descriptor (X) variance captured by each latent variable
-    Pl = pls.x_loadings_
-    Xc = X - X.mean(axis=0)
-    lv_var = np.array([np.sum(np.outer(T[:, k], Pl[:, k]) ** 2) for k in range(T.shape[1])])
-    lv_var = 100.0 * lv_var / np.sum(Xc ** 2)
     score_figure(out_dir / "plsda_scores.png", Tn, Tg, gen_modes, nat_bins, size_bins,
-                 len(feats), args.feature_set, auc, lv_var=lv_var)
+                 len(feats), args.feature_set, auc, lv_var=lv_var, components=(0, 1))
 
     # biplot: overlay loading vectors for every important feature (VIP > threshold)
     ranked = np.argsort(vip)[::-1]
@@ -774,11 +857,9 @@ def main() -> None:
         order = ranked[:8]
     loadings_lv = pls.x_loadings_[:, :2]
     arrows = {"lv": loadings_lv[order],
-              # shorten the SC window suffix for the crowded biplot only
-              "labels": [pretty_name(display_name(feats[i])).replace(" window)", ")")
-                         for i in order],
+              "labels": [descriptor_label(feats[i]) for i in order],
               "colors": [FAM_COLOR[fine_family(feats[i])] for i in order]}
-    landmarks = load_landmark_projection(feats, stats, pls, size_bins)
+    landmarks = load_landmark_projection(feats, stats, pls, size_bins, components=(0, 1))
     if landmarks is not None:
         print(f"landmark books projected: {len(landmarks['labels'])}")
     biplot_title = (f"Discriminant descriptor distribution — natural, generated "
@@ -786,10 +867,34 @@ def main() -> None:
                     f"descriptors with VIP > {args.biplot_vip_min:g}  —  CV AUC {auc:.3f})")
     score_figure(out_dir / "plsda_biplot.png", Tn, Tg, gen_modes, nat_bins, size_bins,
                  len(feats), args.feature_set, auc, arrows=arrows,
-                 landmarks=landmarks, show_bin_means=False, title=biplot_title, lv_var=lv_var)
+                 landmarks=landmarks, show_bin_means=False, title=biplot_title, lv_var=lv_var,
+                 components=(0, 1))
     plot_per_bin(out_dir / "plsda_per_bin.png", Tn, Tg, nat_bins,
                  generated["size_bin"].values, gen_modes, size_bins,
                  len(feats), args.feature_set, auc, arrows)
+
+    if T.shape[1] >= 4:
+        lv34_components = (2, 3)
+        score_figure(out_dir / "plsda_scores_lv3_lv4.png", Tn, Tg, gen_modes,
+                     nat_bins, size_bins, len(feats), args.feature_set, auc,
+                     lv_var=lv_var, components=lv34_components)
+        loadings_lv34 = pls.x_loadings_[:, list(lv34_components)]
+        arrows_lv34 = {
+            "lv": loadings_lv34[order],
+            "labels": [descriptor_label(feats[i]) for i in order],
+            "colors": [FAM_COLOR[fine_family(feats[i])] for i in order],
+        }
+        landmarks_lv34 = load_landmark_projection(
+            feats, stats, pls, size_bins, components=lv34_components)
+        biplot_title_lv34 = (
+            f"Residual descriptor distribution — natural, generated & landmark books\n"
+            f"(LV3 × LV4; showing {len(order)} of {len(feats)} descriptors with "
+            f"VIP > {args.biplot_vip_min:g}  —  CV AUC {auc:.3f})")
+        score_figure(out_dir / "plsda_biplot_lv3_lv4.png", Tn, Tg, gen_modes,
+                     nat_bins, size_bins, len(feats), args.feature_set, auc,
+                     arrows=arrows_lv34, landmarks=landmarks_lv34,
+                     show_bin_means=False, title=biplot_title_lv34, lv_var=lv_var,
+                     components=lv34_components)
 
     # canonical variate analysis: natural + each ablation mode as a group
     groups = np.r_[np.array(["natural"] * len(Xn)), gen_modes]

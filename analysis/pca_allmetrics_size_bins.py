@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-PCA of the full descriptor set (8 legacy stat/info + 34 token-based) on the
+PCA of the canonical descriptor set (8 stat/info + 27 token-based) on the
 natural-book corpus, colour-coded by token size bin, with generated-book
 prefixes projected onto the natural score plane — the all-metrics analogue of
 pca_legacy_size_bins.py.
 
 Data sources (the legacy experimental_metrics.json has no token metrics):
-  - natural legacy 8  : natural_texts/Output/batch_results/batch_*.json
-  - natural token 34  : gutenberg_benchmark_cache/token_naturalness_metrics.jsonl
+  - natural stat/info 8 : natural_texts/Output/batch_results/batch_*.json
+  - natural token 27    : gutenberg_benchmark_cache/token_naturalness_metrics.jsonl
                         gutenberg_benchmark_cache/token_predictability_metrics.jsonl
-  - generated (46 SC runs x 5 size bins, all 42 features):
+  - generated (46 SC runs x 5 size bins, all 35 non-SC features):
                         natural_texts/Output/pca/sc_combined/
                           sc_combined_pca_generated_scores.csv
 
@@ -35,6 +35,7 @@ from sklearn.preprocessing import StandardScaler
 
 import sys
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "analysis"))
 
 # reuse the metric-agnostic rendering helpers from the legacy size-bin script
@@ -43,11 +44,13 @@ from pca_legacy_size_bins import (  # noqa: E402
     fit_per_bin_stats, format_token_label, load_size_bins, robust_limits,
     size_bin_palette, standardize_per_bin,
 )
+from analysis.descriptor_schema import (  # noqa: E402
+    STAT_INFO_METRICS,
+    TOKEN_METRICS,
+    available_features,
+)
 
-LEGACY_METRICS = [
-    "beta", "alpha", "H_DFA1", "H_WT_db4",
-    "entropy_bits", "perplexity", "lz_complexity", "mi_decay_gamma",
-]
+LEGACY_METRICS = list(STAT_INFO_METRICS)
 
 DEFAULT_BATCH_RESULTS = ROOT / "natural_texts" / "Output" / "batch_results"
 DEFAULT_TOKEN_NAT = (ROOT / "natural_texts" / "Output" / "gutenberg_benchmark_cache"
@@ -119,16 +122,13 @@ def load_natural(batch_dir: Path, token_nat: Path, token_pred: Path) -> tuple[pd
 
     tn = load_jsonl(token_nat); tn["book_id"] = tn["book_id"].astype(str)
     tp = load_jsonl(token_pred); tp["book_id"] = tp["book_id"].astype(str)
-    # exclude *_r2 (goodness-of-fit diagnostics, not content descriptors)
-    def _keep(c):
-        return c.startswith(("td_", "tr_", "tp_")) and not c.endswith("_r2")
-    tn_cols = [c for c in tn.columns if _keep(c)]
-    tp_cols = [c for c in tp.columns if _keep(c)]
+    tn_cols = [c for c in TOKEN_METRICS if c in tn.columns]
+    tp_cols = [c for c in TOKEN_METRICS if c in tp.columns]
 
     nat = (bdf[["book_id", "n_tokens", *LEGACY_METRICS]]
            .merge(tn[["book_id", *tn_cols]], on="book_id", how="inner")
            .merge(tp[["book_id", *tp_cols]], on="book_id", how="inner"))
-    features = LEGACY_METRICS + sorted(set(tn_cols + tp_cols))
+    features = available_features(nat.columns, include_sc=False)
     nat = nat.replace([np.inf, -np.inf], np.nan).dropna(subset=features + ["n_tokens"])
     return nat, features
 
@@ -202,7 +202,7 @@ def display_limits(natural, generated, pcx, pcy, lower_q=2.0, upper_q=98.0, pad=
 
 def plot_combined(natural, generated, size_bins, bin_color, evr, loadings, figsize,
                   pcx="PC1", pcy="PC2", norm_note="", topk=12,
-                  feature_desc="8 legacy + 32 token"):
+                  feature_desc="8 stat/info + 27 token"):
     ix, iy = int(pcx[2:]) - 1, int(pcy[2:]) - 1
     labels = [b["label"] for b in size_bins if b["label"] in set(natural["size_bin"])]
     fig = plt.figure(figsize=figsize)
@@ -271,7 +271,7 @@ def main() -> None:
     p.add_argument("--output-dir", type=Path, default=None)
     p.add_argument("--poster-dir", type=Path, default=DEFAULT_POSTER_DIR)
     p.add_argument("--feature-set", choices=["all", "legacy"], default="all",
-                   help="'all' = 8 legacy + 32 token; 'legacy' = the 8 legacy "
+                   help="'all' = 8 stat/info + 27 token; 'legacy' = the 8 legacy "
                         "descriptors only (same SC-run cohort, mode-coloured).")
     p.add_argument("--per-bin-normalization", action="store_true",
                    help="Robust-z each metric within its size bin (median/IQR) before "

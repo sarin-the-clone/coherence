@@ -1,29 +1,30 @@
 PLS-DA discriminant analysis — feature set: sc
 ======================================================================
 natural (SC subcorpus): 1047    generated: 245 (6 modes)
-features: 9    latent variables: 3
+features: 9    latent variables: 4
 normalization: per-size-bin median/IQR (matched size); CV: 5-fold StratifiedGroupKFold (run-grouped)
+incremental descriptor variance by latent variable: LV1 64.1%, LV2 25.7%, LV3 4.5%, LV4 2.2% (cumulative 96.6%)
 
-Cross-validated AUC              : 0.948 ± 0.031
-Cross-validated balanced accuracy: 0.879 ± 0.044
-natural score mean +0.14 | generated score mean +0.40
+Cross-validated AUC              : 0.946 ± 0.032
+Cross-validated balanced accuracy: 0.866 ± 0.047
+natural score mean +0.14 | generated score mean +0.41
 
 Variable importance (VIP > 1 = important), with matched-size direction:
   metric                           family   VIP  offset  direction
- *W8k_global_similarity            SC      1.21   +0.82  gen higher
- *W40k_global_similarity           SC      1.13   +0.75  gen higher
- *W40k_local_flow                  SC      1.06   +0.66  gen higher
- *W2k_global_similarity            SC      1.06   +0.71  gen higher
- *W40k_novelty                     SC      1.03   -0.65  gen lower
- *W2k_novelty                      SC      1.03   -0.02  gen lower
-  W8k_local_flow                   SC      0.95   +0.58  gen higher
-  W8k_novelty                      SC      0.74   -0.45  gen lower
-  W2k_local_flow                   SC      0.69   +0.10  gen higher
+ *W8k_global_similarity            SC      1.19   +0.82  gen higher
+ *W40k_global_similarity           SC      1.14   +0.75  gen higher
+ *W40k_novelty                     SC      1.05   -0.65  gen lower
+ *W40k_local_flow                  SC      1.05   +0.66  gen higher
+ *W2k_global_similarity            SC      1.04   +0.71  gen higher
+ *W2k_novelty                      SC      1.01   -0.02  gen lower
+  W8k_local_flow                   SC      0.94   +0.58  gen higher
+  W8k_novelty                      SC      0.75   -0.45  gen lower
+  W2k_local_flow                   SC      0.73   +0.10  gen higher
 
 Per-ablation-mode separation (mean PLS score; higher = more generated-like):
-  markov rolling       n= 15  mean=+0.27 ± 0.09
-  minimal fixed        n= 15  mean=+0.36 ± 0.03
-  basic                n= 65  mean=+0.39 ± 0.06
+  markov rolling       n= 15  mean=+0.27 ± 0.08
+  minimal fixed        n= 15  mean=+0.39 ± 0.02
+  basic                n= 65  mean=+0.40 ± 0.06
   summaries            n= 90  mean=+0.42 ± 0.05
-  extended/full        n= 45  mean=+0.42 ± 0.04
-  extended no fixed    n= 15  mean=+0.46 ± 0.02
+  extended/full        n= 45  mean=+0.43 ± 0.04
+  extended no fixed    n= 15  mean=+0.48 ± 0.03

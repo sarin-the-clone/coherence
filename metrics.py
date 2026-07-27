@@ -1364,92 +1364,84 @@ def detrended_moving_average(tokens, min_win=2, max_win=None, n_scales=20, devic
 
 def wavelet_dfa(tokens, wavelet_name='db4', device="cpu", crossover_scale=100):
     """
-    Wavelet Detrended Fluctuation Analysis (WDFA).
-    
-    Uses Discrete Wavelet Transform (DWT) to estimate H.
-    The energy of detail coefficients at scale s (level j) scales as:
-       E_j ~ s^(2H + 1)  (for integrated signal)
-       RMS_j ~ s^(H + 0.5)
-       
-    Parameters
-    ----------
-    tokens : list/array
-    wavelet_name : str
-        Name of wavelet (e.g., 'db4', 'haar')
-    crossover_scale : int
-        Scale threshold to separate short vs long range scaling
-        
-    Returns
-    -------
-    H_global : float
-        Hurst exponent from all scales
-    H_short : float
-        Hurst exponent from short scales (< crossover_scale)
-    H_long : float
-        Hurst exponent from long scales (>= crossover_scale)
-    """
-    try:
-        import pywt
-    except ImportError:
-        print("PyWavelets not installed. Returning NaN for WDFA.")
-        return float('nan'), float('nan'), float('nan'), {}
+    CPU Wavelet Detrended Fluctuation Analysis (WDFA).
 
-    x = np.array(tokens, dtype=np.float64)
-    x = x - np.mean(x)
-    y = np.cumsum(x) # Integrate
-    
-    # Decompose
-    mode = 'symmetric'
-    coeffs = pywt.wavedec(y, wavelet_name, mode=mode)
-    
-    details = coeffs[1:]
-    n_levels = len(details)
-    
-    F_vals = []
+    This uses the same custom wavelet cascade as the established GPU path so
+    CPU fallback values are numerically consistent with historical results.
+    """
+    return _wavelet_dfa_torch_impl(
+        tokens,
+        wavelet_name=wavelet_name,
+        device=device,
+        crossover_scale=crossover_scale,
+    )
+
+
+def _wavelet_dfa_torch_impl(tokens, wavelet_name='db4', device="cuda", crossover_scale=100):
+    """Shared implementation for the established WDFA GPU path and CPU fallback."""
+    x = torch.as_tensor(tokens, dtype=torch.float32, device=device)
+    x = x - x.mean()
+    y = torch.cumsum(x, dim=0)
+
+    # Keep this filter configuration unchanged: it defines the historical metric.
+    if wavelet_name == 'db4':
+        dec_lo = torch.tensor(
+            [0.4829629131445341, 0.8365163037378079, 0.2241438680420134, -0.1294095225512604],
+            device=device,
+        )
+        dec_hi = torch.tensor(
+            [-0.1294095225512604, -0.2241438680420134, 0.8365163037378079, -0.4829629131445341],
+            device=device,
+        )
+    else:
+        dec_lo = torch.tensor([0.70710678, 0.70710678], device=device)
+        dec_hi = torch.tensor([-0.70710678, 0.70710678], device=device)
+
+    # PyTorch convolution is correlation, so reverse the filters first.
+    dec_lo = torch.flip(dec_lo, [0]).view(1, 1, -1)
+    dec_hi = torch.flip(dec_hi, [0]).view(1, 1, -1)
+    approx = y.view(1, 1, -1)
+
+    fluctuations = []
     scales = []
-    
-    for i, cD in enumerate(details):
-        level = n_levels - i
-        scale = 2**level
-        
-        # Energy (RMS)
-        F = np.sqrt(np.mean(cD**2))
-        
-        F_vals.append(F)
-        scales.append(scale)
-        
+    max_levels = int(torch.log2(torch.tensor(len(tokens))).item()) - 3
+    padding = dec_lo.shape[-1] - 1
+
+    for level in range(max_levels):
+        approx_padded = torch.nn.functional.pad(approx, (padding, padding), mode='reflect')
+        detail = torch.nn.functional.conv1d(approx_padded, dec_hi, stride=2)
+        approx = torch.nn.functional.conv1d(approx_padded, dec_lo, stride=2)
+
+        fluctuation = torch.sqrt(torch.mean(detail**2))
+        if not torch.isnan(fluctuation) and fluctuation > 0:
+            fluctuations.append(fluctuation.item())
+            scales.append(2 ** (level + 1))
+
     scales = np.array(scales)
-    F_vals = np.array(F_vals)
-    
-    # Filter valid
-    valid = F_vals > 0
+    fluctuation_values = np.array(fluctuations)
+    valid = fluctuation_values > 0
     if valid.sum() < 3:
         return float('nan'), float('nan'), float('nan'), {}
-        
+
     ln_s = np.log2(scales[valid])
-    ln_F = np.log2(F_vals[valid])
-    
-    # Global fit
-    slope_global, _ = np.polyfit(ln_s, ln_F, 1)
-    H_global = slope_global - 0.5
-    
-    # Short scales (< crossover_scale)
-    short_mask = (scales[valid] < crossover_scale)
-    if short_mask.sum() >= 2:
-        slope_short, _ = np.polyfit(ln_s[short_mask], ln_F[short_mask], 1)
-        H_short = slope_short - 0.5
-    else:
-        H_short = float('nan')
-    
-    # Long scales (>= crossover_scale)
-    long_mask = (scales[valid] >= crossover_scale)
-    if long_mask.sum() >= 2:
-        slope_long, _ = np.polyfit(ln_s[long_mask], ln_F[long_mask], 1)
-        H_long = slope_long - 0.5
-    else:
-        H_long = float('nan')
-    
-    return H_global, H_short, H_long, {"scales": scales, "fluctuation": F_vals}
+    ln_f = np.log2(fluctuation_values[valid])
+    slope, _ = np.polyfit(ln_s, ln_f, 1)
+    h_global = slope - 0.5
+
+    short_mask = scales[valid] < crossover_scale
+    long_mask = scales[valid] >= crossover_scale
+    h_short = float('nan')
+    h_long = float('nan')
+
+    if short_mask.sum() >= 3:
+        short_slope, _ = np.polyfit(ln_s[short_mask], ln_f[short_mask], 1)
+        h_short = short_slope - 0.5
+
+    if long_mask.sum() >= 3:
+        long_slope, _ = np.polyfit(ln_s[long_mask], ln_f[long_mask], 1)
+        h_long = long_slope - 0.5
+
+    return h_global, h_short, h_long, {"scales": scales, "fluctuation": fluctuation_values}
 
     
 
@@ -1485,89 +1477,12 @@ class CoherenceMetrics:
         """
         GPU-accelerated WDFA using generic DWT implementation.
         """
-        x = torch.as_tensor(tokens, dtype=torch.float32, device=device)
-        x = x - x.mean()
-        y = torch.cumsum(x, dim=0)
-        
-        # Get filters relative to 'db4' or similar
-        # For simplicity, we hardcode db4 here or use a helper to get them
-        # Low pass (dec_lo) and High pass (dec_hi) for decomposition
-        # db4 coefficients
-        if wavelet_name == 'db4':
-             # Daubechies 4 decomposition filters
-             dec_lo = torch.tensor([0.4829629131445341, 0.8365163037378079, 0.2241438680420134, -0.1294095225512604], device=device)
-             dec_hi = torch.tensor([-0.1294095225512604, -0.2241438680420134, 0.8365163037378079, -0.4829629131445341], device=device)
-        else:
-             # Fallback to Haar if unknown
-             dec_lo = torch.tensor([0.70710678, 0.70710678], device=device)
-             dec_hi = torch.tensor([-0.70710678, 0.70710678], device=device)
-
-        # Flip for convolution (pytorch conv is correlation)
-        dec_lo = torch.flip(dec_lo, [0]).view(1, 1, -1)
-        dec_hi = torch.flip(dec_hi, [0]).view(1, 1, -1)
-        
-        approx = y.view(1, 1, -1)
-        
-        fluctuations = []
-        scales = []
-        
-        # Cascade
-        curr_scale = 1
-        max_levels = int(torch.log2(torch.tensor(len(tokens))).item()) - 3
-        
-        # We need padding matching pywt 'symmetric' ideally, but 'reflect' is close enough
-        padding = dec_lo.shape[-1] - 1
-        
-        for level in range(max_levels):
-             # Padding
-             approx_padded = torch.nn.functional.pad(approx, (padding, padding), mode='reflect')
-             
-             # Detail (High Pass)
-             detail = torch.nn.functional.conv1d(approx_padded, dec_hi, stride=2)
-             
-             # Approx (Low Pass) for next level
-             approx = torch.nn.functional.conv1d(approx_padded, dec_lo, stride=2)
-             
-             # Calculate fluctuation for this scale
-             scale = 2**(level+1)
-             
-             # RMS of details
-             F = torch.sqrt(torch.mean(detail**2))
-             
-             if not torch.isnan(F) and F > 0:
-                 fluctuations.append(F.item())
-                 scales.append(scale)
-                 
-        scales = np.array(scales)
-        F_vals = np.array(fluctuations)
-        
-        valid = F_vals > 0
-        if valid.sum() < 3:
-             return float('nan'), float('nan'), float('nan'), {}
-             
-        ln_s = np.log2(scales[valid])
-        ln_F = np.log2(F_vals[valid])
-        
-        # Fit global
-        slope, _ = np.polyfit(ln_s, ln_F, 1)
-        H_global = slope - 0.5
-        
-        # Crossover
-        mask_short = scales[valid] < crossover_scale
-        mask_long = scales[valid] >= crossover_scale
-        
-        H_short = float('nan')
-        H_long = float('nan')
-        
-        if mask_short.sum() >= 3:
-            s_s, _ = np.polyfit(ln_s[mask_short], ln_F[mask_short], 1)
-            H_short = s_s - 0.5
-            
-        if mask_long.sum() >= 3:
-            s_l, _ = np.polyfit(ln_s[mask_long], ln_F[mask_long], 1)
-            H_long = s_l - 0.5
-            
-        return H_global, H_short, H_long, {"scales": scales, "fluctuation": F_vals}
+        return _wavelet_dfa_torch_impl(
+            tokens,
+            wavelet_name=wavelet_name,
+            device=device,
+            crossover_scale=crossover_scale,
+        )
 
     # ------------------------------------------------------------------
     # 4. DMA (PyTorch GPU)

@@ -1,7 +1,7 @@
 {
   "n_natural_books": 1047,
   "n_generated": 245,
-  "n_features": 49,
+  "n_features": 44,
   "features": [
     "W2k_off_diag_mean",
     "W2k_novelty_mean",
@@ -26,38 +26,33 @@
     "td_hapax_token_fraction",
     "td_top1_token_fraction",
     "td_top10_token_fraction",
-    "td_zipf_slope",
     "td_zipf_exponent",
     "td_heaps_exponent",
-    "tr_repeat_rate",
     "tr_repeat_gap_mean",
     "tr_repeat_gap_mean_log2",
     "tr_repeat_gap_median_log2",
     "tr_repeat_gap_cv",
     "tr_repeat_gap_burstiness",
     "tr_repeat_gap_logbin_entropy",
-    "tp_entropy_0",
     "tp_cond_entropy_1",
+    "tp_cond_entropy_2",
+    "tp_cond_entropy_3",
+    "tp_cond_entropy_4",
     "tp_redundancy_1",
     "tp_entropy_gain_1",
-    "tp_cond_entropy_2",
     "tp_redundancy_2",
     "tp_entropy_gain_2",
-    "tp_cond_entropy_3",
     "tp_redundancy_3",
     "tp_entropy_gain_3",
-    "tp_cond_entropy_4",
     "tp_redundancy_4",
     "tp_entropy_gain_4",
-    "tp_entropy_slope",
-    "tp_entropy_drop_4",
-    "tp_context_efficiency_4"
+    "tp_entropy_slope"
   ],
   "normalization": "global",
   "explained_variance_ratio": [
-    0.45243369920186427,
-    0.1724365990897336,
-    0.1521825986924589,
-    0.05549469057875636
+    0.4218856425216142,
+    0.17242365267502574,
+    0.16576492477775379,
+    0.061026371498135445
   ]
 }
