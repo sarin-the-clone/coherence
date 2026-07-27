@@ -708,9 +708,9 @@ LANDMARK_TITLES = [("F", "Frankenstein"), ("SH", "Sherlock Holmes"),
                    ("MD", "Moby Dick"), ("U", "Ulysses"), ("DQ", "Don Quixote"),
                    ("MC", "Count of Monte Cristo"), ("WP", "War and Peace"),
                    ("LM", "Les Misérables")]
-# Frankenstein and Sherlock project almost identically on LV1/LV2. Offset only
-# the visible Frankenstein initial; the point remains at its fitted score.
-LANDMARK_LABEL_OFFSETS = {"F": (0.42, 0.04)}
+# These pairs overlap nearby loading-label boxes on LV1/LV2. Offset only the
+# visible initials; points remain at their fitted scores.
+LANDMARK_LABEL_OFFSETS = {"F": (0.42, 0.04), "RC": (-0.62, 0.48)}
 
 
 def load_landmark_projection(feats, stats, pls, size_bins, components=(0, 1)):
