@@ -19,6 +19,11 @@ In-corpus run/book CV AUC        : 1.000 ± 0.000
 Run/book balanced accuracy        : 0.980 ± 0.040
 Prefix-row CV AUC (correlated)    : 1.000 ± 0.000
 Prefix-row balanced accuracy      : 0.986 ± 0.028
+Pooled out-of-fold run/book confusion matrix (fold-specific training thresholds):
+                         predicted natural  predicted generated
+  actual natural                  1046                    1
+  actual generated                   2                   47
+Pooled sensitivity 0.959 | pooled specificity 0.999
 scope: discrimination of these 49 generated runs versus this natural-book corpus; not an external-model, prompt, or corpus benchmark
 natural score mean +0.03 | generated score mean +0.86
 

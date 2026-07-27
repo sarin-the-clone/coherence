@@ -40,7 +40,7 @@ from matplotlib.text import Text as MplText
 from sklearn.cross_decomposition import PLSRegression
 from sklearn.decomposition import PCA
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-from sklearn.metrics import balanced_accuracy_score, roc_auc_score, roc_curve
+from sklearn.metrics import balanced_accuracy_score, confusion_matrix, roc_auc_score, roc_curve
 from sklearn.model_selection import StratifiedGroupKFold
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -782,8 +782,8 @@ def main() -> None:
     # so held-out natural books cannot influence their own normalization.
     cv = StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=0)
     prefix_aucs, prefix_baccs = [], []
-    group_aucs, group_baccs = [], []
-    for tr, te in cv.split(X, y, groups):
+    group_aucs, group_baccs, group_oof = [], [], []
+    for fold, (tr, te) in enumerate(cv.split(X, y, groups), start=1):
         natural_train = natural.iloc[tr[tr < len(natural)]]
         fold_stats = fit_per_bin_stats(natural_train, feats)
         Xtr = standardize_per_bin(raw_rows.iloc[tr], feats, fold_stats)
@@ -802,11 +802,30 @@ def main() -> None:
         fpr, tpr, thr = roc_curve(y_tr_group, p_tr_group)
         t_opt_group = thr[int(np.argmax(tpr - fpr))]
         group_aucs.append(roc_auc_score(y_te_group, p_te_group))
-        group_baccs.append(balanced_accuracy_score(
-            y_te_group, (p_te_group >= t_opt_group).astype(int)))
+        group_pred = (p_te_group >= t_opt_group).astype(int)
+        group_baccs.append(balanced_accuracy_score(y_te_group, group_pred))
+        group_oof.append(pd.DataFrame({
+            "fold": fold,
+            "group_id": pd.unique(groups[te]),
+            "true_class": y_te_group.astype(int),
+            "pls_score": p_te_group,
+            "threshold": t_opt_group,
+            "predicted_class": group_pred,
+        }))
 
     # Use the independent run/book unit for all figure and report headlines.
     auc = float(np.mean(group_aucs))
+    group_oof_df = pd.concat(group_oof, ignore_index=True)
+    group_oof_df["true_label"] = np.where(group_oof_df["true_class"] == 1,
+                                            "generated", "natural")
+    group_oof_df["predicted_label"] = np.where(group_oof_df["predicted_class"] == 1,
+                                                 "generated", "natural")
+    group_oof_df.to_csv(out_dir / "cv_run_book_predictions.csv", index=False)
+    tn, fp, fn, tp = confusion_matrix(
+        group_oof_df["true_class"], group_oof_df["predicted_class"], labels=[0, 1]
+    ).ravel()
+    specificity = tn / (tn + fp)
+    sensitivity = tp / (tp + fn)
 
     pls = PLSRegression(n_components=args.n_components).fit(X, y)
     vip = vip_scores(pls)
@@ -867,6 +886,12 @@ def main() -> None:
     lines.append(f"Run/book balanced accuracy        : {np.mean(group_baccs):.3f} ± {np.std(group_baccs):.3f}")
     lines.append(f"Prefix-row CV AUC (correlated)    : {np.mean(prefix_aucs):.3f} ± {np.std(prefix_aucs):.3f}")
     lines.append(f"Prefix-row balanced accuracy      : {np.mean(prefix_baccs):.3f} ± {np.std(prefix_baccs):.3f}")
+    lines.append("Pooled out-of-fold run/book confusion matrix "
+                 "(fold-specific training thresholds):")
+    lines.append("                         predicted natural  predicted generated")
+    lines.append(f"  actual natural                  {tn:4d}                 {fp:4d}")
+    lines.append(f"  actual generated                {fn:4d}                 {tp:4d}")
+    lines.append(f"Pooled sensitivity {sensitivity:.3f} | pooled specificity {specificity:.3f}")
     lines.append("scope: discrimination of these 49 generated runs versus this natural-book "
                  "corpus; not an external-model, prompt, or corpus benchmark")
     lines.append(f"natural score mean {nat_scores.mean():+.2f} | generated score mean {gen_scores.mean():+.2f}")
