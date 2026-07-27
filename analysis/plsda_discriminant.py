@@ -265,6 +265,23 @@ def vip_scores(pls: PLSRegression) -> np.ndarray:
     return np.sqrt(p * np.sum((wn ** 2) * ssy[None, :], axis=1) / total)
 
 
+def aggregate_group_scores(y: np.ndarray, scores: np.ndarray,
+                           groups: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Return one target and mean score per independent CV group.
+
+    A generated group is a complete run with five nested prefixes. Averaging its
+    scores prevents those correlated prefixes from counting as five independent
+    validation cases. Natural groups contain one book each.
+    """
+    grouped = (pd.DataFrame({"group": groups, "target": y, "score": scores})
+               .groupby("group", sort=False)
+               .agg(target=("target", "first"), n_target=("target", "nunique"),
+                    score=("score", "mean")))
+    if not (grouped["n_target"] == 1).all():
+        raise ValueError("Each cross-validation group must contain one class only")
+    return grouped["target"].to_numpy(), grouped["score"].to_numpy()
+
+
 def pls_component_x_variance(pls: PLSRegression, X: np.ndarray) -> np.ndarray:
     """Incremental descriptor variance reconstructed by each PLS component."""
     scores = pls.x_scores_
@@ -764,7 +781,8 @@ def main() -> None:
     # Refit the natural per-bin median/IQR transform inside each training fold
     # so held-out natural books cannot influence their own normalization.
     cv = StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=0)
-    aucs, baccs = [], []
+    prefix_aucs, prefix_baccs = [], []
+    group_aucs, group_baccs = [], []
     for tr, te in cv.split(X, y, groups):
         natural_train = natural.iloc[tr[tr < len(natural)]]
         fold_stats = fit_per_bin_stats(natural_train, feats)
@@ -772,12 +790,23 @@ def main() -> None:
         Xte = standardize_per_bin(raw_rows.iloc[te], feats, fold_stats)
         m = PLSRegression(n_components=args.n_components).fit(Xtr, y[tr])
         p_tr, p_te = m.predict(Xtr).ravel(), m.predict(Xte).ravel()
-        # threshold from the train fold (Youden's J) — fixed 0.5 is degenerate
-        # under class imbalance
+        # Prefix-level scores are retained for reference only. The primary CV
+        # result is one score per complete generated run (and natural book).
         fpr, tpr, thr = roc_curve(y[tr], p_tr)
         t_opt = thr[int(np.argmax(tpr - fpr))]
-        aucs.append(roc_auc_score(y[te], p_te))
-        baccs.append(balanced_accuracy_score(y[te], (p_te >= t_opt).astype(int)))
+        prefix_aucs.append(roc_auc_score(y[te], p_te))
+        prefix_baccs.append(balanced_accuracy_score(y[te], (p_te >= t_opt).astype(int)))
+
+        y_tr_group, p_tr_group = aggregate_group_scores(y[tr], p_tr, groups[tr])
+        y_te_group, p_te_group = aggregate_group_scores(y[te], p_te, groups[te])
+        fpr, tpr, thr = roc_curve(y_tr_group, p_tr_group)
+        t_opt_group = thr[int(np.argmax(tpr - fpr))]
+        group_aucs.append(roc_auc_score(y_te_group, p_te_group))
+        group_baccs.append(balanced_accuracy_score(
+            y_te_group, (p_te_group >= t_opt_group).astype(int)))
+
+    # Use the independent run/book unit for all figure and report headlines.
+    auc = float(np.mean(group_aucs))
 
     pls = PLSRegression(n_components=args.n_components).fit(X, y)
     vip = vip_scores(pls)
@@ -798,7 +827,7 @@ def main() -> None:
         "direction": ["gen higher" if o > 0 else "gen lower" for o in gen_offset],
     }).sort_values("VIP", ascending=False).reset_index(drop=True)
     table.drop(columns=["fam"]).to_csv(out_dir / "vip.csv", index=False)
-    plot_vip(table, out_dir / "vip_barplot.png", args.feature_set, float(np.mean(aucs)))
+    plot_vip(table, out_dir / "vip_barplot.png", args.feature_set, auc)
 
     # per-mode separation (continuous PLS score; higher = more "generated-like")
     scores_all = pls.predict(X).ravel()
@@ -819,6 +848,8 @@ def main() -> None:
                  "CV refits natural-bin statistics in each training fold")
     lines.append("CV: 5-fold StratifiedGroupKFold (all five prefixes of each "
                  "generated run held together)")
+    lines.append("primary CV test unit: generated run (mean score across its five "
+                 "held-out prefixes) versus natural book")
     lv_parts = [f"LV{i + 1} {value:.1f}%" for i, value in enumerate(lv_var)]
     lines.append("incremental descriptor variance by latent variable: " + ", ".join(lv_parts)
                  + f" (cumulative {np.nansum(lv_var):.1f}%)")
@@ -832,8 +863,10 @@ def main() -> None:
         for metric, relationship in EXCLUDED_PROVENANCE_DUPLICATES.items():
             lines.append(f"  {metric} = {relationship}")
     lines.append("")
-    lines.append(f"In-corpus run-grouped CV AUC     : {np.mean(aucs):.3f} ± {np.std(aucs):.3f}")
-    lines.append(f"Cross-validated balanced accuracy: {np.mean(baccs):.3f} ± {np.std(baccs):.3f}")
+    lines.append(f"In-corpus run/book CV AUC        : {np.mean(group_aucs):.3f} ± {np.std(group_aucs):.3f}")
+    lines.append(f"Run/book balanced accuracy        : {np.mean(group_baccs):.3f} ± {np.std(group_baccs):.3f}")
+    lines.append(f"Prefix-row CV AUC (correlated)    : {np.mean(prefix_aucs):.3f} ± {np.std(prefix_aucs):.3f}")
+    lines.append(f"Prefix-row balanced accuracy      : {np.mean(prefix_baccs):.3f} ± {np.std(prefix_baccs):.3f}")
     lines.append("scope: discrimination of these 49 generated runs versus this natural-book "
                  "corpus; not an external-model, prompt, or corpus benchmark")
     lines.append(f"natural score mean {nat_scores.mean():+.2f} | generated score mean {gen_scores.mean():+.2f}")
@@ -858,7 +891,6 @@ def main() -> None:
     Tn, Tg = T[:len(Xn)], T[len(Xn):]
     gen_modes = generated["conditioning_mode"].to_numpy()
     nat_bins = natural["size_bin"].values
-    auc = float(np.mean(aucs))
     score_figure(out_dir / "plsda_scores.png", Tn, Tg, gen_modes, nat_bins, size_bins,
                  len(feats), args.feature_set, auc, lv_var=lv_var, components=(0, 1))
 

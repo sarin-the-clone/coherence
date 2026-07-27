@@ -4,6 +4,7 @@ natural (SC subcorpus): 1047    generated: 245 (6 modes)
 features: 44    latent variables: 4
 normalization: per-size-bin median/IQR (matched size); CV refits natural-bin statistics in each training fold
 CV: 5-fold StratifiedGroupKFold (all five prefixes of each generated run held together)
+primary CV test unit: generated run (mean score across its five held-out prefixes) versus natural book
 incremental descriptor variance by latent variable: LV1 30.2%, LV2 26.0%, LV3 13.6%, LV4 3.5% (cumulative 73.3%)
 descriptor policy: preserve interpretively distinct descriptors; exclude exact aliases and the overlapping unigram-entropy source
 excluded exact token aliases:
@@ -14,8 +15,10 @@ excluded exact token aliases:
 excluded provenance duplicate:
   tp_entropy_0 = same intended unigram entropy as entropy_bits; raw values differ because the stored pipelines are not aligned
 
-In-corpus run-grouped CV AUC     : 1.000 ± 0.000
-Cross-validated balanced accuracy: 0.986 ± 0.028
+In-corpus run/book CV AUC        : 1.000 ± 0.000
+Run/book balanced accuracy        : 0.980 ± 0.040
+Prefix-row CV AUC (correlated)    : 1.000 ± 0.000
+Prefix-row balanced accuracy      : 0.986 ± 0.028
 scope: discrimination of these 49 generated runs versus this natural-book corpus; not an external-model, prompt, or corpus benchmark
 natural score mean +0.03 | generated score mean +0.86
 
