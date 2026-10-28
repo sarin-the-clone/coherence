@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "Please cite the repository version or commit used in your work."
+type: software
+title: "Coherence: long-form text generation and coherence analysis"
+authors:
+  - name: "sarin-the-clone"
+repository-code: "https://github.com/sarin-the-clone/coherence"
+url: "https://github.com/sarin-the-clone/coherence"
+# Add a release version, release date and DOI after archiving a tagged release.
+# This identifies the software maintainer's GitHub account, not paper authorship.

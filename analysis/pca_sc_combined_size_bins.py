@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Size-bin-envelope PCA on the SC-analysed natural subcorpus (~1,064 books),
+Size-bin-envelope PCA on the SC-analysed natural subcorpus,
 including the canonical feature set: 9 SC + 8 stat/info + 27 token.
 
 This is the SC-inclusive counterpart of pca_allmetrics_size_bins.py: same
@@ -46,7 +46,7 @@ DEFAULT_POSTER_DIR = ROOT / "ppt"
 
 
 def build_natural() -> tuple[pd.DataFrame, list[str]]:
-    """Assemble the SC subcorpus with the canonical 35 analysis features."""
+    """Assemble complete SC-subcorpus rows using the canonical 44-feature schema."""
     sc_df = scn.load_sc_books()
     batch_df = scn.load_batch_metrics()
     keep_stat = ["book_id"] + [c for c in scn.STAT_INFO_METRICS if c in batch_df.columns]

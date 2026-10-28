@@ -14,6 +14,9 @@ Feature sets (--feature-set):
   sc          9 SC only
   token_stat  8 stat + 27 token
 
+Inputs are the persistent raw descriptor exports and natural-book caches under
+natural_texts/Output/. Use --input-dir to select the same layout elsewhere.
+
 Outputs → natural_texts/Output/pca/discriminant/<feature_set>/
   report.txt, vip.csv, plsda_scores.png, plsda_biplot.png
 """
@@ -43,22 +46,23 @@ from sklearn.metrics import balanced_accuracy_score, confusion_matrix, roc_auc_s
 from sklearn.model_selection import StratifiedGroupKFold
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "analysis"))
 
-import pca_sc_natural_combined as scn  # noqa: E402
-import pca_sc_combined_size_bins as scs  # noqa: E402
 import pca_allmetrics_size_bins as ams  # noqa: E402
 from descriptor_schema import (  # noqa: E402
     EXCLUDED_EXACT_ALIASES,
     EXCLUDED_PROVENANCE_DUPLICATES,
+    STAT_INFO_METRICS,
 )
+from analysis.plsda_inputs import load_export_data  # noqa: E402
 from pca_legacy_size_bins import (  # noqa: E402
     NAVY, add_bin_density_contours, assign_bin, fit_per_bin_stats, load_size_bins,
     size_bin_palette, standardize_per_bin,
 )
 
 DEFAULT_OUTPUT_ROOT = ROOT / "natural_texts" / "Output" / "pca" / "discriminant"
-DEFAULT_SIZE_STATS = ROOT / "natural_texts" / "Output" / "analysis" / "size_binned_metrics.json"
+DEFAULT_INPUT_DIR = ROOT / "natural_texts" / "Output"
 
 # readable SC feature names: W40k_off_diag_mean -> W40k_global_similarity, etc.
 SC_SUFFIX_DISPLAY = {
@@ -158,7 +162,7 @@ def descriptor_label(metric: str) -> str:
 def fine_family(metric: str) -> str:
     if is_sc(metric):
         return "sc"
-    if metric in scn.STAT_INFO_METRICS:
+    if metric in STAT_INFO_METRICS:
         return "stat"
     return metric[:2]  # td / tr / tp
 
@@ -452,7 +456,7 @@ def score_figure(out_path, Tn, Tg, gen_modes, nat_bins, size_bins, n_feat, fs, a
     if arrow_texts:
         adjust_text(
             arrow_texts,
-            objects=landmark_texts,
+            objects=landmark_texts or None,
             target_x=Ls[:, 0],
             target_y=Ls[:, 1],
             avoid_self=False,
@@ -677,19 +681,9 @@ def plot_cva(out_path, X, groups, fs, n_feat):
     return evr
 
 
-def load_data(size_bins):
-    natural, all_features = scs.build_natural()
-    natural["size_bin"] = [assign_bin(t, size_bins) for t in natural["n_tokens"]]
-    natural = natural.dropna(subset=["size_bin"]).reset_index(drop=True)
-
-    generated = scn.load_generated_rows(all_features)
-    for c in all_features:
-        generated[c] = pd.to_numeric(generated[c], errors="coerce")
-    generated = generated.replace([np.inf, -np.inf], np.nan).dropna(subset=all_features).copy()
-    generated["size_bin"] = [assign_bin(t, size_bins, lower_edge_tolerance=0.10)
-                             for t in generated["n_tokens"]]
-    generated = generated.dropna(subset=["size_bin"]).reset_index(drop=True)
-    return natural, generated, all_features
+def load_data(size_bins, input_dir=DEFAULT_INPUT_DIR):
+    """Load the canonical matrix from persistent raw exports and caches."""
+    return load_export_data(input_dir, size_bins)
 
 
 def select_features(all_features: list[str], feature_set: str) -> list[str]:
@@ -701,9 +695,9 @@ def select_features(all_features: list[str], feature_set: str) -> list[str]:
 
 
 # ── landmark books: projected into the fitted PLS score space ────────────────
-LANDMARK_CSV = (ROOT / "natural_texts" / "Output" / "pca" / "generated_prefixes"
+LANDMARK_CSV = (DEFAULT_INPUT_DIR / "pca" / "generated_prefixes"
                 / "landmark_prefix_projection_scores.csv")
-LANDMARK_SC_JSON = Path("/tmp/landmark_sc.json")   # written by compute_sc_landmarks.py
+LANDMARK_SC_JSON = DEFAULT_INPUT_DIR / "pca" / "generated_prefixes" / "landmark_sc.json"
 LANDMARK_INITIALS = {"Frankenstein": "F", "Sherlock": "SH", "PridePrejudice": "PP",
                      "TracedTracked": "TT", "OriginSpecies": "OS", "Crusoe": "RC",
                      "MobyDick": "MD", "Ulysses": "U", "DonQuixote": "DQ",
@@ -720,15 +714,18 @@ LANDMARK_TITLES = [("F", "Frankenstein"), ("SH", "Sherlock Holmes"),
 LANDMARK_LABEL_OFFSETS = {"F": (0.42, 0.04)}
 
 
-def load_landmark_projection(feats, stats, pls, size_bins, components=(0, 1)):
-    """Assemble the 35-feature vector for each landmark book (26 non-SC features
-    from the endpoint CSV row + 9 SC features computed offline), per-bin
+def load_landmark_projection(feats, stats, pls, size_bins, components=(0, 1),
+                             *, sc_path=None, csv_path=None):
+    """Assemble the selected vector for each landmark book (the full canonical
+    schema has 35 non-SC endpoint features + 9 offline SC features), per-bin
     standardize against the natural stats, and project through the fitted PLS.
     Returns {"xy": (k,2) array, "labels": [initials]} or None if SC missing."""
-    if not LANDMARK_SC_JSON.exists():
+    sc_path = Path(sc_path) if sc_path is not None else LANDMARK_SC_JSON
+    csv_path = Path(csv_path) if csv_path is not None else LANDMARK_CSV
+    if not sc_path.exists():
         return None
-    sc = json.loads(LANDMARK_SC_JSON.read_text())
-    lm = pd.read_csv(LANDMARK_CSV)
+    sc = json.loads(sc_path.read_text())
+    lm = pd.read_csv(csv_path)
     ep = lm.loc[lm.groupby("title")["n_tokens"].idxmax()].reset_index(drop=True)
     ep["gid"] = ep["file"].astype(str).str.extract(r"^(\d+)_")
     sc_feats = {f for f in feats if is_sc(f)}
@@ -755,22 +752,52 @@ def load_landmark_projection(feats, stats, pls, size_bins, components=(0, 1)):
     return {"xy": T[:, list(components)], "labels": list(df["_ini"])}
 
 
-def main() -> None:
+def build_argument_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--feature-set", choices=["combined", "sc", "token_stat"], default="combined")
     p.add_argument("--n-components", type=int, default=3)
     p.add_argument("--biplot-vip-min", type=float, default=1.0,
                    help="draw loading arrows for every feature with VIP above this "
                         "(default 1.0, the standard importance threshold).")
-    p.add_argument("--size-stats", type=Path, default=DEFAULT_SIZE_STATS)
+    p.add_argument("--input-dir", type=Path, default=DEFAULT_INPUT_DIR,
+                   help="Persistent input root containing batch_results/, "
+                        "gutenberg_benchmark_cache/ and pca/ "
+                        "(default: repository natural_texts/Output).")
+    p.add_argument("--size-stats", type=Path,
+                   help="Override bin definitions (default: "
+                        "<input-dir>/analysis/size_binned_metrics.json; "
+                        "built-in bins are used if absent).")
+    p.add_argument("--landmark-sc", type=Path,
+                   help="Optional landmark semantic JSON (default: "
+                        "<input-dir>/pca/generated_prefixes/landmark_sc.json).")
+    p.add_argument("--landmark-csv", type=Path,
+                   help="Override landmark endpoint CSV (default: "
+                        "<input-dir>/pca/generated_prefixes/landmark_prefix_projection_scores.csv).")
     p.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
+    return p
+
+
+def main() -> None:
+    p = build_argument_parser()
     args = p.parse_args()
+
+    size_stats = args.size_stats or args.input_dir / "analysis" / "size_binned_metrics.json"
+    landmark_dir = args.input_dir / "pca" / "generated_prefixes"
+    landmark_sc = args.landmark_sc or landmark_dir / "landmark_sc.json"
+    landmark_csv = args.landmark_csv or landmark_dir / "landmark_prefix_projection_scores.csv"
+    if args.landmark_sc is not None and not landmark_sc.is_file():
+        p.error(f"Landmark semantic file not found: {landmark_sc}")
+    if landmark_sc.exists() and not landmark_csv.is_file():
+        p.error(f"Landmark endpoint CSV not found: {landmark_csv}")
+    try:
+        size_bins = load_size_bins(size_stats)
+        natural, generated, all_features = load_data(size_bins, args.input_dir)
+    except (OSError, ValueError) as error:
+        p.error(str(error))
 
     out_dir = args.output_root / args.feature_set
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    size_bins = load_size_bins(args.size_stats)
-    natural, generated, all_features = load_data(size_bins)
     feats = select_features(all_features, args.feature_set)
 
     # per-bin (matched-size) normalization, fit on natural
@@ -843,7 +870,7 @@ def main() -> None:
 
     table = pd.DataFrame({
         "metric": [display_name(f) for f in feats],
-        "family": ["SC" if is_sc(f) else ("stat" if f in scn.STAT_INFO_METRICS else "token")
+        "family": ["SC" if is_sc(f) else ("stat" if f in STAT_INFO_METRICS else "token")
                    for f in feats],
         "fam": [fine_family(f) for f in feats],
         "VIP": vip,
@@ -934,7 +961,10 @@ def main() -> None:
     arrows = {"lv": loadings_lv[order],
               "labels": [descriptor_label(feats[i]) for i in order],
               "colors": [FAM_COLOR[fine_family(feats[i])] for i in order]}
-    landmarks = load_landmark_projection(feats, stats, pls, size_bins, components=(0, 1))
+    landmarks = load_landmark_projection(
+        feats, stats, pls, size_bins, components=(0, 1),
+        sc_path=landmark_sc, csv_path=landmark_csv,
+    )
     if landmarks is not None:
         print(f"landmark books projected: {len(landmarks['labels'])}")
     biplot_title = (f"Discriminant descriptor distribution — natural, generated "

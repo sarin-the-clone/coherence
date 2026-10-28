@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Activate the desired environment before launch, or set COHERENCE_PYTHON.
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)" || exit 1
+cd "${SCRIPT_DIR}" || exit 1
+PYTHON="${COHERENCE_PYTHON:-python3}"
+
 # Experiment Sequence
 # 1. 4096 tokens, High Entropy (8.7 - Default in adaptive_thresholds.json)
 # echo "Starting Run 1: 4096 tokens, High Entropy..."
@@ -80,7 +85,7 @@
 if [ "$1" == "10" ]; then
     # Run 10 (Fresh Start - 8k Tokens for Stability)
     while :; do
-        python3 generated_texts_og/run_longbook.py \
+        "${PYTHON}" generated_texts_og/run_longbook.py \
             --model mistral \
             --prompt "$(cat generated_texts_og/prompts/kingdom_of_kush.md)" \
             --target_tokens 1000000 \
@@ -113,7 +118,7 @@ if [ "$1" == "11" ]; then
     while :; do
         echo "Starting Run 11..."
         # NOTE: Using --run_id allows auto-resume without specifying --resume path manually
-        python3 generated_texts_og/run_longbook.py \
+        "${PYTHON}" generated_texts_og/run_longbook.py \
             --model mistral \
             --prompt_file "generated_texts_og/prompts/space_opera_last_star.md" \
             --target_tokens 1000000 \
@@ -143,7 +148,7 @@ if [ "$1" == "12" ]; then
     # Run 12 (Space Opera - Low Temp Control 0.7-1.0)
     while :; do
         echo "Starting Run 12..."
-        python3 generated_texts_og/run_longbook.py \
+        "${PYTHON}" generated_texts_og/run_longbook.py \
             --model mistral \
             --prompt_file "generated_texts_og/prompts/space_opera_last_star.md" \
             --target_tokens 1000000 \
@@ -173,7 +178,7 @@ if [ "$1" == "13" ]; then
     # Run 13 (High Temp Chaos 1.4-1.8)
     while :; do
         echo "Starting Run 13 (Chaos Mode)..."
-        python3 generated_texts_og/run_longbook.py \
+        "${PYTHON}" generated_texts_og/run_longbook.py \
             --model mistral \
             --prompt_file "generated_texts_og/prompts/space_opera_last_star.md" \
             --target_tokens 1000000 \
@@ -202,7 +207,7 @@ if [ "$1" == "14" ]; then
     # Run 14 (Chaos Mode, 4M Tokens - NO GATING)
     while :; do
         echo "Starting Run 14 (Chaos Mode, 4M Tokens, No Gating)..."
-        python3 -u generated_texts_og/run_longbook.py \
+        "${PYTHON}" -u generated_texts_og/run_longbook.py \
             --model mistral \
             --prompt_file "generated_texts_og/prompts/space_opera_last_star.md" \
             --target_tokens 4000000 \
@@ -279,7 +284,7 @@ if [[ "$1" -ge 15 && "$1" -le 32 ]]; then
             exit 1
         fi
         
-        python3 generated_texts_og/run_longbook.py \
+        "${PYTHON}" generated_texts_og/run_longbook.py \
             --model mistral \
             --prompt_file "$PROMPT_FILE" \
             --target_tokens 1000000 \
@@ -358,7 +363,7 @@ if [[ "$1" -ge 33 && "$1" -le 50 ]]; then
             exit 1
         fi
         
-        python3 -u generated_texts_og/run_longbook.py \
+        "${PYTHON}" -u generated_texts_og/run_longbook.py \
             --model mistral \
             --prompt_file "$PROMPT_FILE" \
             --target_tokens 1000000 \
@@ -387,7 +392,7 @@ if [ "$1" == "51" ]; then
     # Run 51 (Qwen 72B Test - 50k Tokens)
     while :; do
         echo "Starting Run 51 (Qwen 72B Test)..."
-        python3 -u generated_texts_og/run_longbook.py \
+        "${PYTHON}" -u generated_texts_og/run_longbook.py \
             --model qwen25_72b \
             --prompt_file "generated_texts_og/prompts/space_opera_last_star.md" \
             --target_tokens 150000 \

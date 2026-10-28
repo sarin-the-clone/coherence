@@ -1,10 +1,12 @@
 #!/bin/bash
 
-source /home/sarin/pienicolol/bin/activate
-cd /home/sarin/pienicolol/src/coherence || exit 1
+# Activate the desired environment before launch, or set COHERENCE_PYTHON.
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)" || exit 1
+cd "${SCRIPT_DIR}/.." || exit 1
+PYTHON="${COHERENCE_PYTHON:-python3}"
 
 while :; do
-    python -u generated_texts_og/run_longbook.py \
+    "${PYTHON}" -u generated_texts_og/run_longbook.py \
         --model mistral \
         --prompt_file generated_texts_og/prompts/cyberpunk_grid.md \
         --target_tokens 1000000 \

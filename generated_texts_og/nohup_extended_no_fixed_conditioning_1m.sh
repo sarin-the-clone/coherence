@@ -2,13 +2,18 @@
 
 set -u
 
-cd /home/sarin/pienicolol/src/coherence || exit 1
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)" || exit 1
+cd "${SCRIPT_DIR}/.." || exit 1
 
 mkdir -p generated_texts_og/logs
 
 batch_log="generated_texts_og/logs/run_extended_no_fixed_conditioning_1m.nohup.log"
 
-nohup setsid /bin/bash ./generated_texts_og/run_extended_no_fixed_conditioning_1m.sh > "${batch_log}" 2>&1 &
+if command -v setsid >/dev/null 2>&1; then
+    nohup setsid /bin/bash ./generated_texts_og/run_extended_no_fixed_conditioning_1m.sh > "${batch_log}" 2>&1 &
+else
+    nohup /bin/bash ./generated_texts_og/run_extended_no_fixed_conditioning_1m.sh > "${batch_log}" 2>&1 &
+fi
 pid="$!"
 
 echo "${pid}" > generated_texts_og/logs/run_extended_no_fixed_conditioning_1m.pid

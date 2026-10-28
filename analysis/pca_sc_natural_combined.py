@@ -2,11 +2,11 @@
 """
 PCA on SC-analysed natural books combining all feature families:
   - SC metrics  (W2k/W8k/W40k × off_diag_mean/novelty_mean/sim_lag1_mean)
-  - Stat/info   (beta, alpha, H_DFA*, D, delta, entropy_bits, …)
-  - Additional  (all td_/tr_/tp_ metrics)
+  - Stat/info   (8 canonical scaling/information descriptors)
+  - Token       (27 canonical td_/tr_/tp_ descriptors)
 
-Fits on the 1 064 books that have SC computed, projects them, and colours
-points by SC bin (token-size bin).
+Fits on natural books with complete canonical descriptors in the loaded
+tables, projects them, and colours points by SC bin (token-size bin).
 """
 
 from __future__ import annotations

@@ -19,10 +19,11 @@ N_ATTEMPTS="${9:-5}"
 RESTART_EVERY="${10:-200}"
 EXTRA_ARGS=("${@:11}")
 
-source /home/sarin/pienicolol/bin/activate
-cd /home/sarin/pienicolol/src/coherence || exit 1
-export HF_HUB_OFFLINE=1
-export TRANSFORMERS_OFFLINE=1
+# Activate the desired environment before launch, or set COHERENCE_PYTHON.
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)" || exit 1
+cd "${SCRIPT_DIR}/.." || exit 1
+PYTHON="${COHERENCE_PYTHON:-python3}"
+# Set HF_HUB_OFFLINE=1 and TRANSFORMERS_OFFLINE=1 for cached-only runs.
 
 stop_requested=0
 child_pid=""
@@ -37,7 +38,7 @@ handle_stop() {
 trap handle_stop INT TERM
 
 while :; do
-    python -u generated_texts_og/run_longbook.py \
+    "${PYTHON}" -u generated_texts_og/run_longbook.py \
         --model "${MODEL_NAME}" \
         --prompt_file "${PROMPT_FILE}" \
         --target_tokens "${TARGET_TOKENS}" \

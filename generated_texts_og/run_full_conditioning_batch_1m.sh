@@ -2,8 +2,8 @@
 
 set -u
 
-source /home/sarin/pienicolol/bin/activate
-cd /home/sarin/pienicolol/src/coherence || exit 1
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)" || exit 1
+cd "${SCRIPT_DIR}/.." || exit 1
 
 mkdir -p generated_texts_og/logs
 
