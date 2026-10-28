@@ -53,7 +53,8 @@ analysis/output/
 batch_15_32_log.txt
 
 natural_texts/books.zip
-natural_texts/Selected_Books
+# Local reference-book sources; keep the derived metrics versioned.
+/natural_texts/Selected_Books/*.txt
 natural_texts/Selected_Modern_Books
 natural_texts/books
 natural_texts/Converted_Txt

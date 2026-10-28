@@ -36,7 +36,7 @@ Generation and semantic analysis load local Hugging Face models. They require mo
 | [`analysis/plot_aggregate_metrics.py`](analysis/plot_aggregate_metrics.py) | Descriptor trajectories aggregated by conditioning mode. |
 | [`analysis/pca_sc_combined_size_bins.py`](analysis/pca_sc_combined_size_bins.py) | PCA combining semantic and token descriptors on the semantic subcorpus. |
 | [`natural_texts/Output/`](natural_texts/Output/) | Reference-corpus metadata, descriptor tables, and analysis outputs. |
-| [`natural_texts/Selected_Books/`](natural_texts/Selected_Books/) | Selected natural-book texts and associated trajectory measurements. |
+| [`natural_texts/Selected_Books/`](natural_texts/Selected_Books/) | Tracked trajectory measurements and instructions for obtaining local-only reference texts. |
 | [`docs/reproduction.md`](docs/reproduction.md) | Workflow, input requirements, artifact map, and reproducibility limits. |
 
 ## Descriptors
@@ -118,7 +118,9 @@ Use `--input-dir /path/to/persistent/data` for another folder containing the sam
 
 ## Data and provenance
 
-The reference corpus is based on Project Gutenberg; the repository contains selected texts, benchmark metadata, and computed descriptors. The complete downloaded book cache and the original generated run records are not supplied by a fresh clone. Their expected paths and the scripts that produce them are documented in the reproduction guide. Do not assume that a downloaded text or a newly generated book exactly recreates a historical input.
+The reference corpus is based on Project Gutenberg; the repository contains benchmark metadata and computed descriptors. Full book `.txt` files under `natural_texts/Selected_Books/` are local-only and ignored by Git. See that folder's [source list and download instructions](natural_texts/Selected_Books/README.md) before running the landmark recalculations or `test_semantic_coherence.py`. PLS-DA refitting uses the saved descriptors and does not require these texts.
+
+The complete downloaded book cache and the original generated run records are not supplied by a fresh clone. Their expected paths and the scripts that produce them are documented in the reproduction guide. Do not assume that a downloaded text or a newly generated book exactly recreates a historical input.
 
 The available files do not establish the original machine's complete software environment, model commit hashes, or GPU timings. Current installation metadata describes how to run the current code. It must not be interpreted as a recovered record of the original calculation environment.
 
