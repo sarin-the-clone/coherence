@@ -6,12 +6,14 @@ at W2k and W8k) plus a synthetic looping text to verify the novelty signal.
 """
 
 import sys
+from pathlib import Path
 import numpy as np
 
-sys.path.insert(0, "/home/sarin/pienicolol/src/coherence")
+ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
 from semantic_coherence import SemanticCoherence, SemanticCoherenceMonitor, LEVEL_WINDOW_CHARS, WINDOW_NAMES
 
-BOOK_PATH = "natural_texts/Selected_Books/108_The_Return_of_Sherlock_Holmes.txt"
+BOOK_PATH = ROOT / "natural_texts/Selected_Books/108_The_Return_of_Sherlock_Holmes.txt"
 EXCERPT_CHARS = 40_000   # enough for ~20 W2k windows and ~5 W8k windows
 
 # ---------------------------------------------------------------------------
