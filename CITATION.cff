@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "Please cite the repository version or commit used in your work."
 type: software
-title: "Coherence: long-form text generation and coherence analysis"
+title: "Natural in form, artificial in meaning: AI writing at book scale"
 authors:
   - name: "sarin-the-clone"
 repository-code: "https://github.com/sarin-the-clone/coherence"
